@@ -10,7 +10,7 @@ por API REST, fila e webhook, com isolamento multi-tenant por `X-API-Key`.
 > seguintes. Leia **[o que está pronto e o que não está](#o-que-está-pronto-e-o-que-não-está)**
 > antes de usar.
 >
-> **Escopo ampliado (após a Fase 1):** NF-e, NFC-e, CT-e, MDF-e e NFP-e, além de
+> **Escopo ampliado (após a Fase 1):** NF-e, NFC-e, CT-e e MDF-e, além de
 > DANFE A4, **DANFE Simplificado – Etiqueta** e **etiqueta de envio por volume**
 > (estilo marketplace). Ver [docs/DOCUMENTOS-FISCAIS.md](docs/DOCUMENTOS-FISCAIS.md)
 > e as Fases 7–9 no [roadmap](docs/ROADMAP.md).
@@ -243,7 +243,7 @@ Esta seção existe para não haver dúvida sobre o que está pronto.
 
 `POST /v1/representacoes?formato=...` recebe o XML **já autorizado** e devolve o
 PDF, sem gravar nada. Formatos: `danfe`, `danfe_simplificado`, `etiquetas`
-(NF-e), `cupom` (NFC-e), `dacte` (CT-e) e `danfse` (NFS-e). Serve para quem emite a NF-e
+(NF-e), `cupom` (NFC-e), `dacte` (CT-e), `damdfe` (MDF-e) e `danfse` (NFS-e). Serve para quem emite a NF-e
 no próprio ERP e usa o serviço só para o documento auxiliar e a logística.
 
 As etiquetas de volume seguem as imagens de referência: `Volume i/n`,
@@ -257,8 +257,9 @@ etiquetas.
 | Item | Situação |
 |---|---|
 | Emissão de NF-e / NFC-e | fase 7 — representação (DANFE A4, etiquetas) pronta; emissão na SEFAZ pendente |
-| Emissão de CT-e / MDF-e | fase 8 — DACTE pronto; DAMDFE e emissão pendentes |
-| NFP-e e etiquetas de volume por volume | fase 9 |
+| Emissão de CT-e / MDF-e | fase 8 — DACTE e DAMDFE prontos; emissão na SEFAZ pendente |
+| NFP-e | **fora de escopo** — não há padrão nacional publicado (ver `docs/DOCUMENTOS-FISCAIS.md`) |
+| Etiquetas de volume por volume | **pronto** (`formato=etiquetas`) |
 | MAN/DNA, DAS e guia municipal reais | provedores são determinísticos, sem integração oficial |
 | Catálogo `cClassTrib` como validação de entrada | importado; ainda não bloqueia valor inválido na emissão |
 
@@ -358,7 +359,7 @@ por **homologação** (`ambiente: "homologacao"`).
   data e ambiente.
 - **Lista de municípios com `aderenteEmissorNacional = 1`** não verificada.
 - **Cota e contrato da API Serpro** não exercitados.
-- **NFP-e, MDF-e e etiquetas** entram nas Fases 7–9.
+- **MDF-e** entra na Fase 8; **etiquetas de volume** já estão prontas; **NFP-e** foi removido do escopo.
 
 ### Para emitir de verdade, você precisa de
 

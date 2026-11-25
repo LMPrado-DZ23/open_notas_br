@@ -38,14 +38,15 @@ class TestRegistro:
         assert isinstance(representacao, DanfeSimplificado)
 
     def test_representacao_inexistente_falha_alto(self) -> None:
-        # DAMDFE (MDF-e) ainda não existe: pedir deve dar erro explícito com a
-        # lista do que existe, nunca PDF incompleto.
+        # Formato que nunca vai existir: o caminho de erro precisa listar o que
+        # existe, nunca devolver PDF incompleto. Testar contra um formato do
+        # roadmap quebraria o teste a cada fase concluída.
         with pytest.raises(RepresentacaoNaoImplementada, match="danfe"):
-            obter("mdfe", "damdfe")
+            obter("nfe", "formato_que_nao_existe")
 
-    def test_mdfe_nao_implementado(self) -> None:
-        with pytest.raises(RepresentacaoNaoImplementada, match="fases|Dispon"):
-            obter("mdfe", "damdfe")
+    def test_documento_sem_representacao(self) -> None:
+        with pytest.raises(RepresentacaoNaoImplementada, match="não existe"):
+            obter("nfce", "dacte")
 
     def test_tipo_e_imutavel(self) -> None:
         tipo = TipoRepresentacao(documento="nfe", formato="danfe_simplificado")

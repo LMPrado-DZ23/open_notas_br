@@ -26,7 +26,7 @@ Motor e microserviço de documentos fiscais brasileiros, multi-tenant, com:
 | 6 | Conectores DZ23/Brizu + OpenAPI | a fazer |
 | 7 | NF-e/NFC-e completas + DANFE A4, DANFE Simplificado/Etiqueta, cupom, etiqueta de envio | escopo ampliado |
 | 8 | CT-e, CT-e OS e MDF-e (DACTE, DAMDFE, manifesto) | escopo ampliado |
-| 9 | NFP-e e logística (rastreio, coleta, impressão em lote) | escopo ampliado |
+| 9 | Logística (rastreio, coleta, impressão em lote) | escopo ampliado — **NFP-e removido** (sem padrão nacional) |
 
 As fases 7 a 9 foram acrescentadas depois da Fase 1, a partir de pedido do
 solicitante com imagens de referência. Campos e decisões de layout em

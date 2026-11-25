@@ -16,7 +16,7 @@ Etiquetas: **[CONFIRMADO]** (verificado), **[INFERIDO]** (padrão observado),
 | CT-e | 57 | transporte de cargas | 44 dígitos | SEFAZ estadual | [CONFIRMADO] |
 | CT-e OS | 67 | transporte de pessoas/valores | 44 dígitos | SEFAZ estadual | [CONFIRMADO] |
 | MDF-e | 58 | manifesto de documentos da carga | 44 dígitos | SEFAZ estadual | [CONFIRMADO] |
-| NFP-e | estadual | produtor rural | varia por UF | SEFAZ estadual | [A VALIDAR] |
+| ~~NFP-e~~ | — | — | — | — | **fora de escopo** (ver nota) |
 
 Consequências de projeto já aplicadas:
 
@@ -108,7 +108,7 @@ Decisões:
 
 1. Layout exato do DANFE Simplificado e da etiqueta: as imagens mostram campos,
    não medidas, fontes nem normas de impressão. Confirmar contra o manual vigente.
-2. NFP-e: variação por UF, modelo e autorizador não verificados.
+2. ~~NFP-e~~: **removido do escopo em 2026-11-25** — ver nota ao fim desta seção.
 3. MDF-e: confirmação de que entra no escopo imediato — é documento de transporte,
    com ciclo de vida próprio (abertura, encerramento, inclusão de NF-e).
 4. Se a etiqueta de envio é responsabilidade do sistema ou do parceiro logístico.
@@ -122,6 +122,23 @@ acima adicionam:
 - **Fase 7:** NF-e/NFC-e completas (emissão, eventos, DANFE A4, DANFE
   Simplificado/Etiqueta, cupom NFC-e).
 - **Fase 8:** CT-e e MDF-e (DACTE, DAMDFE, ciclo de manifesto).
-- **Fase 9:** NFP-e e etiqueta de envio por volume com integração logística.
+- **Fase 9:** etiqueta de envio por volume com integração logística (NFP-e removido).
 
 Detalhe em [ROADMAP.md](ROADMAP.md).
+
+## Nota sobre NFP-e — fora de escopo (decisão de 2026-11-25)
+
+O NFP-e foi retirado do escopo por decisão do solicitante, com base em um fato
+técnico: **não há padrão nacional publicado** de NFP-e que sirva de base para
+implementação verificável. O que existe são iniciativas e modelos estaduais
+heterogêneos, sem leiaute único, sem autorizador único e sem documentação pública
+consolidada que este projeto possa seguir.
+
+Implementar sem esse lastro significaria inventar leiaute, e inventar leiaute
+fiscal é o pior resultado possível: produz documento com aparência de válido que
+a SEFAZ estadual recusa — ou pior, aceita com dado errado.
+
+**Se o cenário mudar**: havendo leiaute publicado (ou o layout específico de uma
+UF que o cliente use), o caminho de entrada já existe — o catálogo de
+representações é extensível e o `TipoDocumento` do banco já aceita o tipo. O que
+falta é o documento de referência, não a arquitetura.

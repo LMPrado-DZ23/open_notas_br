@@ -367,6 +367,17 @@ class Dacte:
         return gerar_dacte(extrair_dacte(xml))
 
 
+class Damdfe:
+    """Representação `mdfe/damdfe` — DAMDFE em A4 paisagem."""
+
+    tipo = TipoRepresentacao(documento="mdfe", formato="damdfe")
+
+    def gerar(self, xml: bytes) -> bytes:
+        from app.danfe.mdfe import extrair_damdfe, gerar_damdfe
+
+        return gerar_damdfe(extrair_damdfe(xml))
+
+
 class Danfse:
     """Representação `nfse/danfse`, delegando ao gerador do módulo DANFSe."""
 
@@ -388,6 +399,7 @@ def registrar_todas() -> None:
     registrar(EtiquetasVolume())
     registrar(CupomNfce())
     registrar(Dacte())
+    registrar(Damdfe())
     registrar(Danfse())
 
 

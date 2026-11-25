@@ -120,7 +120,7 @@ reservados às fases 7 e 8, com erro explícito se pedidos hoje.
 O pedido inicial cobria NFS-e, DANFSe e um adapter de NF-e/DANFE. O solicitante
 acrescentou, com imagens de referência: **DANFE Simplificado – Etiqueta**,
 **etiqueta de envio por volume** (estilo marketplace), e os documentos **CT-e,
-MDF-e e NFP-e**. São três fases novas, além das seis originais.
+MDF-e**. São três fases novas, além das seis originais (NFP-e foi removido — ver nota).
 
 Detalhe de campos e decisões em [DOCUMENTOS-FISCAIS.md](DOCUMENTOS-FISCAIS.md).
 
@@ -145,14 +145,14 @@ Detalhe de campos e decisões em [DOCUMENTOS-FISCAIS.md](DOCUMENTOS-FISCAIS.md).
 - Vínculo MDF-e ↔ NF-e: o manifesto referencia as chaves das notas da carga;
   a consistência entre eles é regra de negócio, não detalhe de layout.
 
-### Fase 9 — NFP-e e logística
+### Fase 9 — logística (NFP-e removido do escopo)
 
-- NFP-e conforme a UF do emitente (layout e autorizador estaduais).
+- ~~NFP-e conforme a UF do emitente~~ — **removido**: não há padrão nacional publicado.
 - Etiqueta de envio com integração logística: código de rastreio, coleta,
   consolidação por volume.
 - Impressão em lote (ZPL/PDF) e reimpressão por volume.
 
-**Risco declarado:** NFP-e é estadual e heterogêneo; assim como NFS-e municipal, não
+**Risco declarado (histórico):** NFP-e é estadual e heterogêneo; assim como NFS-e municipal, não
 será implementado pela metade. Se a UF alvo não estiver confirmada, a fase entra
 como adapter com layout por UF e apenas as UFs validadas habilitadas.
 
@@ -233,7 +233,7 @@ DZ23  reenvio     -> HTTP 200, ja_existia=true, mesmo invoice_id
 Brizu 1ª chamada  -> HTTP 201, ja_existia=false, chave=<50 dígitos>
 ```
 
-**O que NÃO está pronto** (fases 7 a 9): NF-e/NFC-e, CT-e/MDF-e, NFP-e e as
+**O que NÃO está pronto** (fases 7 a 9): emissão de NF-e/NFC-e/CT-e/MDF-e e as
 etiquetas de volume. Pedir essas representações hoje devolve 422 com a lista das
 que existem.
 
@@ -313,6 +313,38 @@ Total de representações registradas: **6** — `nfe/danfe`, `nfe/danfe_simplif
   `infNFeSupl/qrCode`, depois qualquer `qrCode`. Caminho único falharia em
   silêncio com emissores que serializam diferente.
 
-**Pendente**: DAMDFE (MDF-e) — pedir hoje devolve 422 com a lista dos formatos
-existentes. Emissão de CT-e/MDF-e na SEFAZ e DACTE simplificado seguem fora do
-alcance sem certificado e webservice.
+**DAMDFE (MDF-e) entregue** — A4 paisagem, 842×595 pt, com percurso, modal
+rodoviário (placa/tara/capacidade), documentos vinculados (chaves CT-e) e totais.
+
+**Grau de confiança menor que os outros**: NF-e e CT-e têm XSD na base de
+referência local; **MDF-e não tem**. O mapeamento segue o leiaute 3.00 de
+conhecimento geral e o PDF imprime esse aviso. Conferir contra o XSD e o MOC
+oficiais antes de produção.
+
+**Pendente**: emissão de CT-e/MDF-e na SEFAZ — exige certificado e webservice.
+
+### Catálogo completo de representações (7)
+
+| Documento | Formato | Página |
+|---|---|---|
+| NF-e | `danfe` | A4 paisagem |
+| NF-e | `danfe_simplificado` | A4 etiqueta |
+| NF-e | `etiquetas` | A4, 2 por folha |
+| NFC-e | `cupom` | bobina 80 mm |
+| CT-e | `dacte` | A4 paisagem |
+| MDF-e | `damdfe` | A4 paisagem |
+| NFS-e | `danfse` | A4 retrato |
+
+### Decisão: NFP-e fora de escopo (2026-11-25)
+
+Removido a pedido do solicitante. Motivo técnico: **não existe padrão nacional
+publicado** de NFP-e. O que há são modelos estaduais heterogêneos, sem leiaute
+único nem autorizador único.
+
+Não implementar é a decisão correta: leiaute fiscal inventado produz documento que
+parece válido e é recusado — ou aceito com dado errado. O `TipoDocumento` do banco
+e o catálogo de representações já aceitariam o tipo; o que falta é a referência
+oficial, não a arquitetura.
+
+Para reabrir: obter o leiaute publicado (ou o da UF alvo) e implementar como mais
+uma representação no catálogo.

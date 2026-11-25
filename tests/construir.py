@@ -437,3 +437,117 @@ def cte(
         _sub(info_prot, "xMotivo", "Autorizado o uso do CT-e")
 
     return para_bytes(raiz)
+
+
+# ----------------------------------------------------------------------
+# MDF-e
+# ----------------------------------------------------------------------
+NS_MDFE = "http://www.portalfiscal.inf.br/mdfe"
+
+
+def mdfe(
+    *,
+    c_uf: str = "35",
+    aamm: str = "2501",
+    serie: str = "1",
+    numero: str = "77",
+    c_mdf: str = "87654321",
+    modal: str = "1",
+    placa: str = "ABC1D23",
+    chaves_cte: tuple[str, ...] | None = None,
+    com_protocolo: bool = True,
+) -> bytes:
+    """Constrói um MDF-e 3.00 sintético.
+
+    **Marcado [A VALIDAR]**: diferente de NF-e (4.00) e CT-e (4.00), não há XSD de
+    MDF-e na base de referência local. O layout aqui segue o 3.00 de conhecimento
+    geral (ide/emit/infModal/infDoc/tot) e precisa ser conferido contra o XSD
+    oficial antes de uso em produção.
+    """
+    chave = montar_chave(
+        c_uf=c_uf,
+        aamm=aamm,
+        cnpj=CNPJ_EMITENTE,
+        modelo="58",
+        serie=serie,
+        numero=numero,
+        tp_emis="1",
+        c_nf=c_mdf,
+    )
+
+    raiz = ET.Element("mdfeProc", {"versao": "3.00", "xmlns": NS_MDFE})
+    mdfe_elem = _sub(raiz, "MDFe")
+    inf = _sub(mdfe_elem, "infMDFe", versao="3.00", Id=f"MDFe{chave}")
+
+    ide = _sub(inf, "ide")
+    _sub(ide, "cUF", c_uf)
+    _sub(ide, "cDF", c_mdf)
+    _sub(ide, "mod", "58")
+    _sub(ide, "serie", serie)
+    _sub(ide, "nMDF", numero)
+    _sub(ide, "cMDF", c_mdf)
+    _sub(ide, "cDV", chave[-1])
+    _sub(ide, "dhEmi", "2025-01-21T08:00:00-03:00")
+    _sub(ide, "tpEmis", "1")
+    _sub(ide, "tpAmb", "1")
+    _sub(ide, "tpTransp", "1")
+    _sub(ide, "modTransp", modal)
+    _sub(ide, "UFIni", "SP")
+    _sub(ide, "UFFim", "RJ")
+    # Os municípios e UFs ficam DENTRO dos grupos, não como irmãos deles.
+    mun_carrega = _sub(ide, "infMunCarrega")
+    _sub(mun_carrega, "cMunCarrega", "3550308")
+    _sub(mun_carrega, "xMunCarrega", "Sao Paulo")
+    percurso = _sub(ide, "infPercurso")
+    _sub(percurso, "UFPerc", "MG")
+
+    emit = _sub(inf, "emit")
+    _sub(emit, "CNPJ", CNPJ_EMITENTE)
+    _sub(emit, "IE", "111111111111")
+    _sub(emit, "xNome", "Transportadora Exemplo LTDA")
+    _endereco(_sub(emit, "enderEmit"), "SP")
+
+    modal_elem = _sub(inf, "infModal", versaoModal="3.00")
+    rodo = _sub(modal_elem, "rodo")
+    _sub(rodo, "placa", placa)
+    _sub(rodo, "tara", "8500")
+    _sub(rodo, "capKG", "25000")
+    _sub(rodo, "capM3", "60")
+
+    doc = _sub(inf, "infDoc")
+    mun = _sub(doc, "infMunDescarga")
+    _sub(mun, "cMunDescarga", "3304557")
+    _sub(mun, "xMunDescarga", "Rio de Janeiro")
+    for chcte in chaves_cte or (
+        montar_chave(
+            c_uf="35",
+            aamm="2501",
+            cnpj=CNPJ_EMITENTE,
+            modelo="57",
+            serie="1",
+            numero="456",
+            tp_emis="1",
+            c_nf="12345678",
+        ),
+    ):
+        inf_cte = _sub(mun, "infCTe")
+        _sub(inf_cte, "chCTe", chcte)
+
+    tot = _sub(inf, "tot")
+    _sub(tot, "qCTe", str(len(chaves_cte or (1,))))
+    _sub(tot, "qNFe", "1")
+    _sub(tot, "vCarga", "10000.00")
+    _sub(tot, "cUnid", "01")
+    _sub(tot, "qCarga", "15000.0000")
+
+    if com_protocolo:
+        protocolo = _sub(raiz, "protMDFe", versao="3.00")
+        info_prot = _sub(protocolo, "infProt")
+        _sub(info_prot, "tpAmb", "1")
+        _sub(info_prot, "chMDFe", chave)
+        _sub(info_prot, "dhRecbto", "2025-01-21T08:05:00-03:00")
+        _sub(info_prot, "nProt", "135250000000003")
+        _sub(info_prot, "cStat", "100")
+        _sub(info_prot, "xMotivo", "Autorizado o uso do MDF-e")
+
+    return para_bytes(raiz)
