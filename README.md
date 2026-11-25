@@ -27,6 +27,43 @@ multi-tenant, open source, Brasil.
 > [`docs/REFERENCIAS.md` §15](docs/REFERENCIAS.md), que lista as nove rejeições
 > reais que levaram até lá e o que cada uma ensinou.
 
+
+## Autopreenchimento no checkout
+
+Duas consultas públicas, gratuitas e com cache, para o formulário se preencher
+sozinho antes de emitir:
+
+```bash
+# CEP -> endereço completo, com o código IBGE que a nota exige
+curl "$API/v1/cep/01001-000" -H "X-API-Key: $CHAVE"
+# {"cep":"01001000","logradouro":"Praça da Sé","bairro":"Sé",
+#  "municipio":"São Paulo","uf":"SP","codigo_ibge":"3550308","fonte":"viacep"}
+
+# CNPJ -> razão social, município e IBGE
+curl "$API/v1/cnpj/64339333000122" -H "X-API-Key: $CHAVE"
+# {"razao_social":"...","municipio":"AGUAS LINDAS DE GOIAS","codigo_municipio_ibge":"5200258"}
+```
+
+| Recurso | Comportamento |
+|---|---|
+| Fonte do CEP | ViaCEP (primária) → BrasilAPI (reserva) |
+| Cache | acerto 30 dias; "não encontrado" 5 min |
+| Serviço público fora do ar | 503 pedindo preenchimento manual — o checkout não quebra |
+| CEP inexistente | 404 (distinto de 503: fonte fora do ar não é CEP inválido) |
+
+O `codigo_ibge` do CEP é o elo com a emissão: é o `municipio_ibge` que a DPS
+precisa. Sem ele o fluxo obrigaria a digitar o código IBGE à mão.
+
+## Frete automático pelo carrinho
+
+`app/frete/` traz OAuth2 do Melhor Envio e cotação por CEP com lista de produtos
+(peso, dimensões, valor segurado). O modelo comercial é **frete cotado e pago pelo
+cliente final**: cotar é somente leitura; comprar a etiqueta usa o saldo do lojista.
+
+> **[A VALIDAR]** A cotação e as rotas de etiqueta ainda **não** foram exercitadas
+> contra a API do Melhor Envio: falta o lojista autorizar o aplicativo (OAuth) para
+> que o token exista. O núcleo está testado com transporte HTTP simulado.
+
 ## Subir em um comando
 
 ```bash

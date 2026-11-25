@@ -141,6 +141,48 @@
         }
       }
     },
+    "/v1/cep/{cep}": {
+      "get": {
+        "tags": [
+          "consulta"
+        ],
+        "summary": "Autopreenche endereço a partir do CEP",
+        "description": "Consulta ViaCEP e, se preciso, BrasilAPI. Resultado fica em cache.",
+        "operationId": "consultar_cep_v1_cep__cep__get",
+        "parameters": [
+          {
+            "name": "cep",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Cep"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EnderecoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "CEP com formato inválido"
+          },
+          "404": {
+            "description": "CEP não encontrado nas fontes públicas"
+          },
+          "503": {
+            "description": "Fontes públicas indisponíveis — preencha manualmente"
+          }
+        }
+      }
+    },
     "/v1/tenants": {
       "post": {
         "tags": [
@@ -3527,8 +3569,22 @@
           "ambiente": {
             "$ref": "#/components/schemas/AmbienteFiscal",
             "default": "homologacao"
+          },
+          "municipio_ibge": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{7}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Municipio Ibge",
+            "description": "Município de incidência (7 dígitos). Obrigatório quando o tenant tem configuração fiscal para mais de um município no mesmo ambiente: a nota não escolhe município por conta própria."
           }
         },
+        "additionalProperties": false,
         "type": "object",
         "required": [
           "idempotency_key",
@@ -3536,7 +3592,7 @@
           "descricao"
         ],
         "title": "EmissaoIn",
-        "description": "Pedido de emissão de NFS-e."
+        "description": "Pedido de emissão de NFS-e.\n\nCampo desconhecido é **recusado**, não ignorado: sem `extra=\"forbid\"` um\nchamador que envia `{\"tomador\": {...}}` (objeto aninhado, em vez dos campos\nplanos) recebe 201 e a nota sai **sem tomador** — perda silenciosa de dado\nfiscal. Descoberto na primeira emissão real em Produção Restrita; ver\ndocs/REFERENCIAS.md §14."
       },
       "EmissaoOut": {
         "properties": {
@@ -3604,6 +3660,91 @@
         ],
         "title": "EmissaoOut",
         "description": "Resultado de uma emissão."
+      },
+      "EnderecoOut": {
+        "properties": {
+          "cep": {
+            "type": "string",
+            "title": "Cep"
+          },
+          "logradouro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logradouro"
+          },
+          "complemento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Complemento"
+          },
+          "bairro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bairro"
+          },
+          "municipio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Municipio"
+          },
+          "uf": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uf"
+          },
+          "codigo_ibge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codigo Ibge",
+            "description": "Código IBGE do município — é o que a emissão da nota usa."
+          },
+          "fonte": {
+            "type": "string",
+            "title": "Fonte"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cep",
+          "fonte"
+        ],
+        "title": "EnderecoOut"
       },
       "EntregaOut": {
         "properties": {
