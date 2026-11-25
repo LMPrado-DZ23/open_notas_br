@@ -449,7 +449,12 @@ def construir_dps(entrada: DpsInput) -> ET.Element:
 def dps_para_bytes(entrada: DpsInput) -> bytes:
     """Serializa a DPS em UTF-8 com declaração XML."""
     raiz = construir_dps(entrada)
-    return ET.tostring(raiz, encoding="UTF-8", xml_declaration=True)
+    # A declaração é escrita à mão de propósito: `ET.tostring(xml_declaration=True)`
+    # emite aspas SIMPLES (`encoding='UTF-8'`), e o validador da SEFIN procura o
+    # literal com aspas duplas — a DPS foi recusada com E1229 ("Xml não está
+    # utilizando codificação UTF-8") por causa disso. Ver docs/REFERENCIAS.md §14.
+    corpo = ET.tostring(raiz, encoding="UTF-8")
+    return b'<?xml version="1.0" encoding="UTF-8"?>' + corpo
 
 
 def extrair_id(dps_xml: bytes) -> str | None:

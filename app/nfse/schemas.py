@@ -16,7 +16,16 @@ from app.db.models.enums import AmbienteFiscal, OrigemFatura, StatusFatura
 
 
 class EmissaoIn(BaseModel):
-    """Pedido de emissão de NFS-e."""
+    """Pedido de emissão de NFS-e.
+
+    Campo desconhecido é **recusado**, não ignorado: sem `extra="forbid"` um
+    chamador que envia `{"tomador": {...}}` (objeto aninhado, em vez dos campos
+    planos) recebe 201 e a nota sai **sem tomador** — perda silenciosa de dado
+    fiscal. Descoberto na primeira emissão real em Produção Restrita; ver
+    docs/REFERENCIAS.md §14.
+    """
+
+    model_config = ConfigDict(extra="forbid")
 
     idempotency_key: str = Field(
         ...,

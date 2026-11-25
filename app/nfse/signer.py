@@ -34,7 +34,14 @@ from app.nfse.constants import NS_DSIG
 
 logger = logging.getLogger(__name__)
 
-C14N = CanonicalizationMethod.EXCLUSIVE_XML_CANONICALIZATION_1_0
+#: C14N do projeto. **Exclusive com comentários** (`#WithComments`) porque é o que
+#: a NFS-e Nacional usa: comparado com o documento válido de referência
+#: (`nfse_valido_com_IBSCBS.xml`, repo calculadora-rtc-regime-regular), a
+#: assinatura usa `http://www.w3.org/2001/10/xml-exc-c14n#WithComments` tanto em
+#: `CanonicalizationMethod` quanto no `Transform`. Assinar com exclusive SEM
+#: comentários faz a SEFIN recusar com **E0714** ("Arquivo enviado com erro na
+#: assinatura"). Ver docs/REFERENCIAS.md §14.
+C14N = CanonicalizationMethod.EXCLUSIVE_XML_CANONICALIZATION_1_0_WITH_COMMENTS
 #: Alternativa a testar em homologação caso a SEFIN recuse a assinatura.
 C14N_ALTERNATIVA = CanonicalizationMethod.CANONICAL_XML_1_0
 
@@ -95,12 +102,23 @@ def assinar(
 def assinar_bytes(
     xml: bytes, certificado: CertificadoA1, *, c14n: CanonicalizationMethod = C14N
 ) -> bytes:
-    """Assina um XML serializado e devolve os bytes assinados."""
+    """Assina um XML serializado e devolve os bytes assinados.
+
+    A declaração XML é recolocada à mão: `etree.tostring` **descarta** a declaração
+    ao re-serializar, e sem ela a SEFIN recusa com E1229 ("Xml não está utilizando
+    codificação UTF-8") — ela usa a declaração para detectar a codificação.
+
+    As aspas são duplas de propósito: o validador procura `encoding="UTF-8"`
+    literal, e `xml_declaration=True` do lxml emite aspas simples.
+
+    Dois erros reais, descobertos na primeira emissão em Produção Restrita.
+    """
     try:
         raiz = etree.fromstring(xml)
     except etree.XMLSyntaxError as exc:
         raise ErroAssinatura(f"XML mal formado para assinatura: {exc}") from exc
-    return etree.tostring(assinar(raiz, certificado, c14n=c14n))
+    corpo = etree.tostring(assinar(raiz, certificado, c14n=c14n))
+    return b'<?xml version="1.0" encoding="UTF-8"?>' + corpo
 
 
 def assinar_dps(dps_xml: bytes, certificado: CertificadoA1) -> bytes:
