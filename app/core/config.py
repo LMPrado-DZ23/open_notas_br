@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import base64
 import binascii
+import hashlib
 import logging
-import os
 from decimal import Decimal
 from functools import lru_cache
 from typing import Literal
@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 Ambiente = Literal["development", "staging", "production", "test"]
 
 #: Chave efêmera de desenvolvimento, criada uma vez por processo.
-_CHAVE_EFEMERA: bytes | None = None
 
 
 class Settings(BaseSettings):
@@ -113,14 +112,20 @@ class Settings(BaseSettings):
 
         - Definida no ambiente: precisa ser base64 de exatamente 32 bytes.
         - Ausente em produção: erro fatal. Nunca cai em chave padrão.
-        - Ausente em desenvolvimento: gera chave efêmera e avisa.
 
-        A chave efêmera é criada uma vez por processo. Certificado selado com ela
-        fica ilegível depois de reiniciar — o que é aceitável em dev e inaceitável
-        em produção, por isso a distinção.
+        Em desenvolvimento/teste sem chave definida, usa uma chave **determinística
+        e insegura**, derivada de constante fixa, com aviso no log.
+
+        Por que determinística e não efêmera: API e worker são processos separados
+        no `docker-compose`. Com chave efêmera por processo, a API sela o segredo
+        de webhook e o worker não consegue abrir (InvalidTag) — foi exatamente o
+        defeito observado na verificação da Fase 5. O mesmo aconteceria com o
+        certificado A1 na emissão assíncrona.
+
+        A chave fixa é pública de propósito, para que ninguém a confunda com
+        segredo: em produção a variável é obrigatória e o processo recusa subir sem
+        ela.
         """
-        global _CHAVE_EFEMERA
-
         bruto = self.master_encryption_key.strip()
         if bruto:
             try:
@@ -142,15 +147,16 @@ class Settings(BaseSettings):
                 "Sem ela, os certificados A1 não podem ser selados de forma recuperável."
             )
 
-        if _CHAVE_EFEMERA is None:
-            _CHAVE_EFEMERA = os.urandom(32)
-            if self.environment != "test":
-                logger.warning(
-                    "MASTER_ENCRYPTION_KEY ausente: usando chave efêmera em memória. "
-                    "Certificados selados agora ficarão ilegíveis após reiniciar. "
-                    "Defina MASTER_ENCRYPTION_KEY antes de usar em qualquer ambiente real."
-                )
-        return _CHAVE_EFEMERA
+        # Chave de desenvolvimento: determinística entre processos, derivada de
+        # constante pública. NUNCA é usada em produção (bloqueado acima).
+        chave_dev = hashlib.sha256(
+            b"open_notas_br:chave-de-desenvolvimento:nao-use-em-producao"
+        ).digest()
+        logger.warning(
+            "master_key_ausente_usando_chave_de_desenvolvimento",
+            extra={"ambiente": self.environment},
+        )
+        return chave_dev
 
     def reset_ephemeral_key(self) -> None:
         """Descarta a chave efêmera. Existe para isolamento entre testes."""

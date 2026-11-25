@@ -97,7 +97,7 @@ local implementa v1.01 (30/06/2026). A versão é declarada no rodapé do PDF.
 **Pendente real desta fase**: DANFE A4 de NF-e, cupom de NFC-e, DACTE e DAMDFE —
 reservados às fases 7 e 8, com erro explícito se pedidos hoje.
 
-## Fase 5 — Worker de fila, lotes e webhooks
+## Fase 5 — Worker de fila, lotes e webhooks ✅ concluída
 
 **DoD**
 
@@ -177,3 +177,36 @@ disso é alcançável por código neste ambiente.
 - Classificação fiscal automática de produto.
 - Emissão em produção sem homologação validada antes.
 - "DART nacional unificado": não existe. Guias são MAN/DNA, DAS e municipal.
+
+### Fase 5 — evidências e decisões
+
+**Webhooks**
+- Assinatura `X-Notasbr-Signature: t=<ts>,v1=<hmac>` sobre `"<ts>.<corpo>"`, com
+  tolerância de 300 s. Sem o timestamp dentro da mensagem assinada, um corpo
+  capturado poderia ser reenviado para sempre.
+- Segredo por tenant, selado com AES-256-GCM em contexto próprio
+  (`tenant:<id>:webhook`), nunca reexibido depois de criado.
+- Backoff 10 s, 30 s, 2 min, 10 min, 30 min; depois `failed` com o último motivo
+  (não desaparece).
+- 3xx é falha: o cliente não segue redirecionamento, para não entregar payload
+  assinado a outro host.
+
+**Lotes**
+- CSV com cabeçalho obrigatório; linha inválida entra no relatório e o lote
+  continua.
+- `POST /v1/lotes?processar_agora=true` processa na requisição; sem o parâmetro,
+  fica `pending` para o worker.
+
+**Dois defeitos encontrados na verificação ao vivo**
+1. `MASTER_ENCRYPTION_KEY` ausente gerava chave efêmera **por processo**. A API
+   selava o segredo de webhook e o worker não conseguia abrir (`InvalidTag`) —
+   e o mesmo ocorreria com o certificado A1 na emissão assíncrona. Em
+   desenvolvimento/teste agora a chave é determinística (constante pública, com
+   aviso); em produção continua obrigatória.
+2. Uma entrega com erro (segredo ilegível) abortava o lote inteiro de entregas,
+   travando a fila de todos os tenants. Agora o erro é isolado por entrega e
+   marcado como `failed` com o motivo.
+
+**Terceiro defeito, pego por teste**: o parse de valor removia todo ponto, então
+`100.00` virava `10000` — dez vezes o valor da nota. E `"1.234,56"` sem aspas é
+cortado pelo CSV; agora falha alto com instrução de aspas.

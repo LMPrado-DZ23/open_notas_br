@@ -5,10 +5,14 @@ SQLAlchemy async + redis.asyncio). ARQ usa o mesmo event loop e a mesma conexão
 Redis, sem broker extra nem processo pool separado. Celery traria pré-fork,
 serialização própria e mais uma superfície de configuração sem ganho aqui.
 
-Na Fase 1 o worker entrega o que é verificável: um job `ping` e um batimento
-(`heartbeat`) a cada 30 s, que o healthcheck do container usa para provar que o
-worker está realmente processando e não apenas com o processo de pé. As tarefas
-de emissão, lote e webhook entram nas Fases 5.
+Jobs:
+
+- `ping` — verificação de que a fila é consumida.
+- `heartbeat` — batimento a cada 30 s, usado pelo healthcheck do container para
+  provar que o worker **processa**, não apenas que o processo está de pé.
+- `entregar_webhooks` — retenta as entregas vencidas. O backoff real está no
+  registro (`proxima_tentativa`); o cron só define a granularidade.
+- `processar_lote` — processa um lote já criado.
 """
 
 from __future__ import annotations
@@ -45,6 +49,66 @@ async def heartbeat(ctx: dict[str, Any]) -> None:
     logger.debug("worker_heartbeat", extra={"em": agora})
 
 
+async def entregar_webhooks(ctx: dict[str, Any]) -> dict[str, int]:
+    """Entrega as webhooks vencidas.
+
+    Job de fila, e não `POST` dentro da requisição: endpoint do cliente lento não
+    pode segurar a resposta da emissão.
+    """
+    from app.db.session import obter_sessionmaker
+    from app.webhooks.service import processar_pendentes
+
+    async with obter_sessionmaker()() as sessao:
+        contagem = await processar_pendentes(sessao)
+        await sessao.commit()
+    logger.info("job_webhooks", extra={"contagem": contagem})
+    return contagem
+
+
+async def processar_lote(ctx: dict[str, Any], lote_id: str) -> str:
+    """Processa um lote criado por `POST /v1/lotes` (status PENDENTE)."""
+    import uuid
+
+    from app.batches import service as lote_service
+    from app.batches.csv import LinhaLote, LoteLido
+    from app.core.config import get_settings as settings_local
+    from app.db.models.ops import BatchJob
+    from app.db.models.tenant import Tenant
+    from app.db.session import obter_sessionmaker
+    from app.nfse.adapter import SefinMockAdapter, SefinNacionalClient
+
+    configuracao = settings_local()
+    adapter: Any = (
+        SefinMockAdapter()
+        if configuracao.nfse_adapter == "mock"
+        else SefinNacionalClient(configuracao)
+    )
+
+    async with obter_sessionmaker()() as sessao:
+        job = await sessao.get(BatchJob, uuid.UUID(lote_id))
+        if job is None:
+            return f"lote {lote_id} não encontrado"
+        tenant = await sessao.get(Tenant, job.tenant_id)
+        if tenant is None:
+            return f"tenant do lote {lote_id} não encontrado"
+
+        # O relatório gravado na criação é a fonte das linhas: o CSV original NÃO
+        # é persistido, porque é dado do cliente e não precisa ficar conosco.
+        linhas = [
+            LinhaLote(
+                numero_linha=item.get("linha", 0),
+                idempotency_key=item.get("idempotency_key") or "",
+                erro=item.get("erro"),
+            )
+            for item in (job.relatorio or [])
+        ]
+        lote = LoteLido(linhas=linhas)
+        await lote_service.processar(sessao, job, lote, tenant, adapter=adapter)
+        await sessao.commit()
+        sucesso, falhas = job.sucesso, job.falhas
+    return f"lote {lote_id}: {sucesso} sucesso, {falhas} falha(s)"
+
+
 async def ao_iniciar(ctx: dict[str, Any]) -> None:
     settings = get_settings()
     configurar_logging(settings.log_level, json_output=settings.log_json)
@@ -58,10 +122,13 @@ async def ao_encerrar(ctx: dict[str, Any]) -> None:
 class WorkerSettings:
     """Configuração consumida por `arq app.worker.main.WorkerSettings`."""
 
-    functions: ClassVar[list[Any]] = [ping]
+    functions: ClassVar[list[Any]] = [ping, entregar_webhooks, processar_lote]
     cron_jobs: ClassVar[list[Any]] = [
         # A cada 30 segundos: comprova processamento, não só processo vivo.
         cron(heartbeat, second={0, 30}, run_at_startup=True),
+        # Webhook vencida é retentada a cada 15 s. O backoff real está no registro
+        # (`proxima_tentativa`); esta frequência só define a granularidade.
+        cron(entregar_webhooks, second=set(range(0, 60, 15)), run_at_startup=True),
     ]
     redis_settings = RedisSettings.from_dsn(get_settings().redis_url)
     on_startup = ao_iniciar

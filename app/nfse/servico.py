@@ -84,6 +84,42 @@ async def _config_do_tenant(
     return config
 
 
+async def _notificar_autorizacao(
+    sessao: AsyncSession,
+    tenant: Tenant,
+    invoice: Invoice,
+    documento: FiscalDocument,
+) -> None:
+    """Registra o evento de webhook da nota autorizada.
+
+    Isolado e tolerante a falha de propósito: webhook é notificação, não parte da
+    transação fiscal. Se a criação do registro falhar, a nota continua autorizada
+    e o erro vai para o log — o inverso seria perder nota porque o cliente tem
+    endpoint mal configurado.
+    """
+    from app.webhooks import service as webhook_service
+
+    try:
+        await webhook_service.enfileirar(
+            sessao,
+            tenant,
+            tipo_evento="nfse.autorizada",
+            payload={
+                "invoice_id": str(invoice.id),
+                "chave": documento.chave,
+                "valor": str(invoice.valor_servico),
+                "competencia": invoice.competencia,
+                "idempotency_key": invoice.idempotency_key,
+                "tipo_documento": documento.tipo_documento.value,
+            },
+        )
+    except Exception as exc:
+        logger.warning(
+            "webhook_nao_enfileirado",
+            extra={"invoice_id": str(invoice.id), "erro": str(exc)[:200]},
+        )
+
+
 async def _reservar_numero_dps_no_banco(sessao: AsyncSession, config: TenantFiscalConfig) -> int:
     """Incrementa o contador de DPS atomicamente e devolve o número reservado.
 
@@ -305,6 +341,7 @@ async def emitir(
         dps_assinada=dps_assinada,
         ambiente=config.ambiente,
     )
+    await _notificar_autorizacao(sessao, tenant, invoice, documento)
     return documento
 
 
