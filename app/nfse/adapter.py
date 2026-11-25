@@ -416,8 +416,16 @@ class SefinNacionalClient:
         (``cTribNac`` de 6 + ``.000``). Sem esse cadastro a SEFIN recusa a DPS com
         E0312, então esta consulta evita uma rejeição previsível.
 
-        [A VALIDAR] Esta rota não tem documentação oficial publicada segundo a
-        referência; o formato do código de serviço foi descoberto por tentativa.
+        **[CONFIRMADO] que este caminho NÃO existe** (probe de 2026-11-25 com
+        certificado A1 ICP-Brasil real contra o ADN de homologação): o servidor
+        respondeu HTTP 404 com página IIS, ou seja, rota inexistente — não é
+        "não encontrado" de domínio.
+
+        Consequência: qualquer chamada aqui devolve 404 e não traz alíquota. A
+        consulta de parametrização precisa do caminho correto, que segue
+        **[A VALIDAR]** contra o manual do ADN. Enquanto isso, quem precisa da
+        alíquota deve informá-la na configuração fiscal do tenant, em vez de
+        depender desta consulta.
         """
         url = (
             f"{self.adn_base_url}/parametrizacao/{c_mun}/"

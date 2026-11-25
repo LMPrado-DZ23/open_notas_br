@@ -109,7 +109,14 @@ def assinar_dps(dps_xml: bytes, certificado: CertificadoA1) -> bytes:
 
 
 def verificar(xml: bytes | etree._Element, certificado: CertificadoA1 | None = None) -> bool:
-    """Verifica a assinatura contra o certificado informado.
+    """Verifica a assinatura e devolve ``True``/``False``.
+
+    **Atenção ao retorno**: esta função não levanta exceção quando a assinatura é
+    inválida — ela devolve ``False``. Quem chama e ignora o retorno trata
+    documento adulterado como válido. Verificado na prática: um script de
+    diagnóstico escreveu `verificar(xml, cert)` sem usar o resultado e concluiu
+    "adulteração aceita". Para fluxo onde falhar precisa ser impossível de
+    ignorar, use :func:`exigir_assinatura_valida`.
 
     Usar em teste e em diagnóstico. **Não** valida cadeia ICP-Brasil nem
     revogação: prova integridade em relação àquele certificado, nada além.
@@ -129,6 +136,23 @@ def verificar(xml: bytes | etree._Element, certificado: CertificadoA1 | None = N
         logger.warning("assinatura_invalida", extra={"erro": type(exc).__name__})
         return False
     return True
+
+
+
+def exigir_assinatura_valida(
+    xml: bytes | etree._Element, certificado: CertificadoA1
+) -> None:
+    """Como :func:`verificar`, mas levanta quando a assinatura não confere.
+
+    Existe porque `verificar` devolve booleano, e booleano ignorado vira falso
+    positivo silencioso. Em caminho fiscal — aceitar documento de terceiro,
+    conferir XML recebido — a falha precisa ser impossível de ignorar.
+    """
+    if not verificar(xml, certificado):
+        raise ErroAssinatura(
+            "assinatura XMLDSig não confere: o documento foi alterado depois de "
+            "assinado ou foi assinado com outro certificado"
+        )
 
 
 def assinatura_sem_prefixo(xml: bytes) -> bool:

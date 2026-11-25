@@ -234,8 +234,8 @@ Esta seção existe para não haver dúvida sobre o que está pronto.
 
 | Item | O que validar |
 |---|---|
-| Emissão na SEFIN | payload real aceito; hoje só temos a recusa 403 por certificado autoassinado |
-| Contrato da API SEFIN | todos os `[A VALIDAR]` de `docs/REFERENCIAS.md` §7 |
+| Emissão na SEFIN | mTLS e `GET /dps/{id}` **já confirmados** com A1 real (ver `docs/REFERENCIAS.md` §11); falta validar o payload de emissão |
+| Contrato da API SEFIN | consulta e ADN confirmados com A1 real (§11); emissão, cancelamento e eventos seguem `[A VALIDAR]` |
 | Cancelamento e eventos | fluxo completo com nota real |
 | DANFSe | leiaute conferido contra o manual vigente (NT 008 v1.02 vs v1.01 implementada) |
 

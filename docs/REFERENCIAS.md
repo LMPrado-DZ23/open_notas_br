@@ -447,3 +447,64 @@ Segunda consequência: no SQL, a versão de 2026 não recebe data-fim quando a d
 Ressalva: os dados vêm do SQL da calculadora, não de um endpoint oficial de
 catálogo. Se a Receita publicar uma lista canônica diferente, esta deve passar a
 ser a fonte.
+
+---
+
+## 11. SEFIN/ADN com certificado A1 ICP-Brasil real — o que ficou CONFIRMADO
+
+Em 25/11/2026 este projeto foi exercitado contra a **Produção Restrita (homologação)**
+da NFS-e Nacional usando um certificado **A1 ICP-Brasil e-CNPJ real** do solicitante
+(emitido pela AC SAFE-ID BRASIL / SERPRO). Nenhuma nota foi emitida: só consultas
+de leitura.
+
+O certificado não é versionado, a senha não foi gravada em disco, log ou documento,
+e o registro selado foi **removido** do banco de desenvolvimento ao fim do teste.
+
+### 11.1 O que passou a ser [CONFIRMADO]
+
+| Afirmação | Evidência observada |
+|---|---|
+| mTLS com A1 ICP-Brasil é aceito pela SEFIN | handshake concluído; resposta de aplicação, não erro de TLS |
+| Base de homologação `sefin.producaorestrita.nfse.gov.br` | raiz respondeu **HTTP 301** |
+| `GET /dps/{id}` existe | **HTTP 404** com corpo JSON de domínio |
+| 404 = DPS inexistente | `erro.codigo = E2404` |
+| Envelope de erro em JSON | `{"tipoAmbiente", "dataHoraProcessamento", "erro": {"codigo", "descricao"}}` |
+| Código `E2404` | "Não foi gerada uma NFS-e com o identificador de DPS informado" |
+| `GET {adn}/contribuintes/DFe/{nsu}?lote=true` existe | **HTTP 400** com envelope de domínio |
+| Envelope do ADN | `{TipoConsulta, StatusProcessamento, LoteDFe, Alertas, Erros, TipoAmbiente, VersaoAplicativo, DataHoraProcessamento}` |
+| `StatusProcessamento` decide o resultado | veio `REJEICAO` com `TipoConsulta: InscricaoCertificado` |
+| Nosso parser entende o erro real | `extrair_mensagens` extraiu `E2404` corretamente |
+
+### 11.2 O que o mesmo teste mostrou estar ERRADO
+
+`GET {adn}/parametrizacao/{municipio}/{servico}.000/{competencia}/aliquota`
+respondeu **HTTP 404 com página IIS** — ou seja, **rota inexistente**, e não
+"não encontrado" de domínio. O caminho documentado no código estava errado.
+
+Consequência aplicada: `SefinNacionalClient.aliquota_municipal` agora declara
+`[CONFIRMADO] que este caminho NÃO existe` e recomenda informar a alíquota na
+configuração fiscal do tenant em vez de depender da consulta. O caminho correto
+segue `[A VALIDAR]` contra o manual do ADN.
+
+### 11.3 O que continua [A VALIDAR]
+
+- Contrato de **emissão** (`POST /nfse`): exige emitir, o que não foi autorizado.
+  Nada em `payload` de DPS foi validado pela SEFIN.
+- Cancelamento e eventos por chave.
+- `HEAD /dps/{id}` — não exercitado.
+- Caminho correto da parametrização municipal.
+
+### 11.4 Cofre com certificado real
+
+O fluxo completo do cofre foi exercitado com o A1 real:
+
+| Passo | Resultado |
+|---|---|
+| upload `POST /v1/me/certificados` | 201, CNPJ extraído do certificado |
+| selagem AES-256-GCM | persistida; conteúdo não recuperável sem a chave-mestra |
+| `GET /v1/me/certificados/saude` | validade lida, `dias_restantes` calculado |
+| `DELETE` | 204, lista vazia |
+
+Um detalhe operacional que o teste revelou: o certificado do solicitante tinha
+**44 dias** de validade restante na data. O endpoint de saúde expõe exatamente
+isso, que é o dado que evita nota parada por certificado vencido.
