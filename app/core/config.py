@@ -72,6 +72,15 @@ class Settings(BaseSettings):
     sefin_permitir_host_nao_oficial: bool = False
     #: `sefin` = cliente real (padrão). `mock` = dublê determinístico, para
     #: demonstrar o fluxo sem certificado real e rodar a suíte em CI.
+    # -- Frete / etiqueta de envio (Melhor Envio) -----------------------
+    # Credenciais do APLICATIVO (uma por plataforma, não por lojista). O token de
+    # cada lojista é obtido por OAuth e guardado cifrado por tenant; nunca aqui.
+    melhor_envio_client_id: str = ""
+    melhor_envio_client_secret: str = ""
+    melhor_envio_redirect_uri: str = ""
+    # Sandbox por padrão: etiqueta em produção custa dinheiro de verdade.
+    melhor_envio_sandbox: bool = True
+
     nfse_adapter: str = "sefin"
 
     # -- CNPJ (Fase 3) ------------------------------------------------
