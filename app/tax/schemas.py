@@ -76,3 +76,24 @@ class AliquotaOut(BaseModel):
     ibs_uf: str
     ibs_mun: str
     fonte: str
+
+
+class ClassificacaoOut(BaseModel):
+    """Uma classificação tributária do IBS/CBS em uma vigência."""
+
+    codigo: str
+    descricao: str
+    tipo_aliquota: str = ""
+    nomenclatura: str = ""
+    inicio_vigencia: str = ""
+    fim_vigencia: str = ""
+    anexo: str = ""
+
+
+class CatalogoOut(BaseModel):
+    """Metadados do catálogo, para auditoria da procedência."""
+
+    fonte: str | None = None
+    total: int | None = None
+    codigos_distintos: int | None = None
+    aviso: str | None = None

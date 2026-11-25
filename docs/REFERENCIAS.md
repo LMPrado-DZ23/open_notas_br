@@ -419,3 +419,31 @@ contrato só será validado com A1 real.
 e estava sendo guardada inteira na mensagem do erro. Agora mensagens são
 resumidas a 300 caracteres e HTML vira "resposta HTML do servidor", para não
 poluir banco, log e webhook com ruído que esconde o código real.
+
+### 9.3 Catálogo de cClassTrib — [CONFIRMADO] com ressalva de versionamento
+
+Extraído de `CLASSIFICACAO_TRIBUTARIA` pelo script `scripts/extrair_classificacoes.py`
+(fica no repo para reprodutibilidade). Resultado: **168 registros, 155 códigos
+distintos** — a diferença prova o ponto abaixo.
+
+**Achado que mudou o modelo de dados:** o catálogo oficial **reusa códigos entre
+vigências**. O código `000001` existe duas vezes:
+
+| id | início vigência | descrição |
+|---|---|---|
+| 1 | 2026-01-01 | Situações tributadas integralmente pelo IBS e CBS. |
+| 139 | 2027-01-01 | Primeiro fornecimento a qualquer título de bem |
+
+Consequência obrigatória: deduplicar por código apagaria a versão vigente de uma
+competência e faria o sistema validar nota de 2026 contra a classificação de
+2027. O catálogo é consultado por `(código, ano)`; sem ano, devolve a versão mais
+recente e o comportamento está documentado.
+
+Segunda consequência: no SQL, a versão de 2026 não recebe data-fim quando a de
+2027 entra. A substituição é implícita. Modelar isso como intervalo simples
+(`inicio <= data <= fim`) faria a versão antiga parecer válida para sempre.
+`vigentes_em()` resolve escolhendo, por código, a versão mais recente já iniciada.
+
+Ressalva: os dados vêm do SQL da calculadora, não de um endpoint oficial de
+catálogo. Se a Receita publicar uma lista canônica diferente, esta deve passar a
+ser a fonte.

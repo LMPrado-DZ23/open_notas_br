@@ -6,9 +6,12 @@ documento. Serve para o parceiro conferir valor antes de pedir a nota.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import date
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.api.deps import tenant_atual
+from app.tax import classificacoes
 from app.tax.rtc import (
     TABELA_ALIQUOTAS,
     BaseCalculoNfse,
@@ -16,7 +19,13 @@ from app.tax.rtc import (
     aliquotas_do_ano,
     calcular_ibscbs,
 )
-from app.tax.schemas import AliquotaOut, SimulacaoIn, SimulacaoOut
+from app.tax.schemas import (
+    AliquotaOut,
+    CatalogoOut,
+    ClassificacaoOut,
+    SimulacaoIn,
+    SimulacaoOut,
+)
 
 HTTP_422 = 422
 
@@ -124,3 +133,50 @@ async def aliquota_do_ano(ano: int) -> AliquotaOut:
         ibs_mun=str(referencia.ibs_mun),
         fonte=referencia.fonte,
     )
+
+
+@router.get(
+    "/tax/classificacoes",
+    response_model=list[ClassificacaoOut],
+    summary="Catálogo de classificação tributária do IBS/CBS (cClassTrib)",
+)
+async def listar_classificacoes(
+    ano: int | None = Query(default=None, description="Filtra pela vigência do ano"),
+    busca: str | None = Query(default=None, description="Trecho da descrição ou o código"),
+    limite: int = Query(default=50, ge=1, le=200),
+) -> list[ClassificacaoOut]:
+    """O catálogo é **versionado**: o mesmo código tem descrições diferentes em
+    anos diferentes. Informe `ano` para obter a versão vigente na competência."""
+    quando = date(ano, 1, 1) if ano else None
+    encontradas = (
+        classificacoes.pesquisar(busca or "", quando=quando, limite=limite)
+        if busca
+        else list(classificacoes.vigentes_em(quando))[:limite]
+        if quando
+        else list(classificacoes.todas())[:limite]
+    )
+    return [ClassificacaoOut(**c.to_dict()) for c in encontradas]
+
+
+@router.get(
+    "/tax/classificacoes/catalogo",
+    response_model=CatalogoOut,
+    summary="Procedência e tamanho do catálogo de classificações",
+)
+async def catalogo_classificacoes() -> CatalogoOut:
+    return CatalogoOut(**classificacoes.metadados())
+
+
+@router.get(
+    "/tax/classificacoes/{codigo}",
+    response_model=ClassificacaoOut,
+    summary="Consulta uma classificação pelo código",
+)
+async def obter_classificacao(
+    codigo: str,
+    ano: int | None = Query(default=None, description="Ano de vigência desejado"),
+) -> ClassificacaoOut:
+    achada = classificacoes.buscar(codigo, quando=date(ano, 1, 1) if ano else None)
+    if achada is None:
+        raise HTTPException(status_code=404, detail=f"classificação {codigo} não encontrada")
+    return ClassificacaoOut(**achada.to_dict())
