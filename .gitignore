@@ -1,0 +1,58 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+wheels/
+pip-wheel-metadata/
+
+# Ambientes virtuais
+.venv/
+venv/
+ENV/
+env/
+
+# Ferramentas
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.nox/
+
+# --- Fiscal / dados sensíveis ---
+# XML de nota fiscal contém CNPJ, CPF, endereço e valores: nunca versionar.
+*.xml
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+!tests/fixtures/**/*.xml
+dados/
+entrada/
+saida/
+lotes/
+
+# --- Editores / SO ---
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Local ---
+.env
+.env.*
+!.env.example
+*.log
