@@ -138,10 +138,7 @@ def verificar(xml: bytes | etree._Element, certificado: CertificadoA1 | None = N
     return True
 
 
-
-def exigir_assinatura_valida(
-    xml: bytes | etree._Element, certificado: CertificadoA1
-) -> None:
+def exigir_assinatura_valida(xml: bytes | etree._Element, certificado: CertificadoA1) -> None:
     """Como :func:`verificar`, mas levanta quando a assinatura não confere.
 
     Existe porque `verificar` devolve booleano, e booleano ignorado vira falso

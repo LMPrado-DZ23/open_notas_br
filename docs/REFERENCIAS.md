@@ -508,3 +508,27 @@ O fluxo completo do cofre foi exercitado com o A1 real:
 Um detalhe operacional que o teste revelou: o certificado do solicitante tinha
 **44 dias** de validade restante na data. O endpoint de saúde expõe exatamente
 isso, que é o dado que evita nota parada por certificado vencido.
+
+### 11.5 Validação estrutural contra o XSD oficial — [CONFIRMADO]
+
+A DPS gerada por este projeto valida contra o **`DPS_v1.01.xsd` oficial**, nas duas
+formas:
+
+| Caso | Resultado |
+|---|---|
+| DPS não assinada | **válida** |
+| DPS assinada (com `Signature` dentro de `infDPS`) | **válida** |
+| DPS com grupo IBS/CBS | **válida** |
+| DPS sem o grupo `valores` (controle negativo) | **recusada** pelo schema |
+
+O controle negativo importa: sem ele, o teste de validação poderia passar sem
+validar nada. Um schema que aceita tudo não prova estrutura.
+
+Os XSD ficam versionados em `tests/fixtures/schemas/nfse-1.01/` (216 KB) para que a
+validação rode **offline** e seja reproduzível — ver `ORIGEM.md` naquela pasta.
+
+**Limite declarado**: validação de schema prova *forma*. Não prova aceitação pela
+SEFIN, que depende de regra de negócio (cadastro do município, serviço, alíquota).
+E o XSD 1.01 usa padrão numérico de CNPJ: CNPJ alfanumérico (julho/2026) não é
+coberto por esta versão do leiaute — há teste que documenta essa lacuna em vez de
+escondê-la.
