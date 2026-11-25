@@ -142,9 +142,7 @@ def _requisitar_token(
 
     access = dados_resposta.get("access_token")
     if not access:
-        raise ErroMelhorEnvio(
-            "resposta sem access_token: " + str(dados_resposta)[:300]
-        )
+        raise ErroMelhorEnvio("resposta sem access_token: " + str(dados_resposta)[:300])
 
     expira_em = None
     if expira_em_segundos := dados_resposta.get("expires_in"):

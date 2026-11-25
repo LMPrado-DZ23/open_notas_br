@@ -105,9 +105,7 @@ class TestIdDaDps:
 
 
 class TestOrientacao:
-    @pytest.mark.parametrize(
-        "codigo", ["E0312", "E0008", "E0714", "E1229", "E2401", "E2404"]
-    )
+    @pytest.mark.parametrize("codigo", ["E0312", "E0008", "E0714", "E1229", "E2401", "E2404"])
     def test_codigos_reais_tem_orientacao(self, codigo: str) -> None:
         dica = orientacao(codigo)
         assert dica and len(dica) > 40

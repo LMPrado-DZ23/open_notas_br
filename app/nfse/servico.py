@@ -277,11 +277,7 @@ def _montar_entrada(
             # Simples (opSimpNac = 1) em município ATIVO no padrão nacional não
             # pode informar alíquota — quem calcula é o município. Informar a
             # alíquota nesse caso é recusa certa.
-            p_aliq=(
-                None
-                if op_simp_nac == "1"
-                else _aliquota_em_percentual(config.aliquota_iss)
-            ),
+            p_aliq=(None if op_simp_nac == "1" else _aliquota_em_percentual(config.aliquota_iss)),
         ),
         ibscbs=ibscbs,
         ver_aplic=VER_APLIC_PADRAO,
@@ -320,9 +316,7 @@ async def emitir(
         )
         return existente
 
-    config = await _config_do_tenant(
-        sessao, tenant.id, invoice.ambiente, municipio_ibge
-    )
+    config = await _config_do_tenant(sessao, tenant.id, invoice.ambiente, municipio_ibge)
 
     registro_cert = await certificados.ativo(sessao, tenant.id)
     if registro_cert is None:

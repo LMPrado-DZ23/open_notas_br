@@ -52,9 +52,7 @@ class TestUrlDeAutorizacao:
         assert "state=tenant-a" in url
 
     def test_usa_producao_quando_pedido(self) -> None:
-        url = autorizacao_url(
-            client_id="1", redirect_uri="https://x", state="s", sandbox=False
-        )
+        url = autorizacao_url(client_id="1", redirect_uri="https://x", state="s", sandbox=False)
         assert url.startswith(BASE_PRODUCAO)
 
     def test_escopos_vao_separados_por_espaco(self) -> None:
@@ -181,9 +179,7 @@ def cliente_com(resposta) -> MelhorEnvioClient:
     def manipulador(request: httpx.Request) -> httpx.Response:
         return resposta
 
-    return MelhorEnvioClient(
-        "token", sandbox=True, transporte=httpx.MockTransport(manipulador)
-    )
+    return MelhorEnvioClient("token", sandbox=True, transporte=httpx.MockTransport(manipulador))
 
 
 class TestCotacao:
