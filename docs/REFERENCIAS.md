@@ -588,3 +588,70 @@ produção.
 Um ajuste saiu daí: quando o ADN devolve `REJEICAO` com `Erros: []` (acontece), a
 mensagem antes dizia "recusou sem informar motivo". Agora inclui `TipoConsulta`
 (ex.: `InscricaoCertificado`), que é a pista real para o operador.
+
+---
+
+## 12. Cancelamento de NFS-e — estrutura tirada do XSD, não de memória
+
+O `pedRegEvento` do leiaute 1.01 foi implementado a partir do XSD oficial
+(`tiposEventos_v1.01.xsd`, versionado em `tests/fixtures/schemas/nfse-1.01/`).
+
+### 12.1 Estrutura [CONFIRMADO] pelo schema
+
+```
+pedRegEvento
+└── infPedReg (Id)
+    ├── tpAmb           1 | 2
+    ├── verAplic        1..20 caracteres
+    ├── dhEvento        TSDateTimeUTC
+    ├── CNPJAutor
+    ├── chNFSe          50: [0-9]{6}[0-9A-Z]{14}[0-9]{30}
+    └── e101101         cancelamento
+        ├── xDesc
+        ├── cMotivo     1 | 2 | 9
+        └── xMotivo     15..255 caracteres
+```
+
+O leiaute aceita **16 tipos de evento** (grupos `e101101`, `e105102`, `e202201`,
+`e305101`…). Só o cancelamento (`e101101`) está implementado.
+
+### 12.2 Dois erros que o schema pegou e a leitura do campo não pegaria
+
+**1. O `Id` do pedido é `PRE`, com 59 caracteres — não `EVT` com 62.**
+O pattern é `PRE[0-9]{8}(1[0-9]{14}|2[0-9A-Z]{14})[0-9]{33}`, `maxLength` 59.
+Existe um segundo identificador, `EVT` + chave + tipo + `nPedRegEvento` = 62
+(`TSIdEvento`), que pertence ao evento **já registrado**. Usar `EVT` no pedido é
+recusado por `maxLength` — e o código pareceria certo, porque a documentação do
+tipo `TSIdEvento` descreve exatamente `EVT…`.
+
+**2. `TSDateTimeUTC` não aceita `Z`.**
+Apesar do nome, o pattern exige offset numérico com minutos zerados
+(`+00:00`, `-03:00`). Emitir `2026-11-25T16:30:00Z` é recusado.
+
+Ambos viraram teste, com **controle negativo**: o teste monta o XML com `EVT` e com
+`Z` e verifica que o schema recusa. Sem isso, um teste de validação pode passar sem
+validar nada.
+
+### 12.3 [INFERIDO] — o que o XSD não diz
+
+Os significados de `cMotivo` (1, 2, 9) **não estão no schema**. As descrições em
+`MOTIVOS_CANCELAMENTO` ("Erro na emissão", "Serviço não prestado", "Outros") vêm do
+uso corrente, não de fonte oficial. O enquadramento correto é decisão do
+contribuinte com o contador; o código não escolhe por ninguém.
+
+### 12.4 Regras que o serviço aplica
+
+- Só cancela **documento autorizado**: cancelar rascunho tentaria evento para chave
+  que não existe na SEFIN.
+- O **autor do evento é o CNPJ do certificado ativo**, não o do cadastro. Quem
+  assina responde pelo pedido; divergência entre os dois permitiria assinar por
+  outra pessoa jurídica.
+- Cancelamento repetido devolve **409** com o estado atual.
+- A nota cancelada **continua guardada** com o XML autorizado: nota cancelada ainda
+  precisa ser demonstrável em fiscalização.
+
+### 12.5 [A VALIDAR]
+
+O `POST` de registro de evento **não foi exercitado** contra a SEFIN (é escrita).
+O payload valida contra o XSD, mas aceitação real — códigos de retorno, prazo de
+cancelamento, exigência de motivo específico por município — segue não verificado.

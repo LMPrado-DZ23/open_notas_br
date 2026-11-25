@@ -1086,6 +1086,102 @@
         }
       }
     },
+    "/v1/emissoes/cancelamento/motivos": {
+      "get": {
+        "tags": [
+          "emissao"
+        ],
+        "summary": "Motivos de cancelamento aceitos pelo leiaute",
+        "operationId": "motivos_de_cancelamento_v1_emissoes_cancelamento_motivos_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Motivos De Cancelamento V1 Emissoes Cancelamento Motivos Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/emissoes/{invoice_id}/cancelamento": {
+      "post": {
+        "tags": [
+          "emissao"
+        ],
+        "summary": "Cancela a NFS-e autorizada",
+        "description": "Cancela emitindo evento assinado.\n\nSó documento autorizado pode ser cancelado, e o autor do evento é o CNPJ do\ncertificado ativo — quem assina responde pelo pedido.",
+        "operationId": "cancelar_emissao_v1_emissoes__invoice_id__cancelamento_post",
+        "parameters": [
+          {
+            "name": "invoice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Invoice Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelamentoIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelamentoOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Emissão não encontrada"
+          },
+          "409": {
+            "description": "Emissão não está autorizada ou já está cancelada"
+          },
+          "422": {
+            "description": "Motivo inválido"
+          }
+        }
+      }
+    },
     "/v1/cnpj/{cnpj}": {
       "get": {
         "tags": [
@@ -2774,6 +2870,74 @@
           "arquivo"
         ],
         "title": "Body_gerar_representacao_v1_representacoes_post"
+      },
+      "CancelamentoIn": {
+        "properties": {
+          "c_motivo": {
+            "type": "string",
+            "title": "C Motivo",
+            "description": "Código do motivo: 1, 2 ou 9 (conforme o leiaute)",
+            "examples": [
+              "1"
+            ]
+          },
+          "x_motivo": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 15,
+            "title": "X Motivo",
+            "description": "Descrição do motivo (15 a 255 caracteres, exigido pelo schema)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "c_motivo",
+          "x_motivo"
+        ],
+        "title": "CancelamentoIn",
+        "description": "Pedido de cancelamento da NFS-e."
+      },
+      "CancelamentoOut": {
+        "properties": {
+          "invoice_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Invoice Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "chave": {
+            "type": "string",
+            "title": "Chave"
+          },
+          "data_processamento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Processamento"
+          },
+          "motivos": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Motivos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "invoice_id",
+          "status",
+          "chave"
+        ],
+        "title": "CancelamentoOut"
       },
       "CatalogoOut": {
         "properties": {

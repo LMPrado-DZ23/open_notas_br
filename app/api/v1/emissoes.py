@@ -11,6 +11,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,9 +27,11 @@ from app.db.models.enums import StatusFatura, TipoDocumento
 from app.db.models.invoice import FiscalDocument, Invoice
 from app.db.models.tenant import Tenant
 from app.db.session import get_session
+from app.nfse import cancelamento as cancelamento_service
 from app.nfse import servico as emissao_service
 from app.nfse.adapter import SefinMockAdapter
 from app.nfse.errors import ErroSefin
+from app.nfse.evento import MOTIVOS_CANCELAMENTO
 from app.nfse.schemas import DocumentoOut, EmissaoDetalheOut, EmissaoIn, EmissaoOut
 from app.nfse.servico import (
     CertificadoAusente,
@@ -311,4 +314,102 @@ async def baixar_representacao(
         content=pdf,
         media_type="application/pdf",
         headers={"Content-Disposition": f'inline; filename="{nome}"'},
+    )
+
+
+class CancelamentoIn(BaseModel):
+    """Pedido de cancelamento da NFS-e."""
+
+    c_motivo: str = Field(
+        ...,
+        description="Código do motivo: 1, 2 ou 9 (conforme o leiaute)",
+        examples=["1"],
+    )
+    x_motivo: str = Field(
+        ...,
+        min_length=15,
+        max_length=255,
+        description="Descrição do motivo (15 a 255 caracteres, exigido pelo schema)",
+    )
+
+
+class CancelamentoOut(BaseModel):
+    invoice_id: uuid.UUID
+    status: str
+    chave: str
+    data_processamento: str | None = None
+    motivos: dict[str, str] = Field(default_factory=dict)
+
+
+@router.get(
+    "/emissoes/cancelamento/motivos",
+    summary="Motivos de cancelamento aceitos pelo leiaute",
+)
+async def motivos_de_cancelamento() -> dict[str, str]:
+    return MOTIVOS_CANCELAMENTO
+
+
+@router.post(
+    "/emissoes/{invoice_id}/cancelamento",
+    response_model=CancelamentoOut,
+    summary="Cancela a NFS-e autorizada",
+    responses={
+        404: {"description": "Emissão não encontrada"},
+        409: {"description": "Emissão não está autorizada ou já está cancelada"},
+        422: {"description": "Motivo inválido"},
+    },
+)
+async def cancelar_emissao(
+    invoice_id: uuid.UUID,
+    dados: CancelamentoIn,
+    tenant: Tenant = Depends(tenant_atual),
+    db: AsyncSession = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+) -> CancelamentoOut:
+    """Cancela emitindo evento assinado.
+
+    Só documento autorizado pode ser cancelado, e o autor do evento é o CNPJ do
+    certificado ativo — quem assina responde pelo pedido.
+    """
+    resultado = await db.execute(
+        select(Invoice).where(Invoice.tenant_id == tenant.id, Invoice.id == invoice_id)
+    )
+    invoice = resultado.scalar_one_or_none()
+    if invoice is None:
+        raise HTTPException(status_code=404, detail="emissão não encontrada")
+
+    adaptador = SefinMockAdapter(invoice.ambiente) if settings.nfse_adapter == "mock" else None
+
+    try:
+        resposta = await cancelamento_service.cancelar(
+            db,
+            tenant,
+            invoice,
+            c_motivo=dados.c_motivo,
+            x_motivo=dados.x_motivo,
+            adapter=adaptador,
+            settings=settings,
+        )
+        await db.commit()
+    except cancelamento_service.DocumentoNaoAutorizado as exc:
+        await db.rollback()
+        raise HTTPException(status_code=HTTP_409, detail=str(exc)) from exc
+    except cancelamento_service.MotivoInvalido as exc:
+        await db.rollback()
+        raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
+    except cancelamento_service.ErroDeCancelamento as exc:
+        await db.rollback()
+        raise HTTPException(status_code=HTTP_409, detail=str(exc)) from exc
+    except ErroSefin as exc:
+        await db.commit()
+        raise HTTPException(status_code=502, detail=exc.as_dict()) from exc
+
+    documento = await _documento_da_fatura(db, invoice)
+    await db.refresh(invoice)
+    return CancelamentoOut(
+        invoice_id=invoice.id,
+        status=invoice.status.value,
+        chave=documento.chave if documento else "",
+        data_processamento=resposta.data_processamento,
+        motivos=MOTIVOS_CANCELAMENTO,
     )
