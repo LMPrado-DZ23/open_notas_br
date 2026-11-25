@@ -145,6 +145,74 @@ o XML que o motor gerar ou receber. O serviço é o extra `app`.
 - **XML com DTD é recusado** pela biblioteca de auditoria (defesa contra expansão
   de entidade).
 
+
+## Integração com DZ23 e Brizu
+
+Os dois parceiros têm rota dedicada, porque o payload de cada um é diferente. O
+conector traduz; o serviço fiscal é o mesmo (mesmo certificado, mesma
+idempotência, mesmo registro).
+
+**Idempotência entre sistemas**: a `idempotency_key` é `dz23:<evento_id>` ou
+`brizu:<evento_id>`. Reenvio do mesmo evento devolve **200** com a nota existente,
+não cria segunda nota. O prefixo evita colisão entre parceiros que usem o mesmo
+identificador.
+
+### DZ23 — venda/fatura paga
+
+```bash
+curl -X POST http://127.0.0.1:8081/v1/integracoes/dz23/vendas \
+  -H "X-API-Key: <chave do tenant>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "evento_id": "venda-1234",
+    "valor": 150.00,
+    "descricao": "Corte + barba",
+    "competencia": "2026-11",
+    "cliente": {"nome": "Ana Silva", "documento": "11144477735"},
+    "pedido_id": "PED-77"
+  }'
+```
+
+| Campo | Obrigatório | Uso |
+|---|---|---|
+| `evento_id` | sim | vira `idempotency_key` |
+| `valor` | sim | aceita número ou `"R$ 1.234,56"` |
+| `descricao` | sim | descrição do serviço na nota |
+| `competencia` | não | `AAAA-MM`; padrão é o mês corrente |
+| `cliente` | não | `nome`, `documento`, `email` viram tomador |
+| `pedido_id` | não | guardado como `referencia_externa` |
+
+### Brizu — atendimento/agendamento pago
+
+Mesmo contrato, com `servico` no lugar de `descricao` e `agendamento_id` no lugar
+de `pedido_id` — é o vocabulário da plataforma.
+
+```bash
+curl -X POST http://127.0.0.1:8081/v1/integracoes/brizu/atendimentos \
+  -H "X-API-Key: <chave do tenant>" \
+  -H "Content-Type: application/json" \
+  -d '{"evento_id": "ag-9876", "valor": 90.00, "servico": "Escova"}'
+```
+
+### Respostas
+
+| Código | Significado |
+|---|---|
+| `201` | nota autorizada |
+| `200` | evento já processado; devolve a nota existente |
+| `422` | payload inválido **ou** tenant sem config fiscal/certificado |
+
+A distinção importa: `422` com `{"motivo": "tenant_sem_pre_requisito"}` significa
+que o parceiro não deve retentar — falta cadastro do lado do tenant. Qualquer
+retentativa com o mesmo `evento_id` é segura.
+
+### Webhook de volta
+
+Configurado em `POST /v1/me/webhook`. Assinatura
+`X-Notasbr-Signature: t=<timestamp>,v1=<hmac>` sobre `"<timestamp>.<corpo>"`.
+Verificação de referência em `scripts/receptor_webhook.py` — validar o timestamp
+é obrigatório, senão um corpo capturado pode ser reenviado.
+
 ## O que está pronto e o que não está
 
 **Pronto e verificado nesta máquina**
@@ -154,7 +222,7 @@ o XML que o motor gerar ou receber. O serviço é o extra `app`.
 - Migração inicial com as 9 tabelas, sem drift (`alembic check`).
 - Multi-tenant com API key, rotação, isolamento e configuração fiscal por município.
 - Worker ARQ com batimento e healthcheck próprio.
-- 283 testes passando; `openapi.json` gerado do app.
+- 526 testes passando; `openapi.json` gerado do app (34 rotas, 43 schemas).
 
 **Caminho real da emissão (Fase 2 concluída, Fase 3 parcial)**
 

@@ -106,7 +106,7 @@ reservados às fases 7 e 8, com erro explícito se pedidos hoje.
 - Webhook assinado com HMAC-SHA256, retry com backoff exponencial, registro em
   `webhook_deliveries`.
 
-## Fase 6 — Conectores DZ23 e Brizu + OpenAPI
+## Fase 6 — Conectores DZ23 e Brizu + OpenAPI ✅ concluída
 
 **DoD**
 
@@ -210,3 +210,29 @@ disso é alcançável por código neste ambiente.
 **Terceiro defeito, pego por teste**: o parse de valor removia todo ponto, então
 `100.00` virava `10000` — dez vezes o valor da nota. E `"1.234,56"` sem aspas é
 cortado pelo CSV; agora falha alto com instrução de aspas.
+
+### Fase 6 — evidências
+
+**Conectores** (`app/integrations/`)
+- `POST /v1/integracoes/dz23/vendas` e `POST /v1/integracoes/brizu/atendimentos`.
+- `idempotency_key` derivada de `dz23:<evento_id>` / `brizu:<evento_id>`: reenvio
+  do parceiro devolve 200 com a nota existente, nunca segunda nota.
+- Prefixo por parceiro evita colisão quando dois parceiros usam o mesmo id.
+- Erro de pré-requisito do tenant (sem config fiscal, sem certificado) vira
+  **422 com `motivo`**, não 500: parceiro não deve retentar algo que só o dono do
+  tenant resolve.
+
+**Contrato**
+- `openapi.json` regenerado: **34 rotas, 43 schemas**.
+- README com tabela de campos de cada parceiro e tabela de códigos de resposta.
+
+**Verificado ao vivo**
+```
+DZ23  1ª chamada  -> HTTP 201, ja_existia=false, chave=<50 dígitos>
+DZ23  reenvio     -> HTTP 200, ja_existia=true, mesmo invoice_id
+Brizu 1ª chamada  -> HTTP 201, ja_existia=false, chave=<50 dígitos>
+```
+
+**O que NÃO está pronto** (fases 7 a 9): NF-e/NFC-e, CT-e/MDF-e, NFP-e e as
+etiquetas de volume. Pedir essas representações hoje devolve 422 com a lista das
+que existem.

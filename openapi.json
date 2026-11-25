@@ -1,16 +1,3240 @@
 {
+  "openapi": "3.1.0",
+  "info": {
+    "title": "open_notas_br",
+    "description": "\nMotor e microserviço de **documentos fiscais brasileiros**.\n\nCobre emissão e gestão de NFS-e (padrão nacional), geração local de DANFSe,\napuração de tributos com guias plugáveis e entrega de webhook assinada.\n\n## Isolamento multi-tenant\n\nToda rota de recurso fiscal exige o header `X-API-Key`. O `tenant_id` é derivado\n**exclusivamente** da credencial: nunca de corpo ou query. Uma credencial de um\ntenant não alcança dados de outro.\n\n## Estado de prontidão\n\nAs integrações com SEFIN/ADN, prefeitura e Serpro são implementadas sobre\nadapters com URL base vinda de configuração. Os trechos que dependem de\ndocumentação oficial não verificada estão marcados como **[A VALIDAR]** no\ncódigo, no `docs/REFERENCIAS.md` e no README. Nada aqui substitui homologação\noficial.\n",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "0.2.0"
+  },
+  "paths": {
+    "/health/live": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Liveness: o processo está de pé",
+        "operationId": "vivo_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VivoOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Readiness: banco e Redis respondem",
+        "operationId": "saude_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaudeOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependência indisponível"
+          }
+        }
+      }
+    },
+    "/version": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Versão do serviço e do contrato",
+        "operationId": "versao_version_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersaoOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health/live": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Liveness: o processo está de pé",
+        "operationId": "vivo_v1_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VivoOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Readiness: banco e Redis respondem",
+        "operationId": "saude_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaudeOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependência indisponível"
+          }
+        }
+      }
+    },
+    "/v1/version": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Versão do serviço e do contrato",
+        "operationId": "versao_v1_version_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersaoOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tenants": {
+      "post": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Cria um tenant e devolve a API key (uma única vez)",
+        "operationId": "criar_tenant_v1_tenants_post",
+        "parameters": [
+          {
+            "name": "X-Admin-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Token administrativo",
+              "title": "X-Admin-Token"
+            },
+            "description": "Token administrativo"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantCriadoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Lista tenants (administrativo)",
+        "operationId": "listar_tenants_v1_tenants_get",
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "deslocamento",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Deslocamento"
+            }
+          },
+          {
+            "name": "X-Admin-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Token administrativo",
+              "title": "X-Admin-Token"
+            },
+            "description": "Token administrativo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaTenants"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me": {
+      "get": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Dados do tenant autenticado",
+        "operationId": "meu_tenant_v1_me_get",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/rotacionar-chave": {
+      "post": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Gera nova API key e invalida a anterior",
+        "operationId": "rotacionar_chave_v1_me_rotacionar_chave_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantKeyRotacionadaOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/config-fiscal": {
+      "put": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Cria ou atualiza a configuração fiscal de um município",
+        "operationId": "definir_config_fiscal_v1_me_config_fiscal_put",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TenantFiscalConfigIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TenantFiscalConfigOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Lista as configurações fiscais do tenant",
+        "operationId": "listar_config_fiscal_v1_me_config_fiscal_get",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TenantFiscalConfigOut"
+                  },
+                  "title": "Response Listar Config Fiscal V1 Me Config Fiscal Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/certificados": {
+      "post": {
+        "tags": [
+          "certificados"
+        ],
+        "summary": "Envia o certificado A1 (.pfx/.p12) e sela no cofre",
+        "operationId": "enviar_certificado_v1_me_certificados_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_enviar_certificado_v1_me_certificados_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificadoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "certificados"
+        ],
+        "summary": "Lista os certificados do tenant",
+        "operationId": "listar_certificados_v1_me_certificados_get",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CertificadoOut"
+                  },
+                  "title": "Response Listar Certificados V1 Me Certificados Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/certificados/saude": {
+      "get": {
+        "tags": [
+          "certificados"
+        ],
+        "summary": "Diagnóstico do certificado ativo",
+        "operationId": "saude_certificado_v1_me_certificados_saude_get",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaudeCertificadoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/certificados/{certificado_id}/ativar": {
+      "post": {
+        "tags": [
+          "certificados"
+        ],
+        "summary": "Ativa um certificado (desativa os demais)",
+        "operationId": "ativar_certificado_v1_me_certificados__certificado_id__ativar_post",
+        "parameters": [
+          {
+            "name": "certificado_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Certificado Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CertificadoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/certificados/{certificado_id}": {
+      "delete": {
+        "tags": [
+          "certificados"
+        ],
+        "summary": "Remove o certificado do cofre",
+        "operationId": "remover_certificado_v1_me_certificados__certificado_id__delete",
+        "parameters": [
+          {
+            "name": "certificado_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Certificado Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/emissoes": {
+      "post": {
+        "tags": [
+          "emissao"
+        ],
+        "summary": "Emite a NFS-e de um serviço (idempotente por idempotency_key)",
+        "operationId": "emitir_v1_emissoes_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmissaoIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmissaoOut"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "A idempotency_key já havia sido processada"
+          },
+          "422": {
+            "description": "Configuração fiscal ou certificado ausente"
+          },
+          "502": {
+            "description": "A SEFIN recusou ou está indisponível"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "emissao"
+        ],
+        "summary": "Lista as emissões do tenant",
+        "operationId": "listar_emissoes_v1_emissoes_get",
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "deslocamento",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Deslocamento"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EmissaoOut"
+                  },
+                  "title": "Response Listar Emissoes V1 Emissoes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/emissoes/{invoice_id}": {
+      "get": {
+        "tags": [
+          "emissao"
+        ],
+        "summary": "Consulta uma emissão, com o XML autorizado",
+        "operationId": "consultar_emissao_v1_emissoes__invoice_id__get",
+        "parameters": [
+          {
+            "name": "invoice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Invoice Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmissaoDetalheOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/emissoes/{invoice_id}/danfse": {
+      "get": {
+        "tags": [
+          "emissao"
+        ],
+        "summary": "Gera o DANFSe (PDF) localmente a partir do XML autorizado",
+        "operationId": "baixar_danfse_v1_emissoes__invoice_id__danfse_get",
+        "parameters": [
+          {
+            "name": "invoice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Invoice Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF do DANFSe",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "404": {
+            "description": "Emissão não encontrada"
+          },
+          "422": {
+            "description": "Emissão sem XML autorizado"
+          }
+        }
+      }
+    },
+    "/v1/emissoes/{invoice_id}/representacao": {
+      "get": {
+        "tags": [
+          "emissao"
+        ],
+        "summary": "Representação impressa do documento (DANFE simplificado, DANFSe)",
+        "description": "Escolhe a representação pelo tipo do documento.\n\nPedir representação inexistente devolve 422 com a lista do que existe — nunca\num PDF incompleto, que pareceria válido.",
+        "operationId": "baixar_representacao_v1_emissoes__invoice_id__representacao_get",
+        "parameters": [
+          {
+            "name": "invoice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Invoice Id"
+            }
+          },
+          {
+            "name": "formato",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "danfe_simplificado (NF-e) ou danfse (NFS-e)",
+              "default": "danfe_simplificado",
+              "title": "Formato"
+            },
+            "description": "danfe_simplificado (NF-e) ou danfse (NFS-e)"
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF da representação",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "404": {
+            "description": "Emissão não encontrada"
+          },
+          "422": {
+            "description": "Representação não existe para este documento"
+          }
+        }
+      }
+    },
+    "/v1/cnpj/{cnpj}": {
+      "get": {
+        "tags": [
+          "cnpj"
+        ],
+        "summary": "Consulta e enriquece um CNPJ (cache + fontes públicas)",
+        "operationId": "consultar_cnpj_v1_cnpj__cnpj__get",
+        "parameters": [
+          {
+            "name": "cnpj",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Cnpj"
+            }
+          },
+          {
+            "name": "usar_cache",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Permite ignorar o cache",
+              "default": true,
+              "title": "Usar Cache"
+            },
+            "description": "Permite ignorar o cache"
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Consultar Cnpj V1 Cnpj  Cnpj  Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "CNPJ válido não encontrado nas fontes"
+          },
+          "422": {
+            "description": "CNPJ inválido"
+          },
+          "503": {
+            "description": "Fontes indisponíveis"
+          }
+        }
+      }
+    },
+    "/v1/tax/aliquotas": {
+      "get": {
+        "tags": [
+          "tributacao"
+        ],
+        "summary": "Alíquotas de referência de IBS/CBS por ano",
+        "operationId": "listar_aliquotas_v1_tax_aliquotas_get",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AliquotaOut"
+                  },
+                  "title": "Response Listar Aliquotas V1 Tax Aliquotas Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tax/simular": {
+      "post": {
+        "tags": [
+          "tributacao"
+        ],
+        "summary": "Simula CBS e IBS de uma NFS-e com parâmetros explícitos",
+        "operationId": "simular_v1_tax_simular_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulacaoIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulacaoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Parâmetro inválido ou base negativa"
+          }
+        }
+      }
+    },
+    "/v1/tax/aliquotas/{ano}": {
+      "get": {
+        "tags": [
+          "tributacao"
+        ],
+        "summary": "Alíquota de referência de um ano específico",
+        "operationId": "aliquota_do_ano_v1_tax_aliquotas__ano__get",
+        "parameters": [
+          {
+            "name": "ano",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Ano"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AliquotaOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tax/classificacoes": {
+      "get": {
+        "tags": [
+          "tributacao"
+        ],
+        "summary": "Catálogo de classificação tributária do IBS/CBS (cClassTrib)",
+        "description": "O catálogo é **versionado**: o mesmo código tem descrições diferentes em\nanos diferentes. Informe `ano` para obter a versão vigente na competência.",
+        "operationId": "listar_classificacoes_v1_tax_classificacoes_get",
+        "parameters": [
+          {
+            "name": "ano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtra pela vigência do ano",
+              "title": "Ano"
+            },
+            "description": "Filtra pela vigência do ano"
+          },
+          {
+            "name": "busca",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Trecho da descrição ou o código",
+              "title": "Busca"
+            },
+            "description": "Trecho da descrição ou o código"
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClassificacaoOut"
+                  },
+                  "title": "Response Listar Classificacoes V1 Tax Classificacoes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tax/classificacoes/catalogo": {
+      "get": {
+        "tags": [
+          "tributacao"
+        ],
+        "summary": "Procedência e tamanho do catálogo de classificações",
+        "operationId": "catalogo_classificacoes_v1_tax_classificacoes_catalogo_get",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tax/classificacoes/{codigo}": {
+      "get": {
+        "tags": [
+          "tributacao"
+        ],
+        "summary": "Consulta uma classificação pelo código",
+        "operationId": "obter_classificacao_v1_tax_classificacoes__codigo__get",
+        "parameters": [
+          {
+            "name": "codigo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Codigo"
+            }
+          },
+          {
+            "name": "ano",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Ano de vigência desejado",
+              "title": "Ano"
+            },
+            "description": "Ano de vigência desejado"
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClassificacaoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/apuracoes": {
+      "post": {
+        "tags": [
+          "apuracao"
+        ],
+        "summary": "Consolida a competência (só documentos autorizados)",
+        "operationId": "consolidar_v1_apuracoes_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApuracaoIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApuracaoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Competência inválida"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "apuracao"
+        ],
+        "summary": "Lista as apurações do tenant",
+        "operationId": "listar_v1_apuracoes_get",
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "deslocamento",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Deslocamento"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApuracaoOut"
+                  },
+                  "title": "Response Listar V1 Apuracoes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/apuracoes/{apuracao_id}": {
+      "get": {
+        "tags": [
+          "apuracao"
+        ],
+        "summary": "Detalhe da apuração, com avisos e alíquota usada",
+        "operationId": "detalhar_v1_apuracoes__apuracao_id__get",
+        "parameters": [
+          {
+            "name": "apuracao_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Apuracao Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApuracaoDetalheOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/apuracoes/{apuracao_id}/guia": {
+      "post": {
+        "tags": [
+          "apuracao"
+        ],
+        "summary": "Gera a guia da apuração com o provedor configurado",
+        "operationId": "gerar_guia_v1_apuracoes__apuracao_id__guia_post",
+        "parameters": [
+          {
+            "name": "apuracao_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Apuracao Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuiaOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Provedor não conseguiu gerar (ex.: municipal sem layout)"
+          }
+        }
+      }
+    },
+    "/v1/lotes": {
+      "post": {
+        "tags": [
+          "lotes"
+        ],
+        "summary": "Importa CSV de emissões e cria o lote",
+        "operationId": "criar_lote_v1_lotes_post",
+        "parameters": [
+          {
+            "name": "processar_agora",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Processa na requisição em vez de enfileirar",
+              "default": false,
+              "title": "Processar Agora"
+            },
+            "description": "Processa na requisição em vez de enfileirar"
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_criar_lote_v1_lotes_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoteDetalheOut"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Arquivo maior que 5 MB"
+          },
+          "422": {
+            "description": "CSV inválido (sem cabeçalho ou sem linhas)"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "lotes"
+        ],
+        "summary": "Lista os lotes do tenant",
+        "operationId": "listar_lotes_v1_lotes_get",
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "deslocamento",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Deslocamento"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LoteOut"
+                  },
+                  "title": "Response Listar Lotes V1 Lotes Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/lotes/{lote_id}": {
+      "get": {
+        "tags": [
+          "lotes"
+        ],
+        "summary": "Detalhe do lote com relatório linha a linha",
+        "operationId": "detalhar_lote_v1_lotes__lote_id__get",
+        "parameters": [
+          {
+            "name": "lote_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Lote Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoteDetalheOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/webhook": {
+      "post": {
+        "tags": [
+          "lotes"
+        ],
+        "summary": "Configura a URL de webhook e devolve o segredo uma única vez",
+        "operationId": "configurar_webhook_v1_me_webhook_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookConfigIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookConfigOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "lotes"
+        ],
+        "summary": "Mostra a URL configurada (sem expor o segredo)",
+        "operationId": "ver_webhook_v1_me_webhook_get",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookConfigOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/webhook/entregas": {
+      "get": {
+        "tags": [
+          "lotes"
+        ],
+        "summary": "Lista as entregas de webhook do tenant",
+        "operationId": "listar_entregas_v1_me_webhook_entregas_get",
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EntregaOut"
+                  },
+                  "title": "Response Listar Entregas V1 Me Webhook Entregas Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/integracoes/dz23/vendas": {
+      "post": {
+        "tags": [
+          "integracoes"
+        ],
+        "summary": "DZ23: venda/fatura paga vira NFS-e",
+        "operationId": "dz23_venda_v1_integracoes_dz23_vendas_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventoParceiroOut"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Evento já processado (idempotente)"
+          },
+          "422": {
+            "description": "Payload inválido"
+          }
+        }
+      }
+    },
+    "/v1/integracoes/brizu/atendimentos": {
+      "post": {
+        "tags": [
+          "integracoes"
+        ],
+        "summary": "Brizu: atendimento pago vira NFS-e",
+        "operationId": "brizu_atendimento_v1_integracoes_brizu_atendimentos_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventoParceiroOut"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Evento já processado (idempotente)"
+          },
+          "422": {
+            "description": "Payload inválido"
+          }
+        }
+      }
+    }
+  },
   "components": {
     "schemas": {
+      "AliquotaOut": {
+        "properties": {
+          "ano": {
+            "type": "integer",
+            "title": "Ano"
+          },
+          "cbs": {
+            "type": "string",
+            "title": "Cbs"
+          },
+          "ibs": {
+            "type": "string",
+            "title": "Ibs"
+          },
+          "ibs_uf": {
+            "type": "string",
+            "title": "Ibs Uf"
+          },
+          "ibs_mun": {
+            "type": "string",
+            "title": "Ibs Mun"
+          },
+          "fonte": {
+            "type": "string",
+            "title": "Fonte"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ano",
+          "cbs",
+          "ibs",
+          "ibs_uf",
+          "ibs_mun",
+          "fonte"
+        ],
+        "title": "AliquotaOut",
+        "description": "Alíquota de referência de um ano, com a repartição do IBS."
+      },
       "AmbienteFiscal": {
+        "type": "string",
         "enum": [
           "homologacao",
           "producao"
         ],
-        "title": "AmbienteFiscal",
-        "type": "string"
+        "title": "AmbienteFiscal"
+      },
+      "ApuracaoDetalheOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "competencia": {
+            "type": "string",
+            "title": "Competencia"
+          },
+          "provedor": {
+            "$ref": "#/components/schemas/ProvedorGuia"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StatusApuracao"
+          },
+          "total_servicos": {
+            "type": "string",
+            "title": "Total Servicos"
+          },
+          "total_iss": {
+            "type": "string",
+            "title": "Total Iss"
+          },
+          "total_tributos": {
+            "type": "string",
+            "title": "Total Tributos"
+          },
+          "quantidade_documentos": {
+            "type": "integer",
+            "title": "Quantidade Documentos"
+          },
+          "guia_numero": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guia Numero"
+          },
+          "vencimento": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vencimento"
+          },
+          "linha_digitavel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linha Digitavel"
+          },
+          "erro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Erro"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "payload": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "competencia",
+          "provedor",
+          "status",
+          "total_servicos",
+          "total_iss",
+          "total_tributos",
+          "quantidade_documentos",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ApuracaoDetalheOut",
+        "description": "Apuração com o payload de auditoria (avisos, alíquota usada, faturas)."
+      },
+      "ApuracaoIn": {
+        "properties": {
+          "competencia": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}$",
+            "title": "Competencia",
+            "description": "AAAA-MM. Só documentos autorizados na competência entram.",
+            "examples": [
+              "2026-11"
+            ]
+          },
+          "provedor": {
+            "$ref": "#/components/schemas/ProvedorGuia",
+            "default": "man"
+          },
+          "ambiente": {
+            "$ref": "#/components/schemas/AmbienteFiscal",
+            "default": "homologacao"
+          }
+        },
+        "type": "object",
+        "required": [
+          "competencia"
+        ],
+        "title": "ApuracaoIn",
+        "description": "Pedido de consolidação de uma competência."
+      },
+      "ApuracaoOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "competencia": {
+            "type": "string",
+            "title": "Competencia"
+          },
+          "provedor": {
+            "$ref": "#/components/schemas/ProvedorGuia"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StatusApuracao"
+          },
+          "total_servicos": {
+            "type": "string",
+            "title": "Total Servicos"
+          },
+          "total_iss": {
+            "type": "string",
+            "title": "Total Iss"
+          },
+          "total_tributos": {
+            "type": "string",
+            "title": "Total Tributos"
+          },
+          "quantidade_documentos": {
+            "type": "integer",
+            "title": "Quantidade Documentos"
+          },
+          "guia_numero": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guia Numero"
+          },
+          "vencimento": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vencimento"
+          },
+          "linha_digitavel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linha Digitavel"
+          },
+          "erro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Erro"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "competencia",
+          "provedor",
+          "status",
+          "total_servicos",
+          "total_iss",
+          "total_tributos",
+          "quantidade_documentos",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ApuracaoOut",
+        "description": "Apuração consolidada."
+      },
+      "Body_criar_lote_v1_lotes_post": {
+        "properties": {
+          "arquivo": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Arquivo",
+            "description": "CSV com cabeçalho"
+          }
+        },
+        "type": "object",
+        "required": [
+          "arquivo"
+        ],
+        "title": "Body_criar_lote_v1_lotes_post"
+      },
+      "Body_enviar_certificado_v1_me_certificados_post": {
+        "properties": {
+          "arquivo": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Arquivo",
+            "description": "Arquivo .pfx ou .p12"
+          },
+          "senha": {
+            "type": "string",
+            "title": "Senha",
+            "description": "Senha do certificado"
+          },
+          "apelido": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Apelido"
+          }
+        },
+        "type": "object",
+        "required": [
+          "arquivo",
+          "senha",
+          "apelido"
+        ],
+        "title": "Body_enviar_certificado_v1_me_certificados_post"
+      },
+      "CatalogoOut": {
+        "properties": {
+          "fonte": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fonte"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          },
+          "codigos_distintos": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codigos Distintos"
+          },
+          "aviso": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aviso"
+          }
+        },
+        "type": "object",
+        "title": "CatalogoOut",
+        "description": "Metadados do catálogo, para auditoria da procedência."
+      },
+      "CertificadoOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "apelido": {
+            "type": "string",
+            "title": "Apelido"
+          },
+          "cnpj": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cnpj"
+          },
+          "subject_cn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Cn"
+          },
+          "emissor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emissor"
+          },
+          "numero_serie": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numero Serie"
+          },
+          "valido_de": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valido De"
+          },
+          "valido_ate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valido Ate"
+          },
+          "fingerprint_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fingerprint Sha256"
+          },
+          "ativo": {
+            "type": "boolean",
+            "title": "Ativo"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "dias_restantes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dias Restantes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "apelido",
+          "ativo",
+          "created_at"
+        ],
+        "title": "CertificadoOut",
+        "description": "Metadados do certificado. Sem PFX, sem senha, sem chave privada."
+      },
+      "ClassificacaoOut": {
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "title": "Codigo"
+          },
+          "descricao": {
+            "type": "string",
+            "title": "Descricao"
+          },
+          "tipo_aliquota": {
+            "type": "string",
+            "title": "Tipo Aliquota",
+            "default": ""
+          },
+          "nomenclatura": {
+            "type": "string",
+            "title": "Nomenclatura",
+            "default": ""
+          },
+          "inicio_vigencia": {
+            "type": "string",
+            "title": "Inicio Vigencia",
+            "default": ""
+          },
+          "fim_vigencia": {
+            "type": "string",
+            "title": "Fim Vigencia",
+            "default": ""
+          },
+          "anexo": {
+            "type": "string",
+            "title": "Anexo",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo",
+          "descricao"
+        ],
+        "title": "ClassificacaoOut",
+        "description": "Uma classificação tributária do IBS/CBS em uma vigência."
+      },
+      "DocumentoOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "tipo_documento": {
+            "type": "string",
+            "title": "Tipo Documento"
+          },
+          "ambiente": {
+            "type": "string",
+            "title": "Ambiente"
+          },
+          "chave": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chave"
+          },
+          "emitido_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Emitido Em"
+          },
+          "tem_xml_autorizado": {
+            "type": "boolean",
+            "title": "Tem Xml Autorizado",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tipo_documento",
+          "ambiente"
+        ],
+        "title": "DocumentoOut",
+        "description": "Documento fiscal gerado."
+      },
+      "EmissaoDetalheOut": {
+        "properties": {
+          "invoice_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Invoice Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StatusFatura"
+          },
+          "valor": {
+            "type": "string",
+            "title": "Valor"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "title": "Idempotency Key"
+          },
+          "documento": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DocumentoOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "chave": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chave"
+          },
+          "erro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Erro"
+          },
+          "ja_existia": {
+            "type": "boolean",
+            "title": "Ja Existia",
+            "description": "True quando a idempotency_key já tinha sido processada.",
+            "default": false
+          },
+          "xml_autorizado": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Xml Autorizado"
+          }
+        },
+        "type": "object",
+        "required": [
+          "invoice_id",
+          "status",
+          "valor",
+          "idempotency_key"
+        ],
+        "title": "EmissaoDetalheOut",
+        "description": "Emissão com o XML autorizado, para conferência e download."
+      },
+      "EmissaoIn": {
+        "properties": {
+          "idempotency_key": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Idempotency Key",
+            "description": "Chave única por tenant. Reenvio com a mesma chave devolve a emissão existente.",
+            "examples": [
+              "dz23-venda-8842"
+            ]
+          },
+          "valor": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Valor"
+          },
+          "descricao": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Descricao"
+          },
+          "competencia": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Competencia",
+            "description": "AAAA-MM; vazio usa a data atual"
+          },
+          "tomador_documento": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tomador Documento"
+          },
+          "tomador_nome": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tomador Nome"
+          },
+          "tomador_email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tomador Email"
+          },
+          "referencia_externa": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Referencia Externa",
+            "description": "Id no sistema de origem (venda no DZ23, atendimento no Brizu)."
+          },
+          "origem": {
+            "$ref": "#/components/schemas/OrigemFatura",
+            "default": "api"
+          },
+          "ambiente": {
+            "$ref": "#/components/schemas/AmbienteFiscal",
+            "default": "homologacao"
+          }
+        },
+        "type": "object",
+        "required": [
+          "idempotency_key",
+          "valor",
+          "descricao"
+        ],
+        "title": "EmissaoIn",
+        "description": "Pedido de emissão de NFS-e."
+      },
+      "EmissaoOut": {
+        "properties": {
+          "invoice_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Invoice Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StatusFatura"
+          },
+          "valor": {
+            "type": "string",
+            "title": "Valor"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "title": "Idempotency Key"
+          },
+          "documento": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DocumentoOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "chave": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chave"
+          },
+          "erro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Erro"
+          },
+          "ja_existia": {
+            "type": "boolean",
+            "title": "Ja Existia",
+            "description": "True quando a idempotency_key já tinha sido processada.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "invoice_id",
+          "status",
+          "valor",
+          "idempotency_key"
+        ],
+        "title": "EmissaoOut",
+        "description": "Resultado de uma emissão."
+      },
+      "EntregaOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "tipo_evento": {
+            "type": "string",
+            "title": "Tipo Evento"
+          },
+          "url_destino": {
+            "type": "string",
+            "title": "Url Destino"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "tentativas": {
+            "type": "integer",
+            "title": "Tentativas"
+          },
+          "codigo_http": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codigo Http"
+          },
+          "ultimo_erro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimo Erro"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "tipo_evento",
+          "url_destino",
+          "status",
+          "tentativas"
+        ],
+        "title": "EntregaOut"
       },
       "EstadoDependencia": {
         "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
           "detalhe": {
             "anyOf": [
               {
@@ -21,17 +3245,120 @@
               }
             ],
             "title": "Detalhe"
-          },
-          "ok": {
-            "title": "Ok",
-            "type": "boolean"
           }
         },
+        "type": "object",
         "required": [
           "ok"
         ],
-        "title": "EstadoDependencia",
-        "type": "object"
+        "title": "EstadoDependencia"
+      },
+      "EventoParceiroOut": {
+        "properties": {
+          "parceiro": {
+            "type": "string",
+            "title": "Parceiro"
+          },
+          "evento_id": {
+            "type": "string",
+            "title": "Evento Id"
+          },
+          "idempotency_key": {
+            "type": "string",
+            "title": "Idempotency Key"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "ja_existia": {
+            "type": "boolean",
+            "title": "Ja Existia"
+          },
+          "invoice_id": {
+            "type": "string",
+            "title": "Invoice Id"
+          },
+          "chave": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chave"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parceiro",
+          "evento_id",
+          "idempotency_key",
+          "status",
+          "ja_existia",
+          "invoice_id"
+        ],
+        "title": "EventoParceiroOut",
+        "description": "Resultado da integração."
+      },
+      "GuiaOut": {
+        "properties": {
+          "provedor": {
+            "type": "string",
+            "title": "Provedor"
+          },
+          "numero": {
+            "type": "string",
+            "title": "Numero"
+          },
+          "vencimento": {
+            "type": "string",
+            "format": "date",
+            "title": "Vencimento"
+          },
+          "valor": {
+            "type": "string",
+            "title": "Valor"
+          },
+          "linha_digitavel": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Linha Digitavel"
+          },
+          "observacao": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observacao"
+          },
+          "dados": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Dados"
+          }
+        },
+        "type": "object",
+        "required": [
+          "provedor",
+          "numero",
+          "vencimento",
+          "valor"
+        ],
+        "title": "GuiaOut",
+        "description": "Guia gerada pelo provedor."
       },
       "HTTPValidationError": {
         "properties": {
@@ -39,36 +3366,186 @@
             "items": {
               "$ref": "#/components/schemas/ValidationError"
             },
-            "title": "Detail",
-            "type": "array"
+            "type": "array",
+            "title": "Detail"
           }
         },
-        "title": "HTTPValidationError",
-        "type": "object"
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LoteDetalheOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "nome_arquivo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nome Arquivo"
+          },
+          "total_linhas": {
+            "type": "integer",
+            "title": "Total Linhas"
+          },
+          "processadas": {
+            "type": "integer",
+            "title": "Processadas"
+          },
+          "sucesso": {
+            "type": "integer",
+            "title": "Sucesso"
+          },
+          "falhas": {
+            "type": "integer",
+            "title": "Falhas"
+          },
+          "erro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Erro"
+          },
+          "relatorio": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relatorio"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "nome_arquivo",
+          "total_linhas",
+          "processadas",
+          "sucesso",
+          "falhas"
+        ],
+        "title": "LoteDetalheOut"
+      },
+      "LoteOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "nome_arquivo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nome Arquivo"
+          },
+          "total_linhas": {
+            "type": "integer",
+            "title": "Total Linhas"
+          },
+          "processadas": {
+            "type": "integer",
+            "title": "Processadas"
+          },
+          "sucesso": {
+            "type": "integer",
+            "title": "Sucesso"
+          },
+          "falhas": {
+            "type": "integer",
+            "title": "Falhas"
+          },
+          "erro": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Erro"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "nome_arquivo",
+          "total_linhas",
+          "processadas",
+          "sucesso",
+          "falhas"
+        ],
+        "title": "LoteOut"
+      },
+      "OrigemFatura": {
+        "type": "string",
+        "enum": [
+          "api",
+          "dz23",
+          "brizu",
+          "batch",
+          "manual"
+        ],
+        "title": "OrigemFatura"
       },
       "PaginaTenants": {
-        "description": "Página de tenants.",
         "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limite": {
+            "type": "integer",
+            "title": "Limite"
+          },
           "deslocamento": {
-            "title": "Deslocamento",
-            "type": "integer"
+            "type": "integer",
+            "title": "Deslocamento"
           },
           "itens": {
             "items": {
               "$ref": "#/components/schemas/TenantOut"
             },
-            "title": "Itens",
-            "type": "array"
-          },
-          "limite": {
-            "title": "Limite",
-            "type": "integer"
-          },
-          "total": {
-            "title": "Total",
-            "type": "integer"
+            "type": "array",
+            "title": "Itens"
           }
         },
+        "type": "object",
         "required": [
           "total",
           "limite",
@@ -76,47 +3553,139 @@
           "itens"
         ],
         "title": "PaginaTenants",
-        "type": "object"
+        "description": "Página de tenants."
       },
       "ProvedorFiscal": {
-        "description": "Quem recebe o documento.\n\n`nacional` é a SEFIN/ADN; `municipal` é o webservice da prefeitura. A escolha\ndepende de `aderenteEmissorNacional` do município, MEI e grupo 99 — premissa\ndo briefing, não validada contra a lista oficial.",
+        "type": "string",
         "enum": [
           "nacional",
           "municipal"
         ],
         "title": "ProvedorFiscal",
-        "type": "string"
+        "description": "Quem recebe o documento.\n\n`nacional` é a SEFIN/ADN; `municipal` é o webservice da prefeitura. A escolha\ndepende de `aderenteEmissorNacional` do município, MEI e grupo 99 — premissa\ndo briefing, não validada contra a lista oficial."
+      },
+      "ProvedorGuia": {
+        "type": "string",
+        "enum": [
+          "man",
+          "das",
+          "municipal"
+        ],
+        "title": "ProvedorGuia",
+        "description": "Provedores de guia de arrecadação.\n\nNão existe \"DART nacional unificado\". O que existe é o MAN (que gera DNA) para\nISS do regime geral, o DAS (regime geral via MAN até 31/12/2032) e a guia\nmunicipal, quando o município não adere ao padrão nacional."
+      },
+      "SaudeCertificadoOut": {
+        "properties": {
+          "existe": {
+            "type": "boolean",
+            "title": "Existe"
+          },
+          "apelido": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Apelido"
+          },
+          "cnpj": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cnpj"
+          },
+          "valido_ate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valido Ate"
+          },
+          "dias_restantes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dias Restantes"
+          },
+          "expirado": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expirado"
+          },
+          "aviso": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aviso"
+          }
+        },
+        "type": "object",
+        "required": [
+          "existe"
+        ],
+        "title": "SaudeCertificadoOut",
+        "description": "Diagnóstico do certificado ativo."
       },
       "SaudeOut": {
         "properties": {
-          "ambiente": {
-            "title": "Ambiente",
-            "type": "string"
-          },
           "status": {
+            "type": "string",
             "enum": [
               "ok",
               "degraded"
             ],
-            "title": "Status",
-            "type": "string"
+            "title": "Status"
+          },
+          "versao": {
+            "type": "string",
+            "title": "Versao"
+          },
+          "ambiente": {
+            "type": "string",
+            "title": "Ambiente"
           },
           "uptime_segundos": {
-            "title": "Uptime Segundos",
-            "type": "number"
+            "type": "number",
+            "title": "Uptime Segundos"
           },
           "verificacoes": {
             "additionalProperties": {
               "$ref": "#/components/schemas/EstadoDependencia"
             },
-            "title": "Verificacoes",
-            "type": "object"
-          },
-          "versao": {
-            "title": "Versao",
-            "type": "string"
+            "type": "object",
+            "title": "Verificacoes"
           }
         },
+        "type": "object",
         "required": [
           "status",
           "versao",
@@ -124,25 +3693,329 @@
           "uptime_segundos",
           "verificacoes"
         ],
-        "title": "SaudeOut",
-        "type": "object"
+        "title": "SaudeOut"
+      },
+      "SimulacaoIn": {
+        "properties": {
+          "valor_servico": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Valor Servico"
+          },
+          "desconto_incondicional": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Desconto Incondicional",
+            "default": "0.00"
+          },
+          "reembolso_repasse": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Reembolso Repasse",
+            "description": "Reembolso/repasse/ressarcimento já tributado que não integra a base.",
+            "default": "0.00"
+          },
+          "deducao_reducao": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Deducao Reducao",
+            "description": "Dedução/redução de base em locação de imóveis e serviços médicos.",
+            "default": "0.00"
+          },
+          "iss": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Iss",
+            "default": "0.00"
+          },
+          "pis": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Pis",
+            "default": "0.00"
+          },
+          "cofins": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Cofins",
+            "default": "0.00"
+          },
+          "ano_fato_gerador": {
+            "type": "integer",
+            "maximum": 2100.0,
+            "minimum": 2026.0,
+            "title": "Ano Fato Gerador",
+            "default": 2026
+          },
+          "aliquota_cbs": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliquota Cbs"
+          },
+          "aliquota_ibs": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliquota Ibs"
+          },
+          "mei": {
+            "type": "boolean",
+            "title": "Mei",
+            "description": "MEI: bases de cálculo não aplicáveis (E1302).",
+            "default": false
+          },
+          "optante_pendente": {
+            "type": "boolean",
+            "title": "Optante Pendente",
+            "description": "Opção pelo Simples pendente.",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "valor_servico"
+        ],
+        "title": "SimulacaoIn",
+        "description": "Entrada explícita do cálculo. Nada é inferido."
+      },
+      "SimulacaoOut": {
+        "properties": {
+          "base_calculo": {
+            "type": "string",
+            "title": "Base Calculo"
+          },
+          "ano_fato_gerador": {
+            "type": "integer",
+            "title": "Ano Fato Gerador"
+          },
+          "aliquota_cbs": {
+            "type": "string",
+            "title": "Aliquota Cbs"
+          },
+          "aliquota_ibs": {
+            "type": "string",
+            "title": "Aliquota Ibs"
+          },
+          "valor_cbs": {
+            "type": "string",
+            "title": "Valor Cbs"
+          },
+          "valor_ibs": {
+            "type": "string",
+            "title": "Valor Ibs"
+          },
+          "valor_total": {
+            "type": "string",
+            "title": "Valor Total"
+          },
+          "fonte_aliquota": {
+            "type": "string",
+            "title": "Fonte Aliquota"
+          },
+          "aliquota_ibs_uf": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliquota Ibs Uf"
+          },
+          "aliquota_ibs_mun": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aliquota Ibs Mun"
+          },
+          "valor_ibs_uf": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valor Ibs Uf"
+          },
+          "valor_ibs_mun": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valor Ibs Mun"
+          },
+          "valido": {
+            "type": "boolean",
+            "title": "Valido"
+          },
+          "avisos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Avisos"
+          },
+          "erros": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Erros"
+          }
+        },
+        "type": "object",
+        "required": [
+          "base_calculo",
+          "ano_fato_gerador",
+          "aliquota_cbs",
+          "aliquota_ibs",
+          "valor_cbs",
+          "valor_ibs",
+          "valor_total",
+          "fonte_aliquota",
+          "valido"
+        ],
+        "title": "SimulacaoOut",
+        "description": "Resultado com procedência e ressalvas."
+      },
+      "StatusApuracao": {
+        "type": "string",
+        "enum": [
+          "open",
+          "closed",
+          "paid",
+          "failed"
+        ],
+        "title": "StatusApuracao"
+      },
+      "StatusFatura": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "processing",
+          "authorized",
+          "rejected",
+          "error",
+          "cancelled"
+        ],
+        "title": "StatusFatura",
+        "description": "Ciclo de vida da fatura que originará o documento fiscal."
       },
       "StatusTenant": {
+        "type": "string",
         "enum": [
           "active",
           "suspended"
         ],
-        "title": "StatusTenant",
-        "type": "string"
+        "title": "StatusTenant"
       },
       "TenantCreate": {
-        "description": "Dados para abrir uma conta.",
         "properties": {
+          "slug": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 2,
+            "title": "Slug",
+            "examples": [
+              "barbearia-centro"
+            ]
+          },
+          "nome": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 2,
+            "title": "Nome",
+            "examples": [
+              "Barbearia Centro LTDA"
+            ]
+          },
           "email_contato": {
             "anyOf": [
               {
-                "format": "email",
-                "type": "string"
+                "type": "string",
+                "format": "email"
               },
               {
                 "type": "null"
@@ -150,29 +4023,11 @@
             ],
             "title": "Email Contato"
           },
-          "nome": {
-            "examples": [
-              "Barbearia Centro LTDA"
-            ],
-            "maxLength": 200,
-            "minLength": 2,
-            "title": "Nome",
-            "type": "string"
-          },
-          "slug": {
-            "examples": [
-              "barbearia-centro"
-            ],
-            "maxLength": 64,
-            "minLength": 2,
-            "title": "Slug",
-            "type": "string"
-          },
           "webhook_url": {
             "anyOf": [
               {
-                "maxLength": 500,
-                "type": "string"
+                "type": "string",
+                "maxLength": 500
               },
               {
                 "type": "null"
@@ -181,29 +4036,31 @@
             "title": "Webhook Url"
           }
         },
+        "type": "object",
         "required": [
           "slug",
           "nome"
         ],
         "title": "TenantCreate",
-        "type": "object"
+        "description": "Dados para abrir uma conta."
       },
       "TenantCriadoOut": {
-        "description": "Resposta da criação: inclui a API key em claro, uma única vez.",
         "properties": {
-          "api_key": {
-            "description": "API key em claro. Guarde agora: o servidor armazena apenas o hash e não consegue exibir este valor novamente.",
-            "title": "Api Key",
-            "type": "string"
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
           },
-          "api_key_prefix": {
-            "title": "Api Key Prefix",
-            "type": "string"
+          "slug": {
+            "type": "string",
+            "title": "Slug"
           },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StatusTenant"
           },
           "email_contato": {
             "anyOf": [
@@ -216,21 +4073,30 @@
             ],
             "title": "Email Contato"
           },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
+          "api_key_prefix": {
+            "type": "string",
+            "title": "Api Key Prefix"
           },
-          "nome": {
-            "title": "Nome",
-            "type": "string"
+          "webhook_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Webhook Url"
           },
-          "slug": {
-            "title": "Slug",
-            "type": "string"
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
           },
-          "status": {
-            "$ref": "#/components/schemas/StatusTenant"
+          "api_key": {
+            "type": "string",
+            "title": "Api Key",
+            "description": "API key em claro. Guarde agora: o servidor armazena apenas o hash e não consegue exibir este valor novamente."
           },
           "webhook_secret": {
             "anyOf": [
@@ -241,21 +4107,11 @@
                 "type": "null"
               }
             ],
-            "description": "Segredo HMAC para o webhook do tenant. Também exibido uma única vez.",
-            "title": "Webhook Secret"
-          },
-          "webhook_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Webhook Url"
+            "title": "Webhook Secret",
+            "description": "Segredo HMAC para o webhook do tenant. Também exibido uma única vez."
           }
         },
+        "type": "object",
         "required": [
           "id",
           "slug",
@@ -266,22 +4122,78 @@
           "api_key"
         ],
         "title": "TenantCriadoOut",
-        "type": "object"
+        "description": "Resposta da criação: inclui a API key em claro, uma única vez."
       },
       "TenantFiscalConfigIn": {
-        "description": "Configuração fiscal de um município para o tenant.",
         "properties": {
+          "municipio_ibge": {
+            "type": "string",
+            "maxLength": 7,
+            "minLength": 7,
+            "pattern": "^\\d{7}$",
+            "title": "Municipio Ibge"
+          },
+          "municipio_nome": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Municipio Nome"
+          },
+          "uf": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uf"
+          },
           "aderente_emissor_nacional": {
-            "default": false,
+            "type": "boolean",
             "title": "Aderente Emissor Nacional",
-            "type": "boolean"
+            "default": false
+          },
+          "provedor": {
+            "$ref": "#/components/schemas/ProvedorFiscal",
+            "default": "nacional"
+          },
+          "ambiente": {
+            "$ref": "#/components/schemas/AmbienteFiscal",
+            "default": "homologacao"
+          },
+          "regime_tributario": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Regime Tributario",
+            "default": 1
+          },
+          "simples_nacional": {
+            "type": "boolean",
+            "title": "Simples Nacional",
+            "default": true
+          },
+          "optante_mei": {
+            "type": "boolean",
+            "title": "Optante Mei",
+            "default": false
           },
           "aliquota_iss": {
             "anyOf": [
               {
+                "type": "number",
                 "maximum": 1.0,
-                "minimum": 0.0,
-                "type": "number"
+                "minimum": 0.0
               },
               {
                 "type": "string"
@@ -292,15 +4204,35 @@
             ],
             "title": "Aliquota Iss"
           },
-          "ambiente": {
-            "$ref": "#/components/schemas/AmbienteFiscal",
-            "default": "homologacao"
+          "serie_dps": {
+            "type": "string",
+            "maxLength": 5,
+            "title": "Serie Dps",
+            "default": "1"
+          },
+          "proximo_numero_dps": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Proximo Numero Dps",
+            "default": 1
+          },
+          "inscricao_municipal": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inscricao Municipal"
           },
           "cnae_principal": {
             "anyOf": [
               {
-                "maxLength": 9,
-                "type": "string"
+                "type": "string",
+                "maxLength": 9
               },
               {
                 "type": "null"
@@ -311,106 +4243,86 @@
           "codigo_tributacao_nacional": {
             "anyOf": [
               {
-                "maxLength": 10,
-                "type": "string"
+                "type": "string",
+                "maxLength": 10
               },
               {
                 "type": "null"
               }
             ],
             "title": "Codigo Tributacao Nacional"
-          },
-          "inscricao_municipal": {
-            "anyOf": [
-              {
-                "maxLength": 30,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Inscricao Municipal"
-          },
-          "municipio_ibge": {
-            "maxLength": 7,
-            "minLength": 7,
-            "pattern": "^\\d{7}$",
-            "title": "Municipio Ibge",
-            "type": "string"
-          },
-          "municipio_nome": {
-            "anyOf": [
-              {
-                "maxLength": 120,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Municipio Nome"
-          },
-          "optante_mei": {
-            "default": false,
-            "title": "Optante Mei",
-            "type": "boolean"
-          },
-          "provedor": {
-            "$ref": "#/components/schemas/ProvedorFiscal",
-            "default": "nacional"
-          },
-          "proximo_numero_dps": {
-            "default": 1,
-            "minimum": 1.0,
-            "title": "Proximo Numero Dps",
-            "type": "integer"
-          },
-          "regime_tributario": {
-            "default": 1,
-            "maximum": 4.0,
-            "minimum": 1.0,
-            "title": "Regime Tributario",
-            "type": "integer"
-          },
-          "serie_dps": {
-            "default": "1",
-            "maxLength": 5,
-            "title": "Serie Dps",
-            "type": "string"
-          },
-          "simples_nacional": {
-            "default": true,
-            "title": "Simples Nacional",
-            "type": "boolean"
-          },
-          "uf": {
-            "anyOf": [
-              {
-                "maxLength": 2,
-                "minLength": 2,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Uf"
           }
         },
+        "type": "object",
         "required": [
           "municipio_ibge"
         ],
         "title": "TenantFiscalConfigIn",
-        "type": "object"
+        "description": "Configuração fiscal de um município para o tenant."
       },
       "TenantFiscalConfigOut": {
-        "description": "Configuração fiscal persistida.",
         "properties": {
+          "municipio_ibge": {
+            "type": "string",
+            "maxLength": 7,
+            "minLength": 7,
+            "pattern": "^\\d{7}$",
+            "title": "Municipio Ibge"
+          },
+          "municipio_nome": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Municipio Nome"
+          },
+          "uf": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uf"
+          },
           "aderente_emissor_nacional": {
-            "default": false,
+            "type": "boolean",
             "title": "Aderente Emissor Nacional",
-            "type": "boolean"
+            "default": false
+          },
+          "provedor": {
+            "$ref": "#/components/schemas/ProvedorFiscal",
+            "default": "nacional"
+          },
+          "ambiente": {
+            "$ref": "#/components/schemas/AmbienteFiscal",
+            "default": "homologacao"
+          },
+          "regime_tributario": {
+            "type": "integer",
+            "maximum": 4.0,
+            "minimum": 1.0,
+            "title": "Regime Tributario",
+            "default": 1
+          },
+          "simples_nacional": {
+            "type": "boolean",
+            "title": "Simples Nacional",
+            "default": true
+          },
+          "optante_mei": {
+            "type": "boolean",
+            "title": "Optante Mei",
+            "default": false
           },
           "aliquota_iss": {
             "anyOf": [
@@ -423,15 +4335,35 @@
             ],
             "title": "Aliquota Iss"
           },
-          "ambiente": {
-            "$ref": "#/components/schemas/AmbienteFiscal",
-            "default": "homologacao"
+          "serie_dps": {
+            "type": "string",
+            "maxLength": 5,
+            "title": "Serie Dps",
+            "default": "1"
+          },
+          "proximo_numero_dps": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Proximo Numero Dps",
+            "default": 1
+          },
+          "inscricao_municipal": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inscricao Municipal"
           },
           "cnae_principal": {
             "anyOf": [
               {
-                "maxLength": 9,
-                "type": "string"
+                "type": "string",
+                "maxLength": 9
               },
               {
                 "type": "null"
@@ -442,8 +4374,8 @@
           "codigo_tributacao_nacional": {
             "anyOf": [
               {
-                "maxLength": 10,
-                "type": "string"
+                "type": "string",
+                "maxLength": 10
               },
               {
                 "type": "null"
@@ -451,104 +4383,28 @@
             ],
             "title": "Codigo Tributacao Nacional"
           },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
-          },
           "id": {
+            "type": "string",
             "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "inscricao_municipal": {
-            "anyOf": [
-              {
-                "maxLength": 30,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Inscricao Municipal"
-          },
-          "municipio_ibge": {
-            "maxLength": 7,
-            "minLength": 7,
-            "pattern": "^\\d{7}$",
-            "title": "Municipio Ibge",
-            "type": "string"
-          },
-          "municipio_nome": {
-            "anyOf": [
-              {
-                "maxLength": 120,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Municipio Nome"
-          },
-          "optante_mei": {
-            "default": false,
-            "title": "Optante Mei",
-            "type": "boolean"
-          },
-          "provedor": {
-            "$ref": "#/components/schemas/ProvedorFiscal",
-            "default": "nacional"
-          },
-          "proximo_numero_dps": {
-            "default": 1,
-            "minimum": 1.0,
-            "title": "Proximo Numero Dps",
-            "type": "integer"
-          },
-          "regime_tributario": {
-            "default": 1,
-            "maximum": 4.0,
-            "minimum": 1.0,
-            "title": "Regime Tributario",
-            "type": "integer"
-          },
-          "serie_dps": {
-            "default": "1",
-            "maxLength": 5,
-            "title": "Serie Dps",
-            "type": "string"
-          },
-          "simples_nacional": {
-            "default": true,
-            "title": "Simples Nacional",
-            "type": "boolean"
+            "title": "Id"
           },
           "tenant_id": {
+            "type": "string",
             "format": "uuid",
-            "title": "Tenant Id",
-            "type": "string"
+            "title": "Tenant Id"
           },
-          "uf": {
-            "anyOf": [
-              {
-                "maxLength": 2,
-                "minLength": 2,
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Uf"
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
           },
           "updated_at": {
+            "type": "string",
             "format": "date-time",
-            "title": "Updated At",
-            "type": "string"
+            "title": "Updated At"
           }
         },
+        "type": "object",
         "required": [
           "municipio_ibge",
           "id",
@@ -557,44 +4413,50 @@
           "updated_at"
         ],
         "title": "TenantFiscalConfigOut",
-        "type": "object"
+        "description": "Configuração fiscal persistida."
       },
       "TenantKeyRotacionadaOut": {
-        "description": "Nova API key após rotação. A anterior deixa de funcionar imediatamente.",
         "properties": {
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tenant Id"
+          },
           "api_key": {
-            "title": "Api Key",
-            "type": "string"
+            "type": "string",
+            "title": "Api Key"
           },
           "api_key_prefix": {
-            "title": "Api Key Prefix",
-            "type": "string"
-          },
-          "tenant_id": {
-            "format": "uuid",
-            "title": "Tenant Id",
-            "type": "string"
+            "type": "string",
+            "title": "Api Key Prefix"
           }
         },
+        "type": "object",
         "required": [
           "tenant_id",
           "api_key",
           "api_key_prefix"
         ],
         "title": "TenantKeyRotacionadaOut",
-        "type": "object"
+        "description": "Nova API key após rotação. A anterior deixa de funcionar imediatamente."
       },
       "TenantOut": {
-        "description": "Visão pública do tenant. Nunca inclui hash nem segredo.",
         "properties": {
-          "api_key_prefix": {
-            "title": "Api Key Prefix",
-            "type": "string"
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
           },
-          "created_at": {
-            "format": "date-time",
-            "title": "Created At",
-            "type": "string"
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "nome": {
+            "type": "string",
+            "title": "Nome"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StatusTenant"
           },
           "email_contato": {
             "anyOf": [
@@ -607,21 +4469,9 @@
             ],
             "title": "Email Contato"
           },
-          "id": {
-            "format": "uuid",
-            "title": "Id",
-            "type": "string"
-          },
-          "nome": {
-            "title": "Nome",
-            "type": "string"
-          },
-          "slug": {
-            "title": "Slug",
-            "type": "string"
-          },
-          "status": {
-            "$ref": "#/components/schemas/StatusTenant"
+          "api_key_prefix": {
+            "type": "string",
+            "title": "Api Key Prefix"
           },
           "webhook_url": {
             "anyOf": [
@@ -633,8 +4483,14 @@
               }
             ],
             "title": "Webhook Url"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
           }
         },
+        "type": "object",
         "required": [
           "id",
           "slug",
@@ -644,17 +4500,10 @@
           "created_at"
         ],
         "title": "TenantOut",
-        "type": "object"
+        "description": "Visão pública do tenant. Nunca inclui hash nem segredo."
       },
       "ValidationError": {
         "properties": {
-          "ctx": {
-            "title": "Context",
-            "type": "object"
-          },
-          "input": {
-            "title": "Input"
-          },
           "loc": {
             "items": {
               "anyOf": [
@@ -666,570 +4515,152 @@
                 }
               ]
             },
-            "title": "Location",
-            "type": "array"
+            "type": "array",
+            "title": "Location"
           },
           "msg": {
-            "title": "Message",
-            "type": "string"
+            "type": "string",
+            "title": "Message"
           },
           "type": {
-            "title": "Error Type",
-            "type": "string"
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
+        "type": "object",
         "required": [
           "loc",
           "msg",
           "type"
         ],
-        "title": "ValidationError",
-        "type": "object"
+        "title": "ValidationError"
       },
       "VersaoOut": {
         "properties": {
-          "ambiente": {
-            "title": "Ambiente",
-            "type": "string"
+          "versao": {
+            "type": "string",
+            "title": "Versao"
           },
           "schema_relatorio": {
-            "title": "Schema Relatorio",
-            "type": "string"
+            "type": "string",
+            "title": "Schema Relatorio"
           },
-          "versao": {
-            "title": "Versao",
-            "type": "string"
+          "ambiente": {
+            "type": "string",
+            "title": "Ambiente"
           }
         },
+        "type": "object",
         "required": [
           "versao",
           "schema_relatorio",
           "ambiente"
         ],
-        "title": "VersaoOut",
-        "type": "object"
+        "title": "VersaoOut"
       },
       "VivoOut": {
         "properties": {
           "status": {
+            "type": "string",
             "const": "ok",
-            "title": "Status",
-            "type": "string"
+            "title": "Status"
           },
           "versao": {
-            "title": "Versao",
-            "type": "string"
+            "type": "string",
+            "title": "Versao"
           }
         },
+        "type": "object",
         "required": [
           "status",
           "versao"
         ],
-        "title": "VivoOut",
-        "type": "object"
-      }
-    }
-  },
-  "info": {
-    "description": "\nMotor e microserviço de **documentos fiscais brasileiros**.\n\nCobre emissão e gestão de NFS-e (padrão nacional), geração local de DANFSe,\napuração de tributos com guias plugáveis e entrega de webhook assinada.\n\n## Isolamento multi-tenant\n\nToda rota de recurso fiscal exige o header `X-API-Key`. O `tenant_id` é derivado\n**exclusivamente** da credencial: nunca de corpo ou query. Uma credencial de um\ntenant não alcança dados de outro.\n\n## Estado de prontidão\n\nAs integrações com SEFIN/ADN, prefeitura e Serpro são implementadas sobre\nadapters com URL base vinda de configuração. Os trechos que dependem de\ndocumentação oficial não verificada estão marcados como **[A VALIDAR]** no\ncódigo, no `docs/REFERENCIAS.md` e no README. Nada aqui substitui homologação\noficial.\n",
-    "license": {
-      "name": "MIT"
-    },
-    "title": "open_notas_br",
-    "version": "0.2.0"
-  },
-  "openapi": "3.1.0",
-  "paths": {
-    "/health": {
-      "get": {
-        "operationId": "saude_health_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SaudeOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "503": {
-            "description": "Dependência indisponível"
-          }
-        },
-        "summary": "Readiness: banco e Redis respondem",
-        "tags": [
-          "meta"
-        ]
-      }
-    },
-    "/health/live": {
-      "get": {
-        "operationId": "vivo_health_live_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VivoOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "Liveness: o processo está de pé",
-        "tags": [
-          "meta"
-        ]
-      }
-    },
-    "/v1/health": {
-      "get": {
-        "operationId": "saude_v1_health_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SaudeOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "503": {
-            "description": "Dependência indisponível"
-          }
-        },
-        "summary": "Readiness: banco e Redis respondem",
-        "tags": [
-          "meta"
-        ]
-      }
-    },
-    "/v1/health/live": {
-      "get": {
-        "operationId": "vivo_v1_health_live_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VivoOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "Liveness: o processo está de pé",
-        "tags": [
-          "meta"
-        ]
-      }
-    },
-    "/v1/me": {
-      "get": {
-        "operationId": "meu_tenant_v1_me_get",
-        "parameters": [
-          {
-            "description": "API key do tenant",
-            "in": "header",
-            "name": "X-API-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "API key do tenant",
-              "title": "X-Api-Key"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TenantOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Dados do tenant autenticado",
-        "tags": [
-          "tenants"
-        ]
-      }
-    },
-    "/v1/me/config-fiscal": {
-      "get": {
-        "operationId": "listar_config_fiscal_v1_me_config_fiscal_get",
-        "parameters": [
-          {
-            "description": "API key do tenant",
-            "in": "header",
-            "name": "X-API-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "API key do tenant",
-              "title": "X-Api-Key"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/TenantFiscalConfigOut"
-                  },
-                  "title": "Response Listar Config Fiscal V1 Me Config Fiscal Get",
-                  "type": "array"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Lista as configurações fiscais do tenant",
-        "tags": [
-          "tenants"
-        ]
+        "title": "VivoOut"
       },
-      "put": {
-        "operationId": "definir_config_fiscal_v1_me_config_fiscal_put",
-        "parameters": [
-          {
-            "description": "API key do tenant",
-            "in": "header",
-            "name": "X-API-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "API key do tenant",
-              "title": "X-Api-Key"
-            }
+      "WebhookConfigIn": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 10,
+            "title": "Url"
+          },
+          "rotacionar_segredo": {
+            "type": "boolean",
+            "title": "Rotacionar Segredo",
+            "default": false
           }
+        },
+        "type": "object",
+        "required": [
+          "url"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TenantFiscalConfigIn"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TenantFiscalConfigOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Cria ou atualiza a configuração fiscal de um município",
-        "tags": [
-          "tenants"
-        ]
-      }
-    },
-    "/v1/me/rotacionar-chave": {
-      "post": {
-        "operationId": "rotacionar_chave_v1_me_rotacionar_chave_post",
-        "parameters": [
-          {
-            "description": "API key do tenant",
-            "in": "header",
-            "name": "X-API-Key",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "API key do tenant",
-              "title": "X-Api-Key"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TenantKeyRotacionadaOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Gera nova API key e invalida a anterior",
-        "tags": [
-          "tenants"
-        ]
-      }
-    },
-    "/v1/tenants": {
-      "get": {
-        "operationId": "listar_tenants_v1_tenants_get",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "limite",
-            "required": false,
-            "schema": {
-              "default": 50,
-              "maximum": 200,
-              "minimum": 1,
-              "title": "Limite",
-              "type": "integer"
-            }
-          },
-          {
-            "in": "query",
-            "name": "deslocamento",
-            "required": false,
-            "schema": {
-              "default": 0,
-              "minimum": 0,
-              "title": "Deslocamento",
-              "type": "integer"
-            }
-          },
-          {
-            "description": "Token administrativo",
-            "in": "header",
-            "name": "X-Admin-Token",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Token administrativo",
-              "title": "X-Admin-Token"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PaginaTenants"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Lista tenants (administrativo)",
-        "tags": [
-          "tenants"
-        ]
+        "title": "WebhookConfigIn"
       },
-      "post": {
-        "operationId": "criar_tenant_v1_tenants_post",
-        "parameters": [
-          {
-            "description": "Token administrativo",
-            "in": "header",
-            "name": "X-Admin-Token",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Token administrativo",
-              "title": "X-Admin-Token"
-            }
+      "WebhookConfigOut": {
+        "properties": {
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "tem_segredo": {
+            "type": "boolean",
+            "title": "Tem Segredo"
+          },
+          "segredo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segredo"
+          },
+          "aviso": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aviso"
           }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "tem_segredo"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TenantCreate"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TenantCriadoOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          }
-        },
-        "summary": "Cria um tenant e devolve a API key (uma única vez)",
-        "tags": [
-          "tenants"
-        ]
-      }
-    },
-    "/v1/version": {
-      "get": {
-        "operationId": "versao_v1_version_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VersaoOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "Versão do serviço e do contrato",
-        "tags": [
-          "meta"
-        ]
-      }
-    },
-    "/version": {
-      "get": {
-        "operationId": "versao_version_get",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/VersaoOut"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "Versão do serviço e do contrato",
-        "tags": [
-          "meta"
-        ]
+        "title": "WebhookConfigOut"
       }
     }
   },
   "tags": [
     {
-      "description": "Saúde, versão e metadados do serviço.",
-      "name": "meta"
+      "name": "meta",
+      "description": "Saúde, versão e metadados do serviço."
     },
     {
-      "description": "Contas, credenciais e configuração fiscal.",
-      "name": "tenants"
+      "name": "tenants",
+      "description": "Contas, credenciais e configuração fiscal."
     }
   ]
 }

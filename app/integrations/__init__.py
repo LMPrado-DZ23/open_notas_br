@@ -1,1 +1,1 @@
-"""Conectores de parceiros."""
+"""Conectores de parceiros (DZ23, Brizu)."""

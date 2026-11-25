@@ -10,6 +10,7 @@ from app.api.v1 import (
     cnpj,
     emissoes,
     health,
+    integracoes,
     lotes,
     tax,
     tenants,
@@ -24,5 +25,6 @@ router.include_router(cnpj.router)
 router.include_router(tax.router)
 router.include_router(apuracoes.router)
 router.include_router(lotes.router)
+router.include_router(integracoes.router)
 
 __all__ = ["router"]
