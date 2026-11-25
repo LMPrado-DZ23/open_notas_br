@@ -12,6 +12,7 @@ from app.api.v1 import (
     health,
     integracoes,
     lotes,
+    representacoes,
     tax,
     tenants,
 )
@@ -26,5 +27,6 @@ router.include_router(tax.router)
 router.include_router(apuracoes.router)
 router.include_router(lotes.router)
 router.include_router(integracoes.router)
+router.include_router(representacoes.router)
 
 __all__ = ["router"]

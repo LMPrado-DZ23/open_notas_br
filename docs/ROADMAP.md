@@ -260,3 +260,31 @@ Cobertura mede execução, não correção fiscal. Os contratos com a SEFIN segu
 o caminho assíncrono da rota HTTP de emissão aparece como não coberto, embora
 execute (comprovado por instrumentação); o módulo está coberto por testes diretos
 do serviço.
+
+### Fase 7 — o que entrou (2026-11-25)
+
+**Entregue e verificado**
+
+| Item | Onde | Evidência |
+|---|---|---|
+| DANFE A4 (paisagem) | `app/danfe/a4.py` | 1 página, blocos emitente/destinatário/imposto/transporte/itens |
+| Etiquetas por volume | `app/danfe/etiquetas.py` | 3 volumes → 2 páginas, com Volume i/n, peso, nota, coleta, Code128 |
+| DANFE Simplificado | `app/danfe/nfe.py` | já existia; segue registrado |
+| Rota de representação | `POST /v1/representacoes?formato=&volumes=` | 200 com PDF; formato inexistente → 422 com a lista |
+| Catálogo de formatos | `GET /v1/representacoes` | 4 formatos registrados |
+
+**Decisões de leiaute que o código deixa explícitas**
+
+- `transp/vol/qVol` é **quantidade** de volumes, não um volume: um grupo com
+  `qVol=2` gera **duas** etiquetas. Tratar o grupo como um volume produziria
+  metade das etiquetas e faltaria caixa no destino.
+- Peso no leiaute é o **total do grupo**. A etiqueta imprime esse total e diz
+  isso no rodapé, em vez de dividir por `qVol` e inventar peso por caixa.
+- **"Coleta" não existe na NF-e.** O campo usa a data de saída/emissão e declara
+  isso impresso. [A VALIDAR] se o parceiro logístico usa outro critério.
+- Sem `transp/vol`, o número de etiquetas vem do parâmetro `volumes`; as que não
+  têm lastro no XML saem **sem peso**.
+
+**Pendente nesta fase**: emissão de NF-e (SEFAZ), cancelamento, inutilização,
+carta de correção, e cupom de NFC-e. Todos exigem certificado e webservice da
+SEFAZ — não são verificáveis aqui.

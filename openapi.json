@@ -2306,6 +2306,117 @@
           }
         }
       }
+    },
+    "/v1/representacoes": {
+      "get": {
+        "tags": [
+          "representacao"
+        ],
+        "summary": "Lista as representações impressas disponíveis",
+        "operationId": "listar_representacoes_v1_representacoes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "title": "Response Listar Representacoes V1 Representacoes Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "representacao"
+        ],
+        "summary": "Gera DANFE ou etiquetas a partir do XML autorizado",
+        "operationId": "gerar_representacao_v1_representacoes_post",
+        "parameters": [
+          {
+            "name": "formato",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "danfe, danfe_simplificado, etiquetas (NF-e) ou danfse (NFS-e)",
+              "default": "danfe",
+              "title": "Formato"
+            },
+            "description": "danfe, danfe_simplificado, etiquetas (NF-e) ou danfse (NFS-e)"
+          },
+          {
+            "name": "volumes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 200,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Quantidade de etiquetas. Sem isso, usa o transp/vol do XML.",
+              "title": "Volumes"
+            },
+            "description": "Quantidade de etiquetas. Sem isso, usa o transp/vol do XML."
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_gerar_representacao_v1_representacoes_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PDF da representação",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "413": {
+            "description": "XML maior que 5 MB"
+          },
+          "422": {
+            "description": "XML inválido ou representação inexistente"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2648,6 +2759,21 @@
           "apelido"
         ],
         "title": "Body_enviar_certificado_v1_me_certificados_post"
+      },
+      "Body_gerar_representacao_v1_representacoes_post": {
+        "properties": {
+          "arquivo": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Arquivo",
+            "description": "XML autorizado (nfeProc ou NFe)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "arquivo"
+        ],
+        "title": "Body_gerar_representacao_v1_representacoes_post"
       },
       "CatalogoOut": {
         "properties": {

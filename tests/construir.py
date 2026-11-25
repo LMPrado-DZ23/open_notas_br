@@ -141,6 +141,7 @@ def nfe(
     ncm: str = "94036000",
     cst: str = "00",
     crt: str = "3",
+    volumes: list[dict[str, str]] | None = None,
 ) -> bytes:
     """Constrói uma NF-e 4.00 sintética, por padrão autoconsistente."""
     total = f"{float(valor_item) * (2 if dois_itens else 1):.2f}"
@@ -265,6 +266,20 @@ def nfe(
 
     transp = _sub(inf, "transp")
     _sub(transp, "modFrete", "9")
+    # Volumes são opcionais: sem eles a etiqueta não tem o que imprimir. Quando
+    # informados, geram `transp/vol` como no leiaute 4.00.
+    for volume in volumes or []:
+        vol = _sub(transp, "vol")
+        if volume.get("qVol"):
+            _sub(vol, "qVol", volume["qVol"])
+        if volume.get("esp"):
+            _sub(vol, "esp", volume["esp"])
+        if volume.get("pesoL"):
+            _sub(vol, "pesoL", volume["pesoL"])
+        if volume.get("pesoB"):
+            _sub(vol, "pesoB", volume["pesoB"])
+        if volume.get("marca"):
+            _sub(vol, "marca", volume["marca"])
 
     if com_pagamento:
         pag = _sub(inf, "pag")

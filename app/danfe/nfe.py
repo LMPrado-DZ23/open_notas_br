@@ -320,6 +320,31 @@ class DanfeSimplificado:
         return gerar_danfe_simplificado(extrair_nfe(xml))
 
 
+class DanfeA4:
+    """Representação `nfe/danfe` — DANFE A4 (paisagem)."""
+
+    tipo = TipoRepresentacao(documento="nfe", formato="danfe")
+
+    def gerar(self, xml: bytes) -> bytes:
+        from app.danfe.a4 import extrair_danfe_a4, gerar_danfe_a4
+
+        return gerar_danfe_a4(extrair_danfe_a4(xml))
+
+
+class EtiquetasVolume:
+    """Representação `nfe/etiquetas` — uma etiqueta por volume."""
+
+    tipo = TipoRepresentacao(documento="nfe", formato="etiquetas")
+
+    def __init__(self, quantidade_volumes: int | None = None) -> None:
+        self.quantidade_volumes = quantidade_volumes
+
+    def gerar(self, xml: bytes) -> bytes:
+        from app.danfe.etiquetas import extrair_etiquetas, gerar_etiquetas
+
+        return gerar_etiquetas(extrair_etiquetas(xml, quantidade_volumes=self.quantidade_volumes))
+
+
 class Danfse:
     """Representação `nfse/danfse`, delegando ao gerador do módulo DANFSe."""
 
@@ -337,6 +362,8 @@ def registrar_todas() -> None:
     from app.danfe.base import registrar
 
     registrar(DanfeSimplificado())
+    registrar(DanfeA4())
+    registrar(EtiquetasVolume())
     registrar(Danfse())
 
 

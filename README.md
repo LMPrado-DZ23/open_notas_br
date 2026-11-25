@@ -239,11 +239,23 @@ Esta seção existe para não haver dúvida sobre o que está pronto.
 | Cancelamento e eventos | fluxo completo com nota real |
 | DANFSe | leiaute conferido contra o manual vigente (NT 008 v1.02 vs v1.01 implementada) |
 
+### Representação de NF-e (pronta)
+
+`POST /v1/representacoes?formato=danfe|danfe_simplificado|etiquetas` recebe o XML
+**já autorizado** e devolve o PDF, sem gravar nada. Serve para quem emite a NF-e
+no próprio ERP e usa o serviço só para o documento auxiliar e a logística.
+
+As etiquetas de volume seguem as imagens de referência: `Volume i/n`,
+`Peso (kg)`, `Nota fiscal`, `Coleta`, código de barras Code128
+(`<prefixo><nota>V<volume>`, ex. `EMPRE0000123V1`), `DESTINATÁRIO` e `REMETENTE`.
+`transp/vol/qVol` é quantidade de volumes: um grupo com `qVol=2` gera duas
+etiquetas.
+
 ### Não pronto
 
 | Item | Situação |
 |---|---|
-| NF-e / NFC-e | fase 7 |
+| Emissão de NF-e / NFC-e | fase 7 — representação (DANFE A4, etiquetas) pronta; emissão na SEFAZ pendente |
 | CT-e / MDF-e (DACTE/DAMDFE) | fase 8 |
 | NFP-e e etiquetas de volume por volume | fase 9 |
 | MAN/DNA, DAS e guia municipal reais | provedores são determinísticos, sem integração oficial |
