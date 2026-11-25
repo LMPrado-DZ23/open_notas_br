@@ -78,3 +78,13 @@ desktop.ini
 # --- Logs ---
 *.log
 logs/
+
+# Artefatos de cobertura e de execucao local
+.coverage
+.coverage.*
+.cov-*
+coverage.xml
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+*.log
