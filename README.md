@@ -1,19 +1,29 @@
 # open_notas_br
 
-Motor e microserviço de **documentos fiscais brasileiros**: emissão e gestão de
-NFS-e (padrão nacional), auditoria de XML, geração local de DANFSe, apuração com
-guias plugáveis e entrega de webhook assinada. Pluga em qualquer ERP, CRM ou site
-por API REST, fila e webhook, com isolamento multi-tenant por `X-API-Key`.
+[![CI](https://github.com/LMPrado-DZ23/open_notas_br/actions/workflows/ci.yml/badge.svg)](https://github.com/LMPrado-DZ23/open_notas_br/actions/workflows/ci.yml)
+[![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue.svg)](LICENSE)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
+[![API REST](https://img.shields.io/badge/API-REST-brightgreen.svg)](openapi.json)
 
-> **Estado:** Fase 1 de 6 concluída — fundação (containers, migração, multi-tenant,
-> healthcheck). Emissão, certificados, DANFSe e conectores entram nas fases
-> seguintes. Leia **[o que está pronto e o que não está](#o-que-está-pronto-e-o-que-não-está)**
+**Motor e microserviço open source de documentos fiscais brasileiros** — NFS-e
+(padrão nacional), NF-e, NFC-e, CT-e e MDF-e. Emissão multi-tenant por API REST,
+auditoria de XML, geração local de DANFSe/DANFE/DACTE/DAMDFE e etiquetas de volume,
+apuração com guias plugáveis, fila de trabalho e webhook assinado.
+
+> Feito para plugar em qualquer ERP, CRM, e-commerce ou plataforma de serviços.
+> Integração nativa com **[DZ23](https://dz23.com.br)** e **[Brizu](https://brizu.com.br)**;
+> qualquer sistema terceiro usa a mesma API com `X-API-Key`.
+
+**Palavras-chave:** NFS-e, NF-e, NFC-e, CT-e, MDF-e, nota fiscal eletrônica, SEFIN,
+SEFAZ, DANFSe, DANFE, DACTE, DAMDfe, Reforma Tributária, IBS, CBS, certificado
+digital A1, assinatura XMLDSig, PHP? não — Python, FastAPI, multi-tenant,
+open source, Brasil.
+
+> **Estado atual:** as 6 fases do projeto estão concluídas e verificadas —
+> 749 testes, cobertura 86%, fluxo fim-a-fim reproduzível e validação com
+> certificado ICP-Brasil real contra a SEFIN de homologação. Leia
+> **[o que está pronto e o que não está](#estado-de-maturidade-o-que-pode-e-o-que-não-pode-ir-a-produção)**
 > antes de usar.
->
-> **Escopo ampliado (após a Fase 1):** NF-e, NFC-e, CT-e e MDF-e, além de
-> DANFE A4, **DANFE Simplificado – Etiqueta** e **etiqueta de envio por volume**
-> (estilo marketplace). Ver [docs/DOCUMENTOS-FISCAIS.md](docs/DOCUMENTOS-FISCAIS.md)
-> e as Fases 7–9 no [roadmap](docs/ROADMAP.md).
 
 ## Subir em um comando
 

@@ -28,11 +28,12 @@ from app.db.models.invoice import FiscalDocument, Invoice
 from app.db.models.tenant import Tenant
 from app.db.session import get_session
 from app.nfse import cancelamento as cancelamento_service
+from app.nfse import eventos as eventos_service
 from app.nfse import servico as emissao_service
 from app.nfse.adapter import SefinMockAdapter
 from app.nfse.errors import ErroSefin
 from app.nfse.evento import MOTIVOS_CANCELAMENTO
-from app.nfse.eventos_tipos import TIPOS_DO_CONTRIBUINTE, TIPOS_EVENTO
+from app.nfse.eventos_tipos import TIPOS_DO_CONTRIBUINTE, TIPOS_EVENTO, ErroDeEventoCatalogo
 from app.nfse.schemas import DocumentoOut, EmissaoDetalheOut, EmissaoIn, EmissaoOut
 from app.nfse.servico import (
     CertificadoAusente,
@@ -435,9 +436,108 @@ async def tipos_de_evento() -> list[dict[str, object]]:
             "descricao": X_DESC[tipo.codigo],
             "operavel_pelo_contribuinte": tipo.codigo in TIPOS_DO_CONTRIBUINTE,
             "campos": [
-                {"nome": c.nome, "tipo": c.tipo, "obrigatorio": c.obrigatorio}
-                for c in tipo.campos
+                {"nome": c.nome, "tipo": c.tipo, "obrigatorio": c.obrigatorio} for c in tipo.campos
             ],
         }
         for tipo in sorted(TIPOS_EVENTO.values(), key=lambda t: t.codigo)
     ]
+
+
+class EventoIn(BaseModel):
+    """Registro de evento do catálogo do leiaute."""
+
+    codigo: str = Field(
+        ...,
+        description="Código do tipo (6 dígitos). Cancelamento (101101) tem rota própria.",
+        examples=["202201"],
+    )
+    campos: dict[str, str] = Field(
+        default_factory=dict,
+        description="Campos exigidos pelo tipo. `xDesc` é gerado pelo catálogo.",
+    )
+
+
+class EventoRegistradoOut(BaseModel):
+    invoice_id: uuid.UUID
+    codigo: str
+    status: str
+    data_processamento: str | None = None
+
+
+@router.get(
+    "/emissoes/eventos/disponiveis",
+    summary="Tipos de evento que o contribuinte pode registrar",
+)
+async def eventos_disponiveis(
+    incluir_oficio: bool = Query(default=False),
+) -> dict[str, object]:
+    return {
+        "tipos": eventos_service.tipos_disponiveis(incluir_oficio=incluir_oficio),
+        "observacao": (
+            "Cancelamento (101101) não aparece: use POST /v1/emissoes/{id}/cancelamento. "
+            "Os tipos de ofício só aparecem com incluir_oficio=true e são disparados "
+            "pelo fisco, não pelo contribuinte."
+        ),
+    }
+
+
+@router.post(
+    "/emissoes/{invoice_id}/eventos",
+    response_model=EventoRegistradoOut,
+    summary="Registra um evento do catálogo na NFS-e",
+    responses={
+        404: {"description": "Emissão não encontrada"},
+        409: {"description": "Emissão sem documento autorizado"},
+        422: {"description": "Tipo reservado, de ofício ou campo inválido"},
+    },
+)
+async def registrar_evento(
+    invoice_id: uuid.UUID,
+    dados: EventoIn,
+    tenant: Tenant = Depends(tenant_atual),
+    db: AsyncSession = Depends(get_session),
+    settings: Settings = Depends(get_settings),
+) -> EventoRegistradoOut:
+    resultado = await db.execute(
+        select(Invoice).where(Invoice.tenant_id == tenant.id, Invoice.id == invoice_id)
+    )
+    invoice = resultado.scalar_one_or_none()
+    if invoice is None:
+        raise HTTPException(status_code=404, detail="emissão não encontrada")
+
+    adaptador = SefinMockAdapter(invoice.ambiente) if settings.nfse_adapter == "mock" else None
+
+    try:
+        resposta = await eventos_service.registrar(
+            db,
+            tenant,
+            invoice,
+            codigo=dados.codigo,
+            campos=dados.campos,
+            adapter=adaptador,
+            settings=settings,
+        )
+        await db.commit()
+    except eventos_service.TipoReservado as exc:
+        await db.rollback()
+        raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
+    except eventos_service.EventoNaoAplicavel as exc:
+        await db.rollback()
+        raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
+    except ErroDeEventoCatalogo as exc:
+        # Tipo fora do catálogo é erro de requisição, não falha do servidor.
+        await db.rollback()
+        raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
+    except eventos_service.ErroDeEvento as exc:
+        await db.rollback()
+        raise HTTPException(status_code=HTTP_409, detail=str(exc)) from exc
+    except ErroSefin as exc:
+        await db.commit()
+        raise HTTPException(status_code=502, detail=exc.as_dict()) from exc
+
+    return EventoRegistradoOut(
+        invoice_id=invoice.id,
+        codigo=dados.codigo,
+        status=invoice.status.value,
+        data_processamento=resposta.data_processamento,
+    )

@@ -1209,6 +1209,121 @@
         }
       }
     },
+    "/v1/emissoes/eventos/disponiveis": {
+      "get": {
+        "tags": [
+          "emissao"
+        ],
+        "summary": "Tipos de evento que o contribuinte pode registrar",
+        "operationId": "eventos_disponiveis_v1_emissoes_eventos_disponiveis_get",
+        "parameters": [
+          {
+            "name": "incluir_oficio",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Incluir Oficio"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Eventos Disponiveis V1 Emissoes Eventos Disponiveis Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/emissoes/{invoice_id}/eventos": {
+      "post": {
+        "tags": [
+          "emissao"
+        ],
+        "summary": "Registra um evento do catálogo na NFS-e",
+        "operationId": "registrar_evento_v1_emissoes__invoice_id__eventos_post",
+        "parameters": [
+          {
+            "name": "invoice_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Invoice Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventoIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventoRegistradoOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Emissão não encontrada"
+          },
+          "409": {
+            "description": "Emissão sem documento autorizado"
+          },
+          "422": {
+            "description": "Tipo reservado, de ofício ou campo inválido"
+          }
+        }
+      }
+    },
     "/v1/cnpj/{cnpj}": {
       "get": {
         "tags": [
@@ -3570,6 +3685,32 @@
         ],
         "title": "EstadoDependencia"
       },
+      "EventoIn": {
+        "properties": {
+          "codigo": {
+            "type": "string",
+            "title": "Codigo",
+            "description": "Código do tipo (6 dígitos). Cancelamento (101101) tem rota própria.",
+            "examples": [
+              "202201"
+            ]
+          },
+          "campos": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Campos",
+            "description": "Campos exigidos pelo tipo. `xDesc` é gerado pelo catálogo."
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo"
+        ],
+        "title": "EventoIn",
+        "description": "Registro de evento do catálogo do leiaute."
+      },
       "EventoParceiroOut": {
         "properties": {
           "parceiro": {
@@ -3619,6 +3760,41 @@
         ],
         "title": "EventoParceiroOut",
         "description": "Resultado da integração."
+      },
+      "EventoRegistradoOut": {
+        "properties": {
+          "invoice_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Invoice Id"
+          },
+          "codigo": {
+            "type": "string",
+            "title": "Codigo"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "data_processamento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Processamento"
+          }
+        },
+        "type": "object",
+        "required": [
+          "invoice_id",
+          "codigo",
+          "status"
+        ],
+        "title": "EventoRegistradoOut"
       },
       "GuiaOut": {
         "properties": {

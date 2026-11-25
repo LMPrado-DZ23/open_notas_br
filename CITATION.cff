@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "Se você usar este software em trabalho técnico, acadêmico ou em produto, cite como abaixo."
+title: "open_notas_br — motor e microserviço de documentos fiscais brasileiros"
+abstract: >-
+  Serviço multi-tenant de emissão e gestão de documentos fiscais brasileiros:
+  NFS-e no padrão nacional (SEFIN/ADN) com DPS assinada em XMLDSig, auditoria de
+  XML de NF-e/NFC-e/CT-e/MDF-e, geração local de DANFSe, DANFE, DACTE, DAMDFE,
+  cupom NFC-e e etiquetas de volume, apuração com guias plugáveis (MAN/DNA, DAS),
+  fila de trabalho e entrega de webhook assinada com HMAC-SHA256.
+authors:
+  - family-names: "Prado"
+    given-names: "Leandro"
+    affiliation: "DZ23"
+repository-code: "https://github.com/LMPrado-DZ23/open_notas_br"
+url: "https://github.com/LMPrado-DZ23/open_notas_br"
+license: MIT
+keywords:
+  - NFS-e
+  - NF-e
+  - NFC-e
+  - CT-e
+  - MDF-e
+  - nota fiscal eletrônica
+  - SEFIN
+  - SEFAZ
+  - DANFSe
+  - DANFE
+  - Reforma Tributária
+  - IBS
+  - CBS
+  - certificado digital A1
+  - XMLDSig
+  - Brasil
+  - open source
+  - Python
+  - FastAPI
+  - multi-tenant
+version: "0.2.0"
+date-released: "2026-11-25"

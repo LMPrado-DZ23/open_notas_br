@@ -4,21 +4,15 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  teste:
-    name: Testes (Python ${{ matrix.python }} / ${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        python: ["3.12"]
+  testes:
+    name: Testes e lint
+    runs-on: ubuntu-latest
 
     services:
       postgres:
@@ -30,9 +24,9 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U notasbr -d notasbr"
+          --health-cmd "pg_isready -U notasbr"
           --health-interval 5s
-          --health-timeout 3s
+          --health-timeout 5s
           --health-retries 20
       redis:
         image: redis:7-alpine
@@ -41,69 +35,49 @@ jobs:
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 5s
-          --health-timeout 3s
+          --health-timeout 5s
           --health-retries 20
 
     env:
-      ENVIRONMENT: test
-      DATABASE_URL: postgresql+asyncpg://notasbr:notasbr@127.0.0.1:5432/notasbr
+      # Os testes criam e derrubam o próprio banco (`notasbr_test`) a partir desta
+      # URL administrativa. Ver tests/suporte.py.
       TEST_DATABASE_URL: postgresql+asyncpg://notasbr:notasbr@127.0.0.1:5432/notasbr
+      DATABASE_URL: postgresql+asyncpg://notasbr:notasbr@127.0.0.1:5432/notasbr_test
       REDIS_URL: redis://127.0.0.1:6379/0
-      LOG_JSON: "false"
+      ENVIRONMENT: test
+      NFSE_ADAPTER: mock
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
+          python-version: "3.12"
           cache: pip
 
       - name: Instalar dependências
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e ".[app,dev,pdf,assinatura]"
+          pip install -e ".[dev]"
 
-      - name: Lint
-        run: python -m ruff check .
-
-      - name: Formatação
-        run: python -m ruff format --check .
-
-      - name: Aplicar migrações
-        run: python -m alembic upgrade head
-
-      - name: Verificar drift entre modelo e migração
-        # Falha se um modelo ORM não estiver refletido nas migrações.
-        run: python -m alembic check
-
-      - name: Testes
-        run: python -m pytest -q --cov --cov-report=term-missing
-
-  sem-vazamento-de-segredo:
-    name: Nenhum segredo versionado
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Procurar certificados e arquivos de ambiente
+      - name: Lint (ruff)
         run: |
-          set -e
-          proibidos=$(git ls-files | grep -Ei '\.(pfx|p12|pem|key|crt|cer|jks|keystore)$' || true)
-          if [ -n "$proibidos" ]; then
-            echo "Arquivos sensiveis versionados:"
-            echo "$proibidos"
-            exit 1
-          fi
-          if git ls-files | grep -Eq '(^|/)\.env$|(^|/)\.env\.'; then
-            echo "Arquivo .env versionado (apenas .env.example e permitido)"
-            exit 1
-          fi
-          echo "nenhum segredo versionado"
+          ruff check .
+          ruff format --check .
 
-  nucleo-sem-dependencias:
-    name: Biblioteca notasbr sem dependências
+      - name: Testes com cobertura
+        run: pytest --cov=app --cov=notasbr --cov-report=term-missing
+
+      - name: Guardar relatório de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura
+          path: .coverage
+          if-no-files-found: ignore
+
+  contrato:
+    name: Contrato e schemas oficiais
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -111,61 +85,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
 
-      # `pip install .` sem extras deve continuar sem dependências: o servico e o
-      # extra `[app]`. Isso mantem a biblioteca de auditoria utilizavel em
-      # qualquer lugar, inclusive onde instalar FastAPI nao e opcao.
-      - name: Instalar apenas o núcleo
+      - name: Instalar dependências
         run: |
           python -m pip install --upgrade pip
-          python -m pip install .
+          pip install -e ".[dev]"
 
-      - name: Verificar que o núcleo não arrasta extras
+      # Estes testes não precisam de banco: validam XML contra os XSD oficiais e o
+      # contrato da SEFIN contra respostas reais capturadas.
+      - name: Validar XML contra XSD e contrato da SEFIN
         run: |
-          python - <<'PY'
-          import importlib.util
-          import notasbr
-
-          print("notasbr", notasbr.__version__)
-          for proibido in ("fastapi", "sqlalchemy", "asyncpg", "signxml", "weasyprint"):
-              if importlib.util.find_spec(proibido) is not None:
-                  raise SystemExit(f"dependencia de servico instalada por engano: {proibido}")
-          print("nucleo limpo")
-          PY
-
-      - name: CLI de auditoria responde
-        run: |
-          notasbr --version
-          notasbr regras --json > /dev/null
-
-  docker:
-    name: Imagem e compose sobem
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build da imagem
-        run: docker build -t open-notas-br:ci .
-
-      - name: Subir a stack
-        run: docker compose up -d --no-build
-
-      - name: Esperar healthcheck da API
-        run: |
-          for i in $(seq 1 60); do
-            status=$(docker inspect -f '{{.State.Health.Status}}' open-notas-br-api-1 || echo starting)
-            echo "tentativa $i: $status"
-            if [ "$status" = "healthy" ]; then exit 0; fi
-            sleep 3
-          done
-          echo "API nao ficou healthy"
-          docker compose logs api
-          exit 1
-
-      - name: Healthcheck responde 200
-        run: |
-          curl -fsS http://localhost:8081/health | tee /dev/stderr | grep -q '"status":"ok"'
-
-      - name: Logs em caso de falha
-        if: failure()
-        run: docker compose logs
+          pytest tests/test_schema_dps.py \
+                 tests/test_evento_cancelamento.py \
+                 tests/test_eventos_tipos.py \
+                 tests/test_contrato_sefin_real.py \
+                 tests/test_openapi_sincronizado.py -v

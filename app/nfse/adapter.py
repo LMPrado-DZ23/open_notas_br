@@ -538,7 +538,12 @@ class SefinMockAdapter:
             )
         return self._emitidas[chave]
 
-    def registrar_evento(self, chave: str, pedido_assinado: bytes) -> RespostaEvento:
+    def registrar_evento(
+        self, chave: str, pedido_assinado: bytes, *, operacao: str = "o evento"
+    ) -> RespostaEvento:
+        # `operacao` existe no Protocol (usada nas mensagens de erro do cliente real).
+        # O dublê precisa aceitar o mesmo contrato, senão os testes passam com uma
+        # interface e a produção usa outra.
         self.chamadas.append(("registrar_evento", (chave, pedido_assinado)))
         xml = (
             b'<?xml version="1.0" encoding="UTF-8"?>'

@@ -1,0 +1,28 @@
+name: Sugerir melhoria
+description: Ideia, novo documento fiscal ou integração
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Que problema isso resolve
+      description: Descreva a situação real, não a solução.
+    validations:
+      required: true
+  - type: textarea
+    id: fonte
+    attributes:
+      label: Fonte oficial (se a sugestão envolve regra fiscal)
+      description: |
+        Se você está propondo comportamento fiscal, cite a fonte — nota técnica,
+        manual, XSD ou resolução. Sem fonte, a contribuição entra como [A VALIDAR]
+        e fica isolada até alguém confirmar.
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirmacoes
+    attributes:
+      label: Confirmações
+      options:
+        - label: Não incluí certificado, senha ou dado pessoal nesta issue.
+          required: true

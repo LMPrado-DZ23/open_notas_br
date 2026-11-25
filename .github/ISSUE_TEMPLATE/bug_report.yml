@@ -1,0 +1,42 @@
+name: Relatar problema
+description: Algo não funcionou como deveria
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Não cole certificado, senha, token ou dado pessoal de terceiro.**
+        Se for falha de segurança, use o canal privado (ver SECURITY.md).
+  - type: textarea
+    id: o-que
+    attributes:
+      label: O que aconteceu
+      description: Comportamento observado e comportamento esperado.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduzir
+    attributes:
+      label: Como reproduzir
+      description: Comandos, chamada de API ou teste que reproduz.
+      render: shell
+    validations:
+      required: true
+  - type: dropdown
+    id: confianca
+    attributes:
+      label: A parte envolvida está marcada com qual etiqueta?
+      description: A etiqueta de confiança indica se aquele trecho foi validado contra a fonte oficial.
+      options:
+        - "[CONFIRMADO] — validado contra fonte oficial"
+        - "[INFERIDO] — inferência a partir de padrão similar"
+        - "[A VALIDAR] — depende de validação oficial"
+        - "Não sei"
+    validations:
+      required: true
+  - type: input
+    id: versao
+    attributes:
+      label: Versão / commit
+    validations:
+      required: false
