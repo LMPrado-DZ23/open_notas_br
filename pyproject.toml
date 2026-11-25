@@ -55,6 +55,8 @@ app = [
   # DANFSe local (Fase 4). ReportLab e Python puro: roda em Linux e Windows sem
   # dependencia nativa, diferente de WeasyPrint (pango/cairo).
   "reportlab>=4.2",
+  # QR Code do cupom NFC-e. `segno` é Python puro e gera PNG sem Pillow.
+  "segno>=1.6",
 ]
 # Geração local de DANFSe/DANFE (Fase 4).
 pdf = [

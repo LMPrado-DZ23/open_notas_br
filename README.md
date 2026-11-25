@@ -241,8 +241,9 @@ Esta seção existe para não haver dúvida sobre o que está pronto.
 
 ### Representação de NF-e (pronta)
 
-`POST /v1/representacoes?formato=danfe|danfe_simplificado|etiquetas` recebe o XML
-**já autorizado** e devolve o PDF, sem gravar nada. Serve para quem emite a NF-e
+`POST /v1/representacoes?formato=...` recebe o XML **já autorizado** e devolve o
+PDF, sem gravar nada. Formatos: `danfe`, `danfe_simplificado`, `etiquetas`
+(NF-e), `cupom` (NFC-e), `dacte` (CT-e) e `danfse` (NFS-e). Serve para quem emite a NF-e
 no próprio ERP e usa o serviço só para o documento auxiliar e a logística.
 
 As etiquetas de volume seguem as imagens de referência: `Volume i/n`,
@@ -256,7 +257,7 @@ etiquetas.
 | Item | Situação |
 |---|---|
 | Emissão de NF-e / NFC-e | fase 7 — representação (DANFE A4, etiquetas) pronta; emissão na SEFAZ pendente |
-| CT-e / MDF-e (DACTE/DAMDFE) | fase 8 |
+| Emissão de CT-e / MDF-e | fase 8 — DACTE pronto; DAMDFE e emissão pendentes |
 | NFP-e e etiquetas de volume por volume | fase 9 |
 | MAN/DNA, DAS e guia municipal reais | provedores são determinísticos, sem integração oficial |
 | Catálogo `cClassTrib` como validação de entrada | importado; ainda não bloqueia valor inválido na emissão |

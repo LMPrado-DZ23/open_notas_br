@@ -38,14 +38,14 @@ class TestRegistro:
         assert isinstance(representacao, DanfeSimplificado)
 
     def test_representacao_inexistente_falha_alto(self) -> None:
-        # Cupom de NFC-e não existe ainda (fase 8): pedir deve dar erro explícito
-        # com a lista do que existe, nunca PDF incompleto.
+        # DAMDFE (MDF-e) ainda não existe: pedir deve dar erro explícito com a
+        # lista do que existe, nunca PDF incompleto.
         with pytest.raises(RepresentacaoNaoImplementada, match="danfe"):
-            obter("nfce", "cupom")
+            obter("mdfe", "damdfe")
 
-    def test_cte_nao_implementado(self) -> None:
-        with pytest.raises(RepresentacaoNaoImplementada, match="fases"):
-            obter("cte", "dacte")
+    def test_mdfe_nao_implementado(self) -> None:
+        with pytest.raises(RepresentacaoNaoImplementada, match="fases|Dispon"):
+            obter("mdfe", "damdfe")
 
     def test_tipo_e_imutavel(self) -> None:
         tipo = TipoRepresentacao(documento="nfe", formato="danfe_simplificado")

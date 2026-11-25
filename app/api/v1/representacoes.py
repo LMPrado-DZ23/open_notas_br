@@ -75,9 +75,22 @@ async def gerar_representacao(
     # A etiqueta precisa da quantidade de volumes, que o catálogo não carrega.
     if formato == "etiquetas":
         representacao = EtiquetasVolume(quantidade_volumes=volumes)
+    elif formato == "danfse":
+        representacao = Danfse()
     else:
+        # Cada formato pertence a um tipo de documento; procurar em todos evita
+        # exigir que o chamador saiba o par (documento, formato).
+        candidatos = [t for t in disponiveis() if t.formato == formato]
+        if not candidatos:
+            raise HTTPException(
+                status_code=HTTP_422,
+                detail=(
+                    f"formato {formato!r} não existe. Disponíveis: "
+                    + ", ".join(sorted({t.formato for t in disponiveis()}))
+                ),
+            )
         try:
-            representacao = obter("nfe", formato) if formato != "danfse" else Danfse()
+            representacao = obter(candidatos[0].documento, formato)
         except ErroRepresentacao as exc:
             raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
 

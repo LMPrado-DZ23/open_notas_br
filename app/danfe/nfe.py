@@ -345,6 +345,28 @@ class EtiquetasVolume:
         return gerar_etiquetas(extrair_etiquetas(xml, quantidade_volumes=self.quantidade_volumes))
 
 
+class CupomNfce:
+    """Representação `nfce/cupom` — DANFE NFC-e em bobina de 80 mm."""
+
+    tipo = TipoRepresentacao(documento="nfce", formato="cupom")
+
+    def gerar(self, xml: bytes) -> bytes:
+        from app.danfe.nfce import extrair_cupom, gerar_cupom
+
+        return gerar_cupom(extrair_cupom(xml))
+
+
+class Dacte:
+    """Representação `cte/dacte` — DACTE em A4 paisagem."""
+
+    tipo = TipoRepresentacao(documento="cte", formato="dacte")
+
+    def gerar(self, xml: bytes) -> bytes:
+        from app.danfe.cte import extrair_dacte, gerar_dacte
+
+        return gerar_dacte(extrair_dacte(xml))
+
+
 class Danfse:
     """Representação `nfse/danfse`, delegando ao gerador do módulo DANFSe."""
 
@@ -364,6 +386,8 @@ def registrar_todas() -> None:
     registrar(DanfeSimplificado())
     registrar(DanfeA4())
     registrar(EtiquetasVolume())
+    registrar(CupomNfce())
+    registrar(Dacte())
     registrar(Danfse())
 
 

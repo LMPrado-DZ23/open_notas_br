@@ -82,7 +82,7 @@ class TestGeracao:
 
     async def test_formato_desconhecido_da_422(self, cliente, tenant) -> None:
         resposta = await cliente.post(
-            "/v1/representacoes?formato=cupom",
+            "/v1/representacoes?formato=damdfe",
             files={"arquivo": ("nfe.xml", nfe(), "application/xml")},
             headers=cabecalho(tenant),
         )

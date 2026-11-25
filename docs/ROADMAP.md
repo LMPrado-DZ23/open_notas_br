@@ -288,3 +288,31 @@ do serviço.
 **Pendente nesta fase**: emissão de NF-e (SEFAZ), cancelamento, inutilização,
 carta de correção, e cupom de NFC-e. Todos exigem certificado e webservice da
 SEFAZ — não são verificáveis aqui.
+
+### Fase 8 — representações entregues (2026-11-25)
+
+| Representação | Documento | Formato do PDF | Evidência |
+|---|---|---|---|
+| Cupom / DANFE NFC-e | NFC-e (65) | bobina 80 mm (227×449 pt) | HTTP 200, 2616 bytes |
+| DACTE | CT-e (57) | A4 paisagem (842×595 pt) | HTTP 200, 3746 bytes |
+
+Total de representações registradas: **6** — `nfe/danfe`, `nfe/danfe_simplificado`,
+`nfe/etiquetas`, `nfce/cupom`, `cte/dacte`, `nfse/danfse`.
+
+**Decisões que o código deixa explícitas**
+
+- **QR Code do cupom**: gerado localmente com `segno` a partir de
+  `infNFeSupl/qrCode` do XML autorizado. Se o XML não trouxer `qrCode`, o cupom
+  imprime o aviso em vez de montar URL — URL de QR errada leva o consumidor a
+  consulta inválida. A composição do QR (chave + CSC + hash) é feita pelo
+  emissor/SEFAZ; aqui só reproduzimos o que veio.
+- **Tomador do CT-e**: o grupo `toma` é opcional e muda com `indIEToma`. Quando
+  não existe, o DACTE imprime "não informado" em vez de deduzir pelo destinatário
+  — deduzir erra em CT-e de redespacho.
+- **Busca do QR tolerante**: procura `NFe/infNFeSupl/qrCode`, depois
+  `infNFeSupl/qrCode`, depois qualquer `qrCode`. Caminho único falharia em
+  silêncio com emissores que serializam diferente.
+
+**Pendente**: DAMDFE (MDF-e) — pedir hoje devolve 422 com a lista dos formatos
+existentes. Emissão de CT-e/MDF-e na SEFAZ e DACTE simplificado seguem fora do
+alcance sem certificado e webservice.
