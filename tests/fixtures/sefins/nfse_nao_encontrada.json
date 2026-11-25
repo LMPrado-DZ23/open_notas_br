@@ -1,0 +1,9 @@
+{
+  "tipoAmbiente": 2,
+  "versaoAplicativo": "SefinNacional_1.6.0",
+  "dataHoraProcessamento": "2026-11-25T16:15:50.6797607-03:00",
+  "erro": {
+    "codigo": "E2401",
+    "descricao": "Chave de acesso não encontrada."
+  }
+}

@@ -371,10 +371,23 @@ class SefinNacionalClient:
         if status_normalizado == "REJEICAO":
             mensagens = extrair_mensagens(_get(resultado.json, "Erros") or [])
             if not mensagens:
+                # Caso real observado: o ADN devolve `REJEICAO` com `Erros: []` e a
+                # causa vem em `TipoConsulta` (ex.: "InscricaoCertificado" — o NSU
+                # consultado não pertence a este certificado). Sem surfacing desse
+                # campo, a mensagem vira "recusou sem informar motivo" e o operador
+                # não tem por onde começar. Ver docs/REFERENCIAS.md §11.
+                tipo_consulta = _get(resultado.json, "TipoConsulta")
+                detalhe = (
+                    f"; TipoConsulta={tipo_consulta}" if isinstance(tipo_consulta, str) else ""
+                )
                 mensagens = [
                     MensagemSefin(
                         None,
-                        f"o ADN recusou sem informar motivo (HTTP {resultado.status_code})",
+                        f"o ADN recusou sem detalhar o motivo (HTTP "
+                        f"{resultado.status_code}{detalhe}). "
+                        "TipoConsulta indica a consulta recusada — "
+                        "InscricaoCertificado sugere que o NSU/escopo não pertence "
+                        "a este certificado.",
                     )
                 ]
             raise ErroSefin(

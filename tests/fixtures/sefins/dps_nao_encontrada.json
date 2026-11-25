@@ -1,0 +1,8 @@
+{
+  "tipoAmbiente": 0,
+  "dataHoraProcessamento": "2026-11-25T16:04:16.5659488-03:00",
+  "erro": {
+    "codigo": "E2404",
+    "descricao": "Não foi gerada uma NFS-e com o identificador de DPS informado"
+  }
+}

@@ -532,3 +532,59 @@ SEFIN, que depende de regra de negócio (cadastro do município, serviço, alíq
 E o XSD 1.01 usa padrão numérico de CNPJ: CNPJ alfanumérico (julho/2026) não é
 coberto por esta versão do leiaute — há teste que documenta essa lacuna em vez de
 escondê-la.
+
+### 11.6 Rotas restantes — o que o probe confirmou e o que derrubou
+
+| Rota | Resultado real | Veredito |
+|---|---|---|
+| `HEAD /dps/{id}` | **HTTP 404** | **[CONFIRMADO]** existe e aceita HEAD |
+| `GET /nfse/{chave}` | **HTTP 404** + envelope | **[CONFIRMADO]** |
+| `GET /nfse/{chave}/eventos` | **HTTP 405** | **[CONFIRMADO] que a premissa do briefing está ERRADA** |
+| `GET {adn}/contribuintes/NFSe/{chave}/Eventos` | **HTTP 404** + envelope válido | **[CONFIRMADO]** — e é o que usamos |
+
+#### Os dois códigos de erro reais
+
+`GET /nfse/{chave}` devolveu:
+
+```json
+{"tipoAmbiente": 2, "versaoAplicativo": "SefinNacional_1.6.0",
+ "dataHoraProcessamento": "...",
+ "erro": {"codigo": "E2401", "descricao": "Chave de acesso não encontrada."}}
+```
+
+O ADN, para eventos de chave inexistente, devolve **404 com corpo normal**:
+
+```json
+{"StatusProcessamento": "NENHUM_DOCUMENTO_LOCALIZADO", "LoteDFe": [], "Alertas": [],
+ "Erros": [{"Codigo": "E2240", "Descricao": "Nenhum documento localizado - ..."}],
+ "TipoAmbiente": "HOMOLOGACAO", "VersaoAplicativo": "1.0.0.0", ...}
+```
+
+Isso confirma a regra que o código já seguia: **no ADN, status HTTP não decide** —
+`StatusProcessamento` decide. 404 aqui significa "não existe", não "falhou".
+
+#### Observação que virou restrição de código
+
+O mesmo ambiente reportou `tipoAmbiente: 0` na consulta de DPS e `tipoAmbiente: 2`
+na consulta de NFS-e. Como o campo não é consistente entre endpoints, **nenhum
+código pode inferir ambiente a partir dele** — há teste fixando essa observação.
+
+#### Sobre `GET /nfse/{chave}/eventos` devolver 405
+
+O briefing listava essa rota como parte do contrato. Ela responde
+`405 — The requested resource does not support http method 'GET'`, ou seja: o
+caminho existe, mas GET não é suportado. Nossa implementação **já** usava o ADN
+(`/contribuintes/NFSe/{chave}/Eventos`), que funciona — o isolamento no adapter
+evitou que a premissa errada virasse defeito. Há teste registrando o achado para
+que ninguém "conserte" o código de volta para a rota errada.
+
+#### Fixtures com respostas reais
+
+As respostas acima estão versionadas em `tests/fixtures/sefins/` (sem segredo, só
+mensagens públicas) e os testes as alimentam nos nossos parsers. Se a SEFIN mudar a
+forma — ou se alguém quebrar a compatibilidade do parser — o teste falha antes da
+produção.
+
+Um ajuste saiu daí: quando o ADN devolve `REJEICAO` com `Erros: []` (acontece), a
+mensagem antes dizia "recusou sem informar motivo". Agora inclui `TipoConsulta`
+(ex.: `InscricaoCertificado`), que é a pista real para o operador.
