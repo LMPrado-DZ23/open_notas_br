@@ -140,6 +140,17 @@ class CertificadoA1:
             "fingerprint_sha256": self.fingerprint_sha256,
         }
 
+    def material_para_assinatura(self) -> tuple[str, list[str]]:
+        """Devolve ``(chave_privada_pem, [certificado_pem, *cadeia])``.
+
+        Existe para o assinador XMLDSig e para mais nada. Não é serializável, não
+        vai para resposta HTTP e não deve ser logado: é chave privada em claro.
+        """
+        return (
+            self._key_pem.decode("ascii"),
+            [self._cert_pem.decode("ascii"), *(p.decode("ascii") for p in self._cadeia_pem)],
+        )
+
     def impressao_arquivo(self) -> str:
         """SHA-256 do DER do certificado, para deduplicar uploads."""
         return hashlib.sha256(self._cert_pem).hexdigest()

@@ -249,3 +249,48 @@ testável em vez de depender do relógio.
   própria referência.
 - A lista de municípios aderentes ao padrão nacional não foi verificada.
 - A taxonomia de erros (`E0010`, `E0312`) vem da referência, não do manual.
+
+### 7.6 Assinatura XMLDSig e Id da DPS — [CONFIRMADO] na referência
+
+Fonte: `emissor-em-planilha-main/backend/src/emissor/nfse/signer.py` e `dps_builder.py`.
+
+| Item | Valor | Etiqueta |
+|---|---|---|
+| Modo | enveloped, sobre o elemento `infDPS` | [CONFIRMADO] |
+| Assinatura | RSA-SHA256 | [CONFIRMADO] |
+| Digest | SHA-256 | [CONFIRMADO] |
+| Canonicalização | **C14N exclusiva** (`xml-exc-c14n`) | [CONFIRMADO] |
+| `Reference/@URI` | `#` + `Id` do `infDPS` | [CONFIRMADO] |
+| Prefixo de namespace na `Signature` | **proibido** — SEFIN recusa (E1228) | [CONFIRMADO] |
+
+Se a homologação recusar a assinatura, a referência orienta trocar a
+canonicalização para C14N 1.0 (`xml-c14n`) **antes** de suspeitar da chave. Está
+implementado como parâmetro (`c14n`) no assinador.
+
+Formato do `Id` da DPS (45 posições):
+
+```
+DPS + cMun(7) + tpInsc(1) + inscrição(14) + série(5) + nDPS(15)
+```
+
+`tpInsc`: 1 = CPF, 2 = CNPJ. Exemplo gerado por este projeto:
+
+```
+DPS355030821122233300018100001000000000000001
+```
+
+Estrutura de `infDPS`, na ordem em que a SEFIN espera:
+
+`tpAmb`, `dhEmi`, `verAplic`, `serie`, `nDPS`, `dCompet`, `tpEmit`,
+[`finNFSe` — só na NT 009], `cLocEmi`, `prest`, [`toma`], [`interm`], `serv`,
+`valores`, [`IBSCBS`].
+
+### 7.7 O que a DPS NÃO carrega — correção de premissa
+
+**A DPS não leva alíquotas nem valores de IBS/CBS.** Ela declara apenas
+`cIndOp`, `CST`, `cClassTrib`, `indDest` (e o `dest` quando aplicável); a SEFIN
+calcula os tributos e devolve os valores em `infNFSe/IBSCBS`.
+
+Consequência de arquitetura: o motor tributário serve para **simulação,
+conferência e apuração**, não para preencher o XML enviado. Qualquer tentativa de
+enviar `pIBSUF`/`pCBS` na DPS seria rejeitada e, pior, indicaria desenho errado.

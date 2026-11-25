@@ -68,6 +68,12 @@ class Settings(BaseSettings):
     sefin_homologacao_base_url: str = ""
     sefin_producao_base_url: str = ""
     sefin_timeout_seconds: int = 30
+    #: Permite apontar a SEFIN para host que não seja `nfse.gov.br`.
+    #: Só para espelho interno/homologação própria; desligado por padrão.
+    sefin_permitir_host_nao_oficial: bool = False
+    #: `sefin` = cliente real (padrão). `mock` = dublê determinístico, para
+    #: demonstrar o fluxo sem certificado real e rodar a suíte em CI.
+    nfse_adapter: str = "sefin"
 
     # -- CNPJ (Fase 3) ------------------------------------------------
     serpro_cnpj_token: str = ""

@@ -33,7 +33,7 @@ pytest             ->  212 passed
   por arquivo `.env` no host. A aplicação exige a chave em produção; *onde* ela
   mora é decisão de operação.
 
-## Fase 2 — Cofre de certificados A1 + assinatura XML
+## Fase 2 — Cofre de certificados A1 + assinatura XML ✅ concluída
 
 **DoD**
 
@@ -42,12 +42,16 @@ pytest             ->  212 passed
 - Assinatura XMLDSig válida contra fixture de DPS.
 - Certificado descriptografado apenas em memória.
 
-**Risco conhecido:** gerar fixture de DPS assinada exige um certificado. Será
-gerado um certificado autoassinado **de teste** em tempo de execução — nunca
-commitado — para exercitar o XMLDSig. Assinatura que só valida contra certificado
-autoassinado não prova aceitação pela SEFIN; isso é homologação, não teste unitário.
+**Entregue**: `POST /v1/me/certificados` (upload multipart, selagem AES-256-GCM,
+metadados, 409 em duplicata), `GET`/`DELETE`/`ativar`/`saude`; assinatura XMLDSig
+RSA-SHA256 com C14N exclusiva e `Signature` sem prefixo; DPS 1.01 montada com
+validação de forma; emissão fim-a-fim idempotente.
 
-## Fase 3 — Motor tributário + CNPJ + NFS-e (com mocks)
+**Risco declarado:** o certificado de teste é autoassinado e gerado em execução —
+nunca commitado. Assinatura que valida contra ele **não** prova aceitação pela
+SEFIN; isso é homologação, não teste unitário.
+
+## Fase 3 — Motor tributário + CNPJ + NFS-e (parcial)
 
 **DoD**
 
@@ -59,8 +63,12 @@ autoassinado não prova aceitação pela SEFIN; isso é homologação, não test
   base vinda de configuração e mocks para os endpoints **[A VALIDAR]**.
 - Teste de integração emite nota mockada e devolve XML autorizado simulado.
 
-**Dívida a pagar aqui:** `notasbr.cadastros` rejeita CNPJ alfanumérico. Precisa
-aceitar o formato que entra em vigor em julho/2026.
+**Já entregue antes do previsto**: montagem de DPS assinada, adapter real com
+emissão/consulta/cancelamento, emissão idempotente e CNPJ alfanumérico
+(IN RFB 2.229/2024, validado contra o exemplo oficial).
+
+**Falta**: consulta de CNPJ com cache e fallback para dados abertos, e endpoint
+de simulação IBS/CBS.
 
 ## Fase 4 — DANFSe local + DANFE adapter + apuração/guias
 

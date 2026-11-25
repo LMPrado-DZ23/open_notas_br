@@ -48,6 +48,10 @@ app = [
   "httpx>=0.27",
   # Base IANA de fusos horarios: obrigatoria no Windows e em imagens sem tzdata.
   "tzdata>=2024.1",
+  # XMLDSig: assinatura da DPS. `lxml` entrega C14N correto; implementar
+  # canonicalizacao a mao e a causa mais comum de assinatura recusada.
+  "lxml>=5.2",
+  "signxml>=3.2",
 ]
 # Geração local de DANFSe/DANFE (Fase 4).
 pdf = [

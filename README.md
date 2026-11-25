@@ -156,29 +156,78 @@ o XML que o motor gerar ou receber. O serviço é o extra `app`.
 - Worker ARQ com batimento e healthcheck próprio.
 - 283 testes passando; `openapi.json` gerado do app.
 
-**Caminho real da emissão (Fase 2/3, em andamento)**
+**Caminho real da emissão (Fase 2 concluída, Fase 3 parcial)**
 
-O adapter da SEFIN Nacional já aponta para a **API real**, com o contrato
-confirmado em implementação de referência (ver
-[docs/REFERENCIAS.md](docs/REFERENCIAS.md#7-contrato-confirmado-da-api-real-atualização)):
+O fluxo completo funciona: **tenant → configuração fiscal → upload do A1 →
+DPS montada → assinada → enviada → XML autorizado persistido**.
 
 | Peça | Estado |
 |---|---|
 | URLs base por ambiente (SEFIN e ADN) | implementadas, com allowlist de host |
 | `POST /nfse` com `dpsXmlGZipB64` | implementado |
-| `GET /dps/{id}`, `GET /nfse/{chave}` | implementados, 404 tratado como "não existe" |
+| `GET /dps/{id}`, `GET /nfse/{chave}` | implementados, 404 = "não existe" |
 | `POST/GET /nfse/{chave}/eventos` | implementados |
 | ADN: distribuição por NSU e eventos | implementados |
 | mTLS com certificado A1 | implementado (`ssl` + PEM temporário privado) |
-| Cofre A1 (abrir PFX, validade, CNPJ, fingerprint) | implementado e testado |
+| Cofre A1: abrir PFX, validade, CNPJ, fingerprint | implementado e testado |
 | Selagem do PFX com AES-256-GCM + `aad` por tenant | implementado e testado |
+| `POST /v1/me/certificados` (upload, listar, ativar, remover, saúde) | implementado |
+| DPS 1.01 montada (leiaute anterior e NT 009) | implementado |
+| Assinatura XMLDSig (RSA-SHA256, C14N exclusiva, sem prefixo) | implementado e testado |
+| `POST /v1/emissoes` idempotente | implementado |
 | Timeout de emissão tratado como **ambíguo** (consulta antes de reenviar) | implementado |
 | CNPJ alfanumérico (IN RFB 2.229/2024) | implementado, validado contra o exemplo oficial |
-| Montagem e assinatura da DPS | **falta** (próximo passo) |
-| Endpoint de upload de certificado | **falta** (próximo passo) |
+| Consulta de CNPJ com cache/fallback, simulação IBS/CBS | **falta** (Fase 3) |
+| DANFSe/DANFE, apuração, lotes, webhooks, conectores | **falta** (Fases 4–9) |
 
-O que falta para você "só conectar o certificado": montar a DPS assinada
-(XMLDSig) e expor `POST /v1/me/certificados`. São os dois itens da Fase 2.
+### Experimente agora, sem certificado real
+
+Com `NFSE_ADAPTER=mock` a SEFIN é substituída por um dublê determinístico; todo o
+resto — assinatura, DPS, idempotência, persistência — roda de verdade.
+
+```bash
+NFSE_ADAPTER=mock docker compose up -d --build
+```
+
+```bash
+# 1) tenant
+TENANT=$(curl -s -X POST localhost:8081/v1/tenants \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"minha-barbearia","nome":"Minha Barbearia LTDA"}')
+KEY=$(echo "$TENANT" | python -c "import json,sys; print(json.load(sys.stdin)['api_key'])")
+
+# 2) configuração fiscal do município
+curl -s -X PUT localhost:8081/v1/me/config-fiscal \
+  -H "Content-Type: application/json" -H "X-API-Key: $KEY" \
+  -d '{"municipio_ibge":"3550308","uf":"SP","ambiente":"homologacao",
+       "codigo_tributacao_nacional":"010701","serie_dps":"1","aliquota_iss":0.05}'
+
+# 3) certificado A1
+curl -s -X POST localhost:8081/v1/me/certificados \
+  -H "X-API-Key: $KEY" \
+  -F "arquivo=@meu-certificado.pfx" -F "senha=SUA_SENHA" -F "apelido=meu-a1"
+
+# 4) emitir
+curl -s -X POST localhost:8081/v1/emissoes \
+  -H "Content-Type: application/json" -H "X-API-Key: $KEY" \
+  -d '{"idempotency_key":"venda-0001","valor":"85.00",
+       "descricao":"Corte de cabelo masculino",
+       "tomador_nome":"Cliente","tomador_documento":"11144477735"}'
+```
+
+Resposta (dublê; a chave real tem 50 dígitos e vem da SEFIN):
+
+```json
+{"invoice_id":"...","status":"authorized","ja_existia":false,
+ "chave":"67180625606939268291970514058092113782995512000000",
+ "documento":{"tem_xml_autorizado":true}}
+```
+
+Repetir o `POST` com a mesma `idempotency_key` devolve **200** com
+`ja_existia: true` e a mesma chave — sem nota duplicada.
+
+Para valer de verdade, troque para `NFSE_ADAPTER=sefin`, use um A1 real e comece
+por **homologação** (`ambiente: "homologacao"`).
 
 **Depende de validação humana antes de qualquer produção**
 
