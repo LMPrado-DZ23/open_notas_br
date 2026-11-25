@@ -5,6 +5,27 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Validado em produção restrita
+
+- **Emissão de NFS-e autorizada pela SEFIN** (Produção Restrita) com certificado
+  ICP-Brasil A1 real, seguida de consulta, DANFSe e **cancelamento** aceito.
+  Ciclo completo verificado contra o serviço real.
+- Contrato da SEFIN travado com respostas reais: `GET /dps/{id}`, `HEAD /dps/{id}`,
+  `GET /nfse/{chave}`, envelopes do ADN e códigos `E2401`, `E2404`, `E2240`.
+- DPS, pedido de evento e os 16 tipos de evento validados contra os XSD oficiais.
+
+### Corrigido
+
+- `pAliq` ia como fração (0,05) em vez de percentual (5,00) — imposto 100x menor.
+- Alíquota não pode ser informada por prestador não optante do Simples (`E0617`).
+- `KeyInfo` levava a cadeia inteira; a SEFIN aceita só o certificado folha
+  (`E0714`).
+- Declaração XML com aspas simples (`E1229`) e declaração descartada ao assinar.
+- C14N trocada para `xml-exc-c14n#WithComments`, como na referência oficial.
+- Configuração fiscal ambígua escolhia o município mais antigo em silêncio;
+  agora exige `municipio_ibge` na emissão.
+- `EmissaoIn` ignorava campos desconhecidos e descartava o tomador em silêncio.
+
 ### Adicionado
 
 - **Catálogo dos 16 tipos de evento** da NFS-e, extraído do XSD oficial, com
