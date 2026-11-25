@@ -121,6 +121,44 @@ class ErroSefin(Exception):
 LIMITE_MENSAGEM = 300
 
 
+#: Orientação prática para códigos que o operador não consegue resolver lendo a
+#: descrição da SEFIN. Todas as entradas abaixo foram observadas em chamadas reais
+#: contra a Produção Restrita (ver docs/REFERENCIAS.md §14).
+ORIENTACAO_POR_CODIGO: dict[str, str] = {
+    "E0312": (
+        "o serviço informado não está administrado pelo município de incidência. "
+        "Causa mais comum: o município não aderiu ao emissor nacional "
+        "(aderente_emissor_nacional = 0), caso em que a emissão precisa ir pela "
+        "integração MUNICIPAL, não pela SEFIN. Confira também se o código de "
+        "tributação é o que a prefeitura exige para este serviço."
+    ),
+    "E0008": (
+        "a data de emissão (dhEmi) ficou à frente do relógio da SEFIN. A SEFIN "
+        "compara o horário literal da DPS com o horário local dela; envie dhEmi "
+        "com o relógio já decorrido, não no futuro."
+    ),
+    "E0714": (
+        "a SEFIN não conseguiu validar a assinatura XMLDSig. Causas confirmadas: "
+        "(1) KeyInfo com a cadeia inteira — a SEFIN aceita só o certificado folha; "
+        "(2) XML sem a declaração `<?xml version=\"1.0\" encoding=\"UTF-8\"?>`; "
+        "(3) C14N diferente de xml-exc-c14n#WithComments."
+    ),
+    "E1229": (
+        "o XML foi enviado sem declarar UTF-8 de forma reconhecível. A declaração "
+        "precisa estar presente e usar aspas duplas: encoding=\"UTF-8\"."
+    ),
+    "E2404": "não existe NFS-e para o identificador de DPS informado.",
+    "E2401": "chave de acesso não encontrada na base nacional.",
+}
+
+
+def orientacao(codigo: str | None) -> str | None:
+    """Dica acionável para um código de erro, quando conhecida."""
+    if not codigo:
+        return None
+    return ORIENTACAO_POR_CODIGO.get(codigo.strip().upper())
+
+
 def _resumir(texto: str) -> str:
     """Colapsa espaços e trunca, marcando o corte.
 

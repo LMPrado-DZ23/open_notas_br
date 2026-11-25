@@ -724,3 +724,102 @@ Aceitação real de cada evento pela SEFIN. O `POST` de registro não foi exerci
 (é escrita). Também não validei se a SEFIN restringe tipos por perfil de autor
 (prestador/tomador/intermediário só podem manifestar o que lhes cabe) — o schema
 não expressa essa regra.
+
+---
+
+## 14. Emissão real em Produção Restrita — o que cada rejeição ensinou
+
+Autorizado pelo solicitante, o ciclo de emissão foi exercitado contra
+`sefin.producaorestrita.nfse.gov.br` com o A1 ICP-Brasil real. **Nenhuma nota foi
+autorizada ainda**, mas cinco rejeições reais revelaram quatro defeitos nossos e um
+bloqueio cadastral.
+
+### 14.1 E1229 — declaração XML com aspas simples
+
+`ET.tostring(..., xml_declaration=True)` emite `encoding='UTF-8'` com **aspas
+simples**. XML válido, mas o validador da SEFIN procura o literal com aspas duplas
+e conclui que o documento não é UTF-8. A declaração passou a ser escrita à mão.
+
+### 14.2 E0714 — o assinador descartava a declaração
+
+`etree.tostring()` **remove** a declaração XML ao re-serializar. O documento
+assinado ia sem `<?xml ...?>` e a SEFIN não detectava a codificação.
+
+### 14.3 E0714 — C14N errada
+
+Usávamos exclusive C14N **sem** comentários. O documento válido de referência
+(`nfse_valido_com_IBSCBS.xml`, do repositório `calculadora-rtc-regime-regular`) usa
+`http://www.w3.org/2001/10/xml-exc-c14n#WithComments` tanto em
+`CanonicalizationMethod` quanto no `Transform`.
+
+### 14.4 E0714 — a causa principal: cadeia inteira no `KeyInfo`
+
+**Este foi o erro mais caro de encontrar.** Nosso A1 ICP-Brasil traz **4
+certificados** (folha + 3 intermediários) e o assinador colocava todos no
+`KeyInfo`. A SEFIN responde `E0714` e não diz que o problema é a cadeia. Com **um
+único certificado** (o folha), a assinatura passa a ser validada:
+
+```
+cadeia inteira no KeyInfo  → E0714
+somente o certificado folha → E0004 (assinatura ACEITA, erro de Id)
+```
+
+Corrigido em `assinar()` com `cert=cadeia[:1]`. O documento válido de referência
+também traz um único `X509Certificate`.
+
+**Correção de diagnóstico**: eu havia atribuído a alternância E0714/E0008 ao fuso de
+`dhEmi`. Estava errado: `E0008` dispara **antes** da verificação de assinatura, então
+os casos com E0008 nunca provaram assinatura válida. O que mudava era qual porteira
+fechava primeiro.
+
+### 14.5 E0004 — `Id` inconsistente com os campos
+
+O `Id` da DPS tem regra documentada no próprio XSD (`TSIdDPS`):
+
+```
+"DPS" + Cód.Mun (7) + Tipo de Inscrição (1) + Inscrição (14, CPF com zeros à
+esquerda) + Série (5) + Núm. DPS (15)   →  45 posições
+```
+
+Um teste meu alterou `<nDPS>` sem regenerar o `Id` e provocou E0004 — erro de teste,
+não de código. Ficou teste garantindo as 45 posições e a coerência com o número.
+
+### 14.6 E0312 — o bloqueio cadastral, não técnico
+
+Com assinatura, `Id`, schema e declaração corretos, a SEFIN passou a recusar só por
+regra de negócio:
+
+```
+E0312 — O código de tributação nacional informado não está administrado pelo
+município de incidência
+```
+
+Testado com `cTribNac` 010101, 010201, 010501, 990101 e municípios 3550308 (São
+Paulo) e 4205407 (Florianópolis): **todos E0312**.
+
+A explicação mais provável está no próprio dado que a configuração já guardava:
+`aderente_emissor_nacional = false` para o município do emitente. Ou seja, **o
+município não integra o emissor nacional** — a emissão teria de ir pela integração
+municipal, não pela SEFIN.
+
+| Camada | Estado |
+|---|---|
+| TLS mútuo com A1 ICP-Brasil | **CONFIRMADO** |
+| Declaração, C14N, `KeyInfo`, assinatura XMLDSig | **CONFIRMADO** |
+| `Id` da DPS (45 posições) | **CONFIRMADO** |
+| Schema 1.01 | **CONFIRMADO** |
+| Emissão autorizada | **bloqueada por cadastro do município** |
+
+### 14.7 O que isso significa para o produto
+
+O sistema está tecnicamente pronto para emitir; o que falta é o município do
+emitente aceitar o padrão nacional. Duas saídas, ambas fora do código:
+
+1. **Migrar a emissão para um município aderente** (mudança de estabelecimento ou
+   de município de incidência), ou
+2. **Implementar a integração municipal** — que é um adapter por padrão de
+   prefeitura, como o projeto já prevê para municípios não aderentes.
+
+O código agora traz `orientacao()` — dica acionável por código de erro — para que
+`E0312`, `E0714`, `E0008`, `E1229`, `E2401` e `E2404` não cheguem ao operador sem
+explicação.

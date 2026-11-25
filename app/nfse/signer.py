@@ -88,7 +88,12 @@ def assinar(
         assinado = assinador.sign(
             raiz,
             key=chave_pem,
-            cert=cadeia,
+            # Só o certificado FOLHA vai no `KeyInfo`. Passar a cadeia inteira
+            # (nosso A1 ICP-Brasil traz 4 certificados) faz a SEFIN responder
+            # **E0714** ("Arquivo enviado com erro na assinatura") — verificado
+            # contra a Produção Restrita, em 25/11/2026. O documento válido de
+            # referência também traz um único X509Certificate.
+            cert=cadeia[:1],
             reference_uri=f"#{id_alvo}",
             always_add_key_value=False,
         )
