@@ -147,28 +147,62 @@ o XML que o motor gerar ou receber. O serviço é o extra `app`.
 
 ## O que está pronto e o que não está
 
-**Pronto e verificado nesta máquina (Fase 1)**
+**Pronto e verificado nesta máquina**
 
 - `docker compose up` sobe os 4 serviços, com `migrate` aplicando as migrações antes.
 - `/health` retorna 200 com banco e Redis reais (e 503 quando algum cai — testado).
 - Migração inicial com as 9 tabelas, sem drift (`alembic check`).
 - Multi-tenant com API key, rotação, isolamento e configuração fiscal por município.
 - Worker ARQ com batimento e healthcheck próprio.
-- 212 testes passando; `openapi.json` gerado do app.
+- 283 testes passando; `openapi.json` gerado do app.
+
+**Caminho real da emissão (Fase 2/3, em andamento)**
+
+O adapter da SEFIN Nacional já aponta para a **API real**, com o contrato
+confirmado em implementação de referência (ver
+[docs/REFERENCIAS.md](docs/REFERENCIAS.md#7-contrato-confirmado-da-api-real-atualização)):
+
+| Peça | Estado |
+|---|---|
+| URLs base por ambiente (SEFIN e ADN) | implementadas, com allowlist de host |
+| `POST /nfse` com `dpsXmlGZipB64` | implementado |
+| `GET /dps/{id}`, `GET /nfse/{chave}` | implementados, 404 tratado como "não existe" |
+| `POST/GET /nfse/{chave}/eventos` | implementados |
+| ADN: distribuição por NSU e eventos | implementados |
+| mTLS com certificado A1 | implementado (`ssl` + PEM temporário privado) |
+| Cofre A1 (abrir PFX, validade, CNPJ, fingerprint) | implementado e testado |
+| Selagem do PFX com AES-256-GCM + `aad` por tenant | implementado e testado |
+| Timeout de emissão tratado como **ambíguo** (consulta antes de reenviar) | implementado |
+| CNPJ alfanumérico (IN RFB 2.229/2024) | implementado, validado contra o exemplo oficial |
+| Montagem e assinatura da DPS | **falta** (próximo passo) |
+| Endpoint de upload de certificado | **falta** (próximo passo) |
+
+O que falta para você "só conectar o certificado": montar a DPS assinada
+(XMLDSig) e expor `POST /v1/me/certificados`. São os dois itens da Fase 2.
 
 **Depende de validação humana antes de qualquer produção**
 
-- **URL base da SEFIN/ADN não foi confirmada.** Vem de variável de ambiente
-  (`SEFIN_*_BASE_URL`); nenhum endpoint é hardcoded. Ver
-  [docs/REFERENCIAS.md](docs/REFERENCIAS.md).
-- **Versão do layout DANFSe:** o briefing cita NT 008 v1.02 (14/07/2026); a
-  referência local implementa v1.01 (30/06/2026). Divergência declarada, não resolvida.
-- **Lista de municípios com `aderenteEmissorNacional = 1`** não foi verificada.
-- **Cota e contrato da API Serpro** não foram exercitados.
-- **Nenhum certificado A1 real foi usado**; nenhuma chamada real a SEFAZ,
-  prefeitura ou Serpro foi feita.
-- **CNPJ alfanumérico:** `notasbr.cadastros` ainda trata documento como numérico e
-  rejeitaria um CNPJ alfanumérico. Dívida registrada para a Fase 3.
+- **Nada foi exercitado contra a SEFIN real**: não há certificado A1 nem
+  credenciamento neste ambiente. O contrato está implementado, não homologado.
+- **Versão do leiaute:** a produção usa o leiaute anterior até 30/11/2026 e passa
+  à NT 009 em 01/12/2026; a homologação já está na NT 009. O adapter escolhe por
+  data e ambiente.
+- **Lista de municípios com `aderenteEmissorNacional = 1`** não verificada.
+- **Cota e contrato da API Serpro** não exercitados.
+- **NFP-e, MDF-e e etiquetas** entram nas Fases 7–9.
+
+### Para emitir de verdade, você precisa de
+
+1. **CNPJ ativo** com credenciamento no Sistema Nacional (para NFS-e nacional).
+2. **Certificado digital A1** (`.pfx`/`.p12`) e a senha.
+3. **Inscrição municipal** e o **código de tributação nacional** do serviço
+   cadastrados no município — sem isso a SEFIN recusa com `E0312`.
+4. **Município aderente** ao padrão nacional; se não for, a emissão é pelo
+   webservice da prefeitura, que é outro adapter.
+
+Comece apontando `ENVIRONMENT` e `SEFIN_*_BASE_URL` para **homologação**. Emitir
+em produção com o primeiro teste é o caminho mais curto para uma nota real
+errada.
 
 ## Desenvolvimento
 

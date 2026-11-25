@@ -10,6 +10,7 @@ import pytest
 
 from notasbr.cadastros import (
     apenas_digitos,
+    cnpj_alfanumerico,
     cnpj_valido,
     cpf_valido,
     documento_valido,
@@ -101,3 +102,42 @@ class TestGenericos:
         assert mascarar("11222333000181") == "************81"
         assert mascarar("12") == "**"
         assert mascarar("") == ""
+
+
+class TestCnpjAlfanumerico:
+    """CNPJ alfanumérico (IN RFB 2.229/2024), vigente desde julho/2026.
+
+    O vetor principal é o exemplo publicado pela Receita Federal:
+    ``12.ABC.345/01DE-35``. Testar contra ele prova que o cálculo do DV segue a
+    regra oficial (valor do caractere = ASCII - 48), e não uma implementação
+    inventada que só concorda consigo mesma.
+    """
+
+    EXEMPLO_RFB = "12ABC34501DE35"
+
+    def test_exemplo_publicado_pela_receita(self) -> None:
+        assert cnpj_valido(self.EXEMPLO_RFB) is True
+        assert cnpj_valido("12.ABC.345/01DE-35") is True
+
+    def test_dv_calculado_do_exemplo(self) -> None:
+        assert dv_cnpj("12ABC34501DE") == "35"
+
+    def test_dv_adulterado_e_rejeitado(self) -> None:
+        assert cnpj_valido("12ABC34501DE36") is False
+
+    def test_identifica_alfanumerico(self) -> None:
+        assert cnpj_alfanumerico(self.EXEMPLO_RFB) is True
+        assert cnpj_alfanumerico("11222333000181") is False
+
+    def test_formatacao_preserva_letras(self) -> None:
+        assert formatar_cnpj(self.EXEMPLO_RFB) == "12.ABC.345/01DE-35"
+
+    def test_normalizacao_para_maiuscula(self) -> None:
+        assert cnpj_valido("12abc34501de35") is True
+
+    def test_dv_precisa_ser_numerico(self) -> None:
+        # Posições 13 e 14 têm de ser dígitos: "DE" no fim não é DV válido.
+        assert cnpj_valido("12ABC34501DEDE") is False
+
+    def test_documento_valido_reconhece_alfanumerico(self) -> None:
+        assert documento_valido(self.EXEMPLO_RFB) is True

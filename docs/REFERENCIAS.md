@@ -160,3 +160,92 @@ alfanumérico. Isso é uma dívida técnica registrada, a corrigir na Fase 3.
 - Não confirmei qual versão de XSD (v1.00 ou v1.01) está aceita hoje em produção.
 - Não confirmei a lista de municípios com `aderenteEmissorNacional = 1`; a premissa
   fica como [A VALIDAR] e o adapter precisa aceitar as duas rotas.
+
+
+---
+
+## 7. Contrato confirmado da API real (atualização)
+
+Esta seção corrige a seção 1 com dados mais precisos, obtidos de uma segunda
+implementação de referência em **Python**: `emissor-em-planilha-main`
+(`backend/src/emissor/nfse/constants.py` e `client.py`). É a fonte usada pelo
+adapter do serviço. As URLs base **estão no código** dessa implementação, ao
+contrário da biblioteca C#.
+
+### 7.1 URLs base — [CONFIRMADO] no arquivo de referência
+
+| Ambiente | SEFIN | ADN |
+|---|---|---|
+| Produção (`tpAmb=1`) | `https://sefin.nfse.gov.br/SefinNacional` | `https://adn.nfse.gov.br` |
+| Homologação / Produção Restrita (`tpAmb=2`) | `https://sefin.producaorestrita.nfse.gov.br/SefinNacional` | `https://adn.producaorestrita.nfse.gov.br` |
+
+Consulta pública de uma NFS-e: `https://www.nfse.gov.br/ConsultaPublica/?tpc=1&chave={chave}`
+
+Namespace do XML: `http://www.sped.fazenda.gov.br/nfse`. Versão do leiaute: `1.01`.
+
+**Autenticação: mTLS com certificado A1.** Não há token, API key nem OAuth. Sem
+certificado válido o aperto de mão TLS falha — e isso precisa ser classificado
+como erro de autenticação, não como "serviço fora do ar".
+
+### 7.2 Rotas e payloads — [CONFIRMADO] no cliente de referência
+
+| Operação | Chamada | Corpo enviado | Campos lidos na resposta |
+|---|---|---|---|
+| Emitir NFS-e | `POST {sefin}/nfse` | `{"dpsXmlGZipB64": gzip+b64}` | `chaveAcesso`, `nfseXmlGZipB64`, `idDps`, `dataHoraProcessamento`, `alertas` |
+| Consultar DPS | `GET {sefin}/dps/{id}` | — | `chaveAcesso`; **404 = não existe** |
+| Consultar NFS-e | `GET {sefin}/nfse/{chave}` | — | idem emissão |
+| Registrar evento | `POST {sefin}/nfse/{chave}/eventos` | `{"pedidoRegistroEventoXmlGZipB64": gzip+b64}` | `eventoXmlGZipB64`, `dataHoraProcessamento` |
+| Consultar evento | `GET {sefin}/nfse/{chave}/eventos/{tipo}/{nSeq}` | — | `eventoXmlGZipB64`; 404 = não existe |
+| Distribuição por NSU | `GET {adn}/contribuintes/DFe/{nsu}?lote=true` | — | `StatusProcessamento`, `LoteDFe[]`, `Alertas`, `Erros` |
+| Eventos de uma NFS-e | `GET {adn}/contribuintes/NFSe/{chave}/Eventos` | — | idem |
+| Alíquota do município | `GET {adn}/parametrizacao/{municipio}/{servico}/{competencia}/aliquota` | — | alíquota cadastrada |
+
+Itens de `LoteDFe`: `NSU`, `ChaveAcesso`, `TipoDocumento`, `TipoEvento`,
+`ArquivoXml` (gzip+b64), `DataHoraGeracao`.
+
+### 7.3 Detalhes operacionais que evitam erro em produção
+
+- **O ADN responde 400/404 com corpo normal.** Quem decide é
+  `StatusProcessamento` (`DOCUMENTOS_LOCALIZADOS`, `NENHUM_DOCUMENTO_LOCALIZADO`,
+  `REJEICAO`). Tratar HTTP 404 do ADN como "falhou" é bug.
+- **Série da DPS por API: 1 a 49999.** Fora da faixa → rejeição **E0010**.
+- **Município precisa ter cadastrado o serviço** no Sistema Nacional, senão a DPS
+  é recusada com **E0312**. A consulta de alíquota permite prever essa recusa.
+- **A Produção Restrita tem cadastro de contribuintes próprio** (CNC), mantido
+  por poucas prefeituras. Recusas sobre inscrição municipal, estabelecimento ou
+  situação do CNPJ podem ser artefato do ambiente de teste e não ocorrer em
+  produção. O sistema anexa esse aviso ao erro, para o usuário não caçar defeito
+  inexistente.
+- **Timeout depois do envio é ambíguo**, não é falha: a nota pode ter sido
+  gerada. A consulta por `GET /dps/{id}` antes de reenviar é obrigatória — sem
+  isso, a retentativa gera documento duplicado.
+- **Código do serviço na rota de parametrização tem 9 dígitos**
+  (`cTribNac` de 6 + `.000`). Com 6 dígitos o ADN responde 400. O formato foi
+  descoberto por tentativa, segundo a referência.
+
+### 7.4 Janela de leiaute (NT 009) — o dado mais perigoso de errar
+
+[CONFIRMADO] na referência, citando comunicado do CGNFS-e de 20/10/2026;
+[A VALIDAR] contra o comunicado oficial.
+
+| Ambiente | Até 30/11/2026 | A partir de 01/12/2026 |
+|---|---|---|
+| Produção | leiaute anterior (`v1_01`) | NT 009 (`v1_01_nt009`) |
+| Homologação | NT 009 | NT 009 |
+
+A NT 009 acrescenta `finNFSe` em `infDPS`, `CST`/`cClassTrib` em
+`IBSCBS/valores/trib` e `vAjusteBC`. Na data desta análise (25/11/2026) a
+produção ainda usa o leiaute anterior e a homologação já usa o novo — ou seja,
+gerar DPS para homologação sem a NT 009 é recusa garantida.
+
+O adapter expõe `leiaute(ambiente, quando)` para que a escolha seja explícita e
+testável em vez de depender do relógio.
+
+### 7.5 O que continua [A VALIDAR]
+
+- Nada disso foi exercitado contra a SEFIN real: não há certificado A1 nem
+  credenciamento neste ambiente.
+- A rota de parametrização não tem documentação oficial publicada, segundo a
+  própria referência.
+- A lista de municípios aderentes ao padrão nacional não foi verificada.
+- A taxonomia de erros (`E0010`, `E0312`) vem da referência, não do manual.
