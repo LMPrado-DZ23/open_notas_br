@@ -41,10 +41,31 @@ class TestBase:
 
 class TestCalculo:
     def test_aliquotas_de_2026(self) -> None:
+        # Tabela oficial ALIQUOTA_REFERENCIA: CBS 0,90% | IBS UF 0,10% | Mun 0,00%
         referencia = aliquotas_do_ano(2026)
         assert referencia is not None
         assert referencia.cbs == Decimal("0.009")
+        assert referencia.ibs_uf == Decimal("0.001")
+        assert referencia.ibs_mun == Decimal("0.000")
         assert referencia.ibs == Decimal("0.001")
+
+    def test_aliquotas_de_2027(self) -> None:
+        # 2027: CBS 8,40% | IBS UF 0,05% | Mun 0,05%
+        referencia = aliquotas_do_ano(2027)
+        assert referencia is not None
+        assert referencia.cbs == Decimal("0.084")
+        assert referencia.ibs_uf == Decimal("0.0005")
+        assert referencia.ibs_mun == Decimal("0.0005")
+        assert referencia.ibs == Decimal("0.001")
+
+    def test_reparticao_do_ibs_no_resultado(self) -> None:
+        resultado = calcular_ibscbs(
+            BaseCalculoNfse(valor_servico=Decimal("1000.00")), ano_fato_gerador=2026
+        )
+        # IBS 0,10% em 2026 e integralmente estadual.
+        assert resultado.valor_ibs_uf == Decimal("1.00")
+        assert resultado.valor_ibs_mun == Decimal("0.00")
+        assert resultado.valor_ibs == Decimal("1.00")
 
     def test_calculo_padrao_2026(self) -> None:
         resultado = calcular_ibscbs(
@@ -55,7 +76,7 @@ class TestCalculo:
         assert resultado.valor_cbs == Decimal("9.00")
         assert resultado.valor_ibs == Decimal("1.00")
         assert resultado.valor_total == Decimal("10.00")
-        assert resultado.fonte_aliquota == "briefing 2026"
+        assert "ALIQUOTA_REFERENCIA" in resultado.fonte_aliquota
 
     def test_base_reduzida_por_tributos(self) -> None:
         base = BaseCalculoNfse(
@@ -152,6 +173,17 @@ class TestRegras:
         assert any("ressalva" in aviso for aviso in resultado.avisos)
 
     def test_tabela_e_versionada_por_ano(self) -> None:
-        assert set(TABELA_ALIQUOTAS) == {2026}
+        assert set(TABELA_ALIQUOTAS) == {2026, 2027}
         assert isinstance(TABELA_ALIQUOTAS[2026], AliquotaReferencia)
         assert TABELA_ALIQUOTAS[2026].fonte
+
+    def test_sem_reparticao_quando_aliquota_e_explicita(self) -> None:
+        resultado = calcular_ibscbs(
+            BaseCalculoNfse(valor_servico=Decimal("1000.00")),
+            ano_fato_gerador=2026,
+            aliquota_cbs=Decimal("0.01"),
+            aliquota_ibs=Decimal("0.02"),
+        )
+        # Sem tabela, não há como afirmar a repartição: fica None, não zero.
+        assert resultado.valor_ibs_uf is None
+        assert resultado.valor_ibs_mun is None

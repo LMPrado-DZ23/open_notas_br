@@ -1,24 +1,31 @@
 """Cálculo de IBS/CBS para NFS-e — regime regular.
 
-Fonte das regras: esquema de entrada da calculadora oficial
-(`br.gov.serpro.rtc.api.model.input.nfse.NfseBaseCalculoInput`), analisado em
-`docs/REFERENCIAS.md`. O que está **[CONFIRMADO]** nessa fonte:
+Fonte das regras: calculadora oficial da Receita
+(`calculadora-rtc-regime-regular`, pacote `br.gov.serpro.rtc`), analisada em
+`docs/REFERENCIAS.md`. Diferente do resto do documento, aqui a fonte é o **código
+da própria calculadora**, incluindo o SQL que popula as tabelas.
 
-- A base é ``valorServico - descontoIncondicional - vCalcReeRepRes
-  - vCalcDedRedIBSCBS - iss - pis - cofins``.
-- ``anoFatoGerador`` é entrada obrigatória: alíquota **depende do ano**.
-- MEI: "bases de cálculo não aplicáveis" (aviso E1302).
+[CONFIRMADO] no esquema de entrada (`NfseBaseCalculoInput`):
+
+- base = ``valorServico - descontoIncondicional - vCalcReeRepRes
+  - vCalcDedRedIBSCBS - iss - pis - cofins``
+- ``anoFatoGerador`` é obrigatório: a alíquota depende do ano.
+- MEI: "bases de cálculo não aplicáveis" (E1302).
 - Base negativa é erro (`BASE-NEGATIVA`).
-- Optante pendente de opção pelo Simples: cálculo com ressalva.
+- Optante com opção pendente: cálculo com ressalva.
 
-O que **não** está confirmado: a repartição de IBS entre UF e município. O
-briefing fala em IBS 0,1% total; a tabela oficial tem `IBSUF` e `IBSMun`
-separados. Por isso o cálculo aceita a alíquota de IBS consolidada **e**
-alíquotas explícitas por ente — quem precisa da repartição informa, em vez de o
-código adivinhar.
+[CONFIRMADO] na tabela `ALIQUOTA_REFERENCIA` (seed do SQL da calculadora),
+com `TRIBUTO`: id 2 = CBS, id 3 = IBS UF, id 4 = IBS Município:
 
-Alíquota nunca é constante escondida: vem de tabela versionada por ano, e a
-tabela declara a fonte.
+| Vigência | CBS | IBS UF | IBS Mun |
+|---|---|---|---|
+| 2026-01-01 a 2026-12-31 | 0,90% | 0,10% | 0,00% |
+| 2027-01-01 a 2027-12-31 | 8,40% | 0,05% | 0,05% |
+
+Isso resolve a repartição de IBS que antes estava [A VALIDAR]: em 2026 o IBS é
+**0,10% integralmente estadual**; em 2027 vira 0,05% UF + 0,05% município.
+Os valores do SQL estão em pontos percentuais (0.90 = 0,90%); aqui são
+convertidos para fração (0,009).
 """
 
 from __future__ import annotations
@@ -27,6 +34,9 @@ from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
 
 CENTAVO = Decimal("0.01")
+
+#: Converte ponto percentual do SQL oficial para fração usada no cálculo.
+_PCT = Decimal("0.01")
 
 
 class ErroCalculoTributario(Exception):
@@ -39,20 +49,38 @@ def _q(valor: Decimal) -> Decimal:
 
 @dataclass(frozen=True, slots=True)
 class AliquotaReferencia:
-    """Alíquotas de referência de um ano, com a fonte declarada."""
+    """Alíquotas de referência de um ano, com a fonte declarada.
+
+    `cbs`, `ibs_uf` e `ibs_mun` são **frações** (0,009 = 0,9%).
+    """
 
     ano: int
     cbs: Decimal
-    ibs: Decimal
-    fonte: str = "briefing (premissa)"
+    ibs_uf: Decimal
+    ibs_mun: Decimal
+    fonte: str = "ALIQUOTA_REFERENCIA — calculadora RTC oficial"
+
+    @property
+    def ibs(self) -> Decimal:
+        """IBS consolidado do ano (UF + município)."""
+        return self.ibs_uf + self.ibs_mun
 
 
-#: Tabela de referência. **Não** é constante de cálculo: é dado versionado.
-#: 2026: CBS 0,9% e IBS 0,1% — premissa do briefing. [A VALIDAR] contra a
-#: `ALIQUOTA_REFERENCIA` da calculadora oficial, que tem repartição UF/município.
+#: Tabela de referência extraída da calculadora oficial.
+#: Não é constante de cálculo: é dado versionado por vigência. Quando a Receita
+#: publicar novo ano, acrescentar aqui é a única mudança necessária.
 TABELA_ALIQUOTAS: dict[int, AliquotaReferencia] = {
     2026: AliquotaReferencia(
-        ano=2026, cbs=Decimal("0.009"), ibs=Decimal("0.001"), fonte="briefing 2026"
+        ano=2026,
+        cbs=Decimal("0.90") * _PCT,
+        ibs_uf=Decimal("0.10") * _PCT,
+        ibs_mun=Decimal("0.00") * _PCT,
+    ),
+    2027: AliquotaReferencia(
+        ano=2027,
+        cbs=Decimal("8.40") * _PCT,
+        ibs_uf=Decimal("0.05") * _PCT,
+        ibs_mun=Decimal("0.05") * _PCT,
     ),
 }
 
@@ -94,7 +122,7 @@ class BaseCalculoNfse:
 
 @dataclass(slots=True)
 class ResultadoIbsCbs:
-    """Resultado do cálculo, com o que foi usado e o que ficou em ressalva."""
+    """Resultado do cálculo, com a repartição do IBS quando conhecida."""
 
     base_calculo: Decimal
     aliquota_cbs: Decimal
@@ -104,6 +132,11 @@ class ResultadoIbsCbs:
     valor_total: Decimal
     ano_fato_gerador: int
     fonte_aliquota: str
+    #: Preenchidos quando a alíquota vem da tabela (que tem a repartição).
+    valor_ibs_uf: Decimal | None = None
+    valor_ibs_mun: Decimal | None = None
+    aliquota_ibs_uf: Decimal | None = None
+    aliquota_ibs_mun: Decimal | None = None
     avisos: list[str] = field(default_factory=list)
     erros: list[str] = field(default_factory=list)
 
@@ -112,7 +145,7 @@ class ResultadoIbsCbs:
         return not self.erros
 
     def to_dict(self) -> dict[str, object]:
-        return {
+        dados: dict[str, object] = {
             "base_calculo": str(_q(self.base_calculo)),
             "ano_fato_gerador": self.ano_fato_gerador,
             "aliquota_cbs": str(self.aliquota_cbs),
@@ -124,6 +157,15 @@ class ResultadoIbsCbs:
             "avisos": list(self.avisos),
             "erros": list(self.erros),
         }
+        if self.valor_ibs_uf is not None:
+            dados["valor_ibs_uf"] = str(self.valor_ibs_uf)
+        if self.valor_ibs_mun is not None:
+            dados["valor_ibs_mun"] = str(self.valor_ibs_mun)
+        if self.aliquota_ibs_uf is not None:
+            dados["aliquota_ibs_uf"] = str(self.aliquota_ibs_uf)
+        if self.aliquota_ibs_mun is not None:
+            dados["aliquota_ibs_mun"] = str(self.aliquota_ibs_mun)
+        return dados
 
 
 def calcular_ibscbs(
@@ -140,6 +182,9 @@ def calcular_ibscbs(
     Alíquota resolvida nesta ordem: parâmetro explícito → tabela do ano. Se não
     houver nenhuma das duas, é **erro**: inventar alíquota é o modo mais fácil de
     produzir número fiscal errado com aparência de certo.
+
+    Com a tabela, o IBS sai **repartido** entre UF e município — que é como a
+    calculadora oficial guarda e como a SEFIN devolve no XML.
     """
     avisos: list[str] = []
     erros: list[str] = []
@@ -155,13 +200,18 @@ def calcular_ibscbs(
             "a base de cálculo não pode ser negativa"
         )
         valor_base = Decimal("0.00")
+    valor_base = _q(valor_base)
 
     referencia = aliquotas_do_ano(ano_fato_gerador)
+    valor_ibs_uf: Decimal | None = None
+    valor_ibs_mun: Decimal | None = None
+    aliquota_ibs_uf: Decimal | None = None
+    aliquota_ibs_mun: Decimal | None = None
+
     if aliquota_cbs is not None or aliquota_ibs is not None:
         # Exigir as duas é deliberado. Misturar "minha alíquota" com "a tabela
         # do sistema" produz um número que ninguém consegue explicar depois, e
-        # quem informa alíquota própria normalmente está justamente contestando
-        # a tabela.
+        # quem informa alíquota própria normalmente está contestando a tabela.
         if aliquota_cbs is None or aliquota_ibs is None:
             raise ErroCalculoTributario(
                 "informe as duas alíquotas (CBS e IBS) ou nenhuma, para usar a tabela do ano"
@@ -170,6 +220,7 @@ def calcular_ibscbs(
         fonte = "parâmetro explícito"
     elif referencia is not None:
         cbs, ibs = referencia.cbs, referencia.ibs
+        aliquota_ibs_uf, aliquota_ibs_mun = referencia.ibs_uf, referencia.ibs_mun
         fonte = referencia.fonte
     else:
         raise ErroCalculoTributario(
@@ -193,8 +244,12 @@ def calcular_ibscbs(
     valor_cbs = _q(valor_base * cbs)
     valor_ibs = _q(valor_base * ibs)
 
+    if aliquota_ibs_uf is not None and aliquota_ibs_mun is not None:
+        valor_ibs_uf = _q(valor_base * aliquota_ibs_uf)
+        valor_ibs_mun = _q(valor_base * aliquota_ibs_mun)
+
     return ResultadoIbsCbs(
-        base_calculo=_q(valor_base),
+        base_calculo=valor_base,
         aliquota_cbs=cbs,
         aliquota_ibs=ibs,
         valor_cbs=valor_cbs,
@@ -202,6 +257,10 @@ def calcular_ibscbs(
         valor_total=_q(valor_cbs + valor_ibs),
         ano_fato_gerador=ano_fato_gerador,
         fonte_aliquota=fonte,
+        valor_ibs_uf=valor_ibs_uf,
+        valor_ibs_mun=valor_ibs_mun,
+        aliquota_ibs_uf=aliquota_ibs_uf,
+        aliquota_ibs_mun=aliquota_ibs_mun,
         avisos=avisos,
         erros=erros,
     )

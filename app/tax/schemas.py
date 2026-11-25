@@ -57,15 +57,22 @@ class SimulacaoOut(BaseModel):
     valor_ibs: str
     valor_total: str
     fonte_aliquota: str
+    #: Repartição do IBS, preenchida quando a alíquota vem da tabela oficial.
+    aliquota_ibs_uf: str | None = None
+    aliquota_ibs_mun: str | None = None
+    valor_ibs_uf: str | None = None
+    valor_ibs_mun: str | None = None
     valido: bool
     avisos: list[str] = Field(default_factory=list)
     erros: list[str] = Field(default_factory=list)
 
 
 class AliquotaOut(BaseModel):
-    """Alíquota de referência de um ano."""
+    """Alíquota de referência de um ano, com a repartição do IBS."""
 
     ano: int
     cbs: str
     ibs: str
+    ibs_uf: str
+    ibs_mun: str
     fonte: str

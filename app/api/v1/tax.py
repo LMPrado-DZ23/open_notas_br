@@ -31,7 +31,14 @@ router = APIRouter(tags=["tributacao"], dependencies=[Depends(tenant_atual)])
 )
 async def listar_aliquotas() -> list[AliquotaOut]:
     return [
-        AliquotaOut(ano=a.ano, cbs=str(a.cbs), ibs=str(a.ibs), fonte=a.fonte)
+        AliquotaOut(
+            ano=a.ano,
+            cbs=str(a.cbs),
+            ibs=str(a.ibs),
+            ibs_uf=str(a.ibs_uf),
+            ibs_mun=str(a.ibs_mun),
+            fonte=a.fonte,
+        )
         for a in sorted(TABELA_ALIQUOTAS.values(), key=lambda x: x.ano)
     ]
 
@@ -80,6 +87,14 @@ async def simular(dados: SimulacaoIn) -> SimulacaoOut:
         valor_ibs=str(resultado.valor_ibs),
         valor_total=str(resultado.valor_total),
         fonte_aliquota=resultado.fonte_aliquota,
+        aliquota_ibs_uf=str(resultado.aliquota_ibs_uf)
+        if resultado.aliquota_ibs_uf is not None
+        else None,
+        aliquota_ibs_mun=str(resultado.aliquota_ibs_mun)
+        if resultado.aliquota_ibs_mun is not None
+        else None,
+        valor_ibs_uf=str(resultado.valor_ibs_uf) if resultado.valor_ibs_uf is not None else None,
+        valor_ibs_mun=str(resultado.valor_ibs_mun) if resultado.valor_ibs_mun is not None else None,
         valido=resultado.valido,
         avisos=resultado.avisos,
         erros=resultado.erros,
@@ -102,5 +117,10 @@ async def aliquota_do_ano(ano: int) -> AliquotaOut:
             ),
         )
     return AliquotaOut(
-        ano=referencia.ano, cbs=str(referencia.cbs), ibs=str(referencia.ibs), fonte=referencia.fonte
+        ano=referencia.ano,
+        cbs=str(referencia.cbs),
+        ibs=str(referencia.ibs),
+        ibs_uf=str(referencia.ibs_uf),
+        ibs_mun=str(referencia.ibs_mun),
+        fonte=referencia.fonte,
     )

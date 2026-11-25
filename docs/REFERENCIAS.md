@@ -360,8 +360,32 @@ Regras confirmadas no código da calculadora:
 | Base negativa é erro (`BASE-NEGATIVA`) | erro no service |
 | Optante com opção pendente: cálculo com ressalva | aviso no service |
 
-**[A VALIDAR]**: a repartição de IBS entre UF e município. A tabela oficial
-(`ALIQUOTA_REFERENCIA`) tem `IBSUF` e `IBSMun` separados; o briefing fala em IBS
-0,1% consolidado. O cálculo aceita a consolidada (tabela) **ou** as duas
-explícitas, e nunca mistura uma com a outra — misturar produz número que ninguém
-consegue explicar depois.
+### 9.1 Alíquotas de referência — [CONFIRMADO] no SQL da calculadora oficial
+
+Fonte: `flyway/sql/criacao/B0001__sistema_tributario_completo.sql`, tabelas
+`ALIQUOTA_REFERENCIA` e `TRIBUTO`. Mapeamento: `TBTO_ID` 2 = CBS, 3 = IBS UF,
+4 = IBS Município. Valores do SQL em pontos percentuais.
+
+| Vigência | CBS | IBS UF | IBS Mun | IBS total |
+|---|---|---|---|---|
+| 2026-01-01 a 2026-12-31 | 0,90% | 0,10% | 0,00% | 0,10% |
+| 2027-01-01 a 2027-12-31 | 8,40% | 0,05% | 0,05% | 0,10% |
+
+Isso **resolve** o que antes estava [A VALIDAR]: em 2026 o IBS é integralmente
+estadual; em 2027 vira metade UF, metade município, e a CBS salta de 0,90% para
+8,40% — o início da transição de fato.
+
+O cálculo usa a tabela quando o chamador não informa alíquota, e devolve a
+repartição. Com alíquota explícita, a repartição fica `None` (não zero): sem
+tabela não há como afirmar como o IBS se divide, e chutar zero seria mentira.
+
+**Observação de desenho**: a tabela agora é dado versionado com dois anos e fonte
+citada. Acrescentar 2028 é uma linha, não uma mudança de lógica.
+
+### 9.2 Pendente
+
+- Catálogo de `cClassTrib` (classificações tributárias do IBS/CBS): existe no SQL
+  oficial e ainda **não** foi importado para o produto. Hoje a classificação é
+  informada pelo tenant; o catálogo entra como validação e como seletor na UI.
+- Regras de `gTribRegular`, `gDif` (diferimento) e monofasia: lidas no código,
+  não implementadas — dependem do catálogo acima.

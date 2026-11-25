@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import tenant_atual
 from app.core.config import Settings, get_settings
+from app.danfse.service import ErroDanfse, gerar_pdf_do_documento
 from app.db.models.enums import StatusFatura, TipoDocumento
 from app.db.models.invoice import FiscalDocument, Invoice
 from app.db.models.tenant import Tenant
@@ -211,3 +212,42 @@ async def listar_emissoes(
             _emissao_out(invoice, await _documento_da_fatura(db, invoice), ja_existia=False)
         )
     return saida
+
+
+@router.get(
+    "/emissoes/{invoice_id}/danfse",
+    summary="Gera o DANFSe (PDF) localmente a partir do XML autorizado",
+    response_class=Response,
+    responses={
+        200: {"content": {"application/pdf": {}}, "description": "PDF do DANFSe"},
+        404: {"description": "Emissão não encontrada"},
+        422: {"description": "Emissão sem XML autorizado"},
+    },
+)
+async def baixar_danfse(
+    invoice_id: uuid.UUID,
+    tenant: Tenant = Depends(tenant_atual),
+    db: AsyncSession = Depends(get_session),
+) -> Response:
+    resultado = await db.execute(
+        select(Invoice).where(Invoice.tenant_id == tenant.id, Invoice.id == invoice_id)
+    )
+    invoice = resultado.scalar_one_or_none()
+    if invoice is None:
+        raise HTTPException(status_code=404, detail="emissão não encontrada")
+
+    documento = await _documento_da_fatura(db, invoice)
+    if documento is None:
+        raise HTTPException(status_code=HTTP_422, detail="emissão sem documento fiscal")
+
+    try:
+        pdf = gerar_pdf_do_documento(documento)
+    except ErroDanfse as exc:
+        raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
+
+    nome = f"danfse-{documento.chave or invoice.id}.pdf"
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{nome}"'},
+    )
