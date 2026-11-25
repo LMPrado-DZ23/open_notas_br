@@ -32,6 +32,7 @@ from app.nfse import servico as emissao_service
 from app.nfse.adapter import SefinMockAdapter
 from app.nfse.errors import ErroSefin
 from app.nfse.evento import MOTIVOS_CANCELAMENTO
+from app.nfse.eventos_tipos import TIPOS_DO_CONTRIBUINTE, TIPOS_EVENTO
 from app.nfse.schemas import DocumentoOut, EmissaoDetalheOut, EmissaoIn, EmissaoOut
 from app.nfse.servico import (
     CertificadoAusente,
@@ -413,3 +414,30 @@ async def cancelar_emissao(
         data_processamento=resposta.data_processamento,
         motivos=MOTIVOS_CANCELAMENTO,
     )
+
+
+@router.get(
+    "/emissoes/eventos/tipos",
+    summary="Catálogo dos 16 tipos de evento da NFS-e (do XSD oficial)",
+)
+async def tipos_de_evento() -> list[dict[str, object]]:
+    """Estrutura de cada tipo de evento, com os campos que o schema exige.
+
+    A descrição fixa (`xDesc`) é do leiaute, não sugestão: quem monta evento com
+    texto próprio tem o pedido recusado. Aqui ela vem pronta.
+    """
+    from app.nfse.eventos_tipos import X_DESC
+
+    return [
+        {
+            "codigo": tipo.codigo,
+            "grupo": tipo.grupo,
+            "descricao": X_DESC[tipo.codigo],
+            "operavel_pelo_contribuinte": tipo.codigo in TIPOS_DO_CONTRIBUINTE,
+            "campos": [
+                {"nome": c.nome, "tipo": c.tipo, "obrigatorio": c.obrigatorio}
+                for c in tipo.campos
+            ],
+        }
+        for tipo in sorted(TIPOS_EVENTO.values(), key=lambda t: t.codigo)
+    ]

@@ -655,3 +655,72 @@ contribuinte com o contador; o código não escolhe por ninguém.
 O `POST` de registro de evento **não foi exercitado** contra a SEFIN (é escrita).
 O payload valida contra o XSD, mas aceitação real — códigos de retorno, prazo de
 cancelamento, exigência de motivo específico por município — segue não verificado.
+
+---
+
+## 13. Os 16 tipos de evento da NFS-e — catálogo do XSD
+
+Extraído de `tiposEventos_v1.01.xsd`. Todos os 16 validam contra o schema, com
+teste parametrizado (um caso por tipo).
+
+| Grupo | Descrição oficial (`xDesc`) — **[CONFIRMADO]** |
+|---|---|
+| e101101 | Cancelamento de NFS-e |
+| e105102 | Cancelamento de NFS-e por Substituição |
+| e101103 | Solicitação de Análise Fiscal para Cancelamento de NFS-e |
+| e105104 | Cancelamento de NFS-e Deferido por Análise Fiscal |
+| e105105 | Cancelamento de NFS-e Indeferido por Análise Fiscal |
+| e202201 | Manifestação de NFS-e - Confirmação do Prestador |
+| e203202 | Manifestação de NFS-e - Confirmação do Tomador |
+| e204203 | Manifestação de NFS-e - Confirmação do Intermediário |
+| e205204 | Manifestação de NFS-e - Confirmação Tácita |
+| e202205 | Manifestação de NFS-e - Rejeição do Prestador |
+| e203206 | Manifestação de NFS-e - Rejeição do Tomador |
+| e204207 | Manifestação de NFS-e - Rejeição do Intermediário |
+| e205208 | Manifestação de NFS-e - Anulação da Rejeição |
+| e305101 | Cancelamento de NFS-e por Ofício |
+| e305102 | Bloqueio de NFS-e por Ofício |
+| e305103 | Desbloqueio de NFS-e por Ofício |
+
+### 13.1 `xDesc` não é texto livre
+
+Descoberta que só a validação revela: `xDesc` é **enumeração com um valor por tipo
+de evento**. Quem monta o XML com descrição própria tem o pedido recusado. O
+catálogo emite o texto oficial; o campo saiu da lista de entradas do chamador, e há
+teste que recusa `xDesc` vindo de fora.
+
+Isso tornou dispensável a descrição `[INFERIDO]` que este documento registrava
+antes: agora a descrição de cada evento é a do leiaute.
+
+### 13.2 Restrições por campo — **[CONFIRMADO]** no XSD
+
+| Tipo | Regra |
+|---|---|
+| `TSMotivo` | 15 a 255 caracteres |
+| `TSCPF` | 11 dígitos |
+| `TSChaveNFSe` | `[0-9]{6}[0-9A-Z]{14}[0-9]{30}` |
+| `TSNumProcAdmAnaliseFiscalCanc` | 1 a 30 dígitos |
+| `TSIdNumEvento` | 8 dígitos + (1+14 dígitos \| 2+14 alfanuméricos) + 33 dígitos |
+| `TSCodJustCanc` | 1, 2, 9 |
+| `TSCodJustSubst` | 01, 02, 03, 04, 05, 99 |
+| `TSCodMotivoRejeicao` | 1, 2, 3, 4, 5, 9 |
+| `TSCodJustAnaliseFiscalCanc` | 1, 2, 9 |
+| `TSCodJustAnaliseFiscalCancDef` | 1 |
+| `TSCodJustAnaliseFiscalCancIndef` | 1, 2 |
+| `TSCodigoEventoNFSe` | e101101, e105102, e105104, e105105, e305101 |
+
+### 13.3 O que o catálogo NÃO decide
+
+Qual evento usar em cada situação, e qual motivo escolher. Isso é enquadramento
+fiscal: depende do fato e do entendimento do contribuinte com o contador. O código
+fornece a estrutura válida e recusa combinação incoerente; não escolhe por ninguém.
+
+`GET /v1/emissoes/eventos/tipos` expõe o catálogo para quem integra, com os campos
+obrigatórios de cada tipo.
+
+### 13.4 [A VALIDAR]
+
+Aceitação real de cada evento pela SEFIN. O `POST` de registro não foi exercitado
+(é escrita). Também não validei se a SEFIN restringe tipos por perfil de autor
+(prestador/tomador/intermediário só podem manifestar o que lhes cabe) — o schema
+não expressa essa regra.
