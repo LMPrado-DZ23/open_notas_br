@@ -294,3 +294,74 @@ calcula os tributos e devolve os valores em `infNFSe/IBSCBS`.
 Consequência de arquitetura: o motor tributário serve para **simulação,
 conferência e apuração**, não para preencher o XML enviado. Qualquer tentativa de
 enviar `pIBSUF`/`pCBS` na DPS seria rejeitada e, pior, indicaria desenho errado.
+
+---
+
+## 8. Fontes públicas de CNPJ — verificado por chamada real
+
+Diferente do resto deste documento: aqui as fontes foram **exercitadas de verdade**
+nesta máquina, em 25/11/2026. Não é leitura de código, é resposta HTTP.
+
+| Fonte | Autenticação | Resultado observado |
+|---|---|---|
+| `https://brasilapi.com.br/api/cnpj/v1/{cnpj}` | nenhuma | **HTTP 200 em ~0,37 s** |
+| `https://minhareceita.org/{cnpj}` | nenhuma | **HTTP 200 em ~0,39 s** |
+| Serpro (`gateway.apiserpro.serpro.gov.br`) | token (cota) | não exercitado — [A VALIDAR] |
+
+Campos devolvidos pela BrasilAPI (Petrobras, 33.000.167/0001-01): `razao_social`,
+`nome_fantasia`, `descricao_situacao_cadastral`, `uf`, `municipio`,
+`codigo_municipio_ibge`, `cnae_fiscal`, `cnae_fiscal_descricao`,
+`natureza_juridica`, `data_inicio_atividade`, `opcao_pelo_simples`,
+`opcao_pelo_mei`, `email`, `ddd_telefone_1`.
+
+### Achado que muda o desenho: CNPJ alfanumérico
+
+`GET /api/cnpj/v1/12ABC34501DE35` → **HTTP 404** com
+`{"message":"CNPJ 12.ABC.345/01DE-35 não encontrado.","type":"not_found"}`.
+
+Ou seja: **as fontes públicas ainda não cobrem CNPJ alfanumérico** (vigente para
+novas inscrições desde julho/2026). Consequência obrigatória no código: "não
+encontrado" não pode ser apresentado como "CNPJ inválido". O serviço devolve 404
+com a explicação de que a fonte pode não cobrir o formato novo.
+
+### Regras de degradação implementadas
+
+- Cache em Redis com TTL de 24 h para acerto e 5 min para "não encontrado".
+- Cache fora do ar **não** derruba a consulta: apenas segue sem cache.
+- Falha da primeira fonte cai para a próxima; se todas caírem, a resposta é
+  `503 transitório`, nunca `500` nem "inválido".
+- CNPJ inválido é barrado **antes** de gastar cota de qualquer fonte.
+
+## 9. Motor IBS/CBS — regra confirmada na calculadora oficial
+
+Fonte: `calculadora-rtc-regime-regular-main`, pacote `br.gov.serpro.rtc`,
+classe `NfseBaseCalculoInput`.
+
+Parcelas de entrada **[CONFIRMADO]**: `anoFatoGerador`, `valorServico`,
+`descontoIncondicional`, `vCalcReeRepRes`, `vCalcDedRedIBSCBS`, `iss`, `pis`,
+`cofins`.
+
+Fórmula da base:
+
+```
+base = valorServico
+     - descontoIncondicional
+     - vCalcReeRepRes          (reembolso/repasse já tributado)
+     - vCalcDedRedIBSCBS       (dedução/redução: locação de imóveis, saúde)
+     - iss - pis - cofins
+```
+
+Regras confirmadas no código da calculadora:
+
+| Regra | Evidência |
+|---|---|
+| `anoFatoGerador` é obrigatório → alíquota depende do ano | campo `@NotNull` |
+| MEI: "bases de cálculo não aplicáveis" (E1302) | mensagem no service |
+| Base negativa é erro (`BASE-NEGATIVA`) | erro no service |
+| Optante com opção pendente: cálculo com ressalva | aviso no service |
+
+**[A VALIDAR]**: a repartição de IBS entre UF e município. A tabela oficial
+(`ALIQUOTA_REFERENCIA`) tem `IBSUF` e `IBSMun` separados; o briefing fala em IBS
+0,1% consolidado. O cálculo aceita a consolidada (tabela) **ou** as duas
+explícitas, e nunca mistura uma com a outra — misturar produz número que ninguém
+consegue explicar depois.

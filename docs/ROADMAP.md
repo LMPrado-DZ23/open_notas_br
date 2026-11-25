@@ -51,7 +51,7 @@ validação de forma; emissão fim-a-fim idempotente.
 nunca commitado. Assinatura que valida contra ele **não** prova aceitação pela
 SEFIN; isso é homologação, não teste unitário.
 
-## Fase 3 — Motor tributário + CNPJ + NFS-e (parcial)
+## Fase 3 — Motor tributário + CNPJ + NFS-e ✅ concluída
 
 **DoD**
 
@@ -67,8 +67,14 @@ SEFIN; isso é homologação, não teste unitário.
 emissão/consulta/cancelamento, emissão idempotente e CNPJ alfanumérico
 (IN RFB 2.229/2024, validado contra o exemplo oficial).
 
-**Falta**: consulta de CNPJ com cache e fallback para dados abertos, e endpoint
-de simulação IBS/CBS.
+**Entregue**: consulta de CNPJ com cache Redis, cadeia Serpro → BrasilAPI →
+MinhaReceita e degradação graciosa (503 transitório, nunca 500); cálculo IBS/CBS
+com base na fórmula oficial, alíquotas versionadas por ano e endpoint
+`POST /v1/tax/simular` com parâmetros explícitos.
+
+**Evidência**: BrasilAPI e MinhaReceita responderam 200 em ~0,4 s por chamada
+real; CNPJ alfanumérico devolve 404 com explicação (as fontes públicas ainda não
+cobrem o formato).
 
 ## Fase 4 — DANFSe local + DANFE adapter + apuração/guias
 
