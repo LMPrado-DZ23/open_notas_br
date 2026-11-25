@@ -56,6 +56,10 @@ class ErroDeEmissao(Exception):
     """Falha de emissão que o chamador precisa conhecer."""
 
 
+class ConfiguracaoFiscalAmbigua(ErroDeEmissao):
+    """Há mais de uma configuração para o ambiente e nenhuma foi escolhida."""
+
+
 class ConfiguracaoFiscalAusente(ErroDeEmissao):
     """O tenant não configurou o município/ambiente para emitir."""
 
@@ -65,23 +69,45 @@ class CertificadoAusente(ErroDeEmissao):
 
 
 async def _config_do_tenant(
-    sessao: AsyncSession, tenant_id: Any, ambiente: AmbienteFiscal
+    sessao: AsyncSession,
+    tenant_id: Any,
+    ambiente: AmbienteFiscal,
+    municipio_ibge: str | None = None,
 ) -> TenantFiscalConfig:
-    resultado = await sessao.execute(
-        select(TenantFiscalConfig)
-        .where(
-            TenantFiscalConfig.tenant_id == tenant_id,
-            TenantFiscalConfig.ambiente == ambiente,
-        )
-        .order_by(TenantFiscalConfig.created_at)
+    """Configuração fiscal a usar na emissão.
+
+    Um tenant pode ter configuração por município (o `upsert` é por
+    município+ambiente). Quando existe **mais de uma** para o mesmo ambiente e o
+    chamador não diz qual, escolher uma em silêncio é o pior resultado possível:
+    a nota sai com o município errado, com chave e tudo, e o erro só aparece na
+    apuração. Por isso aqui levanta erro pedindo o município.
+    """
+    consulta = select(TenantFiscalConfig).where(
+        TenantFiscalConfig.tenant_id == tenant_id,
+        TenantFiscalConfig.ambiente == ambiente,
     )
-    config = resultado.scalars().first()
-    if config is None:
+    if municipio_ibge:
+        consulta = consulta.where(TenantFiscalConfig.municipio_ibge == municipio_ibge)
+
+    resultado = await sessao.execute(consulta.order_by(TenantFiscalConfig.created_at))
+    configs = list(resultado.scalars().all())
+
+    if not configs:
+        alvo = f" no município {municipio_ibge}" if municipio_ibge else ""
         raise ConfiguracaoFiscalAusente(
-            f"nenhuma configuração fiscal para o ambiente {ambiente.value!r}. "
+            f"nenhuma configuração fiscal para o ambiente {ambiente.value!r}{alvo}. "
             "Cadastre com PUT /v1/me/config-fiscal antes de emitir."
         )
-    return config
+
+    if len(configs) > 1:
+        municipios = ", ".join(sorted(c.municipio_ibge for c in configs))
+        raise ConfiguracaoFiscalAmbigua(
+            "este tenant tem configuração fiscal para mais de um município "
+            f"({municipios}) no ambiente {ambiente.value!r}. Informe `municipio_ibge` "
+            "na emissão: a nota não pode escolher o município por conta própria."
+        )
+
+    return configs[0]
 
 
 async def _notificar_autorizacao(
@@ -135,6 +161,19 @@ async def _reservar_numero_dps_no_banco(sessao: AsyncSession, config: TenantFisc
     novo = resultado.scalar_one()
     await sessao.refresh(config)
     return int(novo) - 1
+
+
+def _aliquota_em_percentual(aliquota: Decimal | None) -> Decimal | None:
+    """Converte a alíquota guardada como FRAÇÃO (0,05 = 5%) para o percentual do XML.
+
+    O campo `pAliq` da DPS é percentual. Enviar 0,05 faz a SEFIN entender 0,05% e
+    recusar com **E0429** (carga abaixo do mínimo de 2% do ISSQN) — observado na
+    primeira emissão real. O erro de unidade vale 100x no valor do imposto, então a
+    conversão fica numa função com nome em vez de inline.
+    """
+    if aliquota is None:
+        return None
+    return (Decimal(aliquota) * 100).quantize(Decimal("0.01"))
 
 
 def _ibscbs_da_config(config: TenantFiscalConfig) -> Ibscbs | None:
@@ -234,7 +273,15 @@ def _montar_entrada(
         tributacao=Tributacao(
             trib_issqn="1",
             tp_ret_issqn="1",
-            p_aliq=Decimal(config.aliquota_iss) if config.aliquota_iss is not None else None,
+            # E0617 (observado em produção restrita): prestador NÃO optante do
+            # Simples (opSimpNac = 1) em município ATIVO no padrão nacional não
+            # pode informar alíquota — quem calcula é o município. Informar a
+            # alíquota nesse caso é recusa certa.
+            p_aliq=(
+                None
+                if op_simp_nac == "1"
+                else _aliquota_em_percentual(config.aliquota_iss)
+            ),
         ),
         ibscbs=ibscbs,
         ver_aplic=VER_APLIC_PADRAO,
@@ -246,6 +293,7 @@ async def emitir(
     tenant: Tenant,
     invoice: Invoice,
     *,
+    municipio_ibge: str | None = None,
     adapter: SefinAdapter | None = None,
     settings: Settings | None = None,
 ) -> FiscalDocument:
@@ -272,7 +320,9 @@ async def emitir(
         )
         return existente
 
-    config = await _config_do_tenant(sessao, tenant.id, invoice.ambiente)
+    config = await _config_do_tenant(
+        sessao, tenant.id, invoice.ambiente, municipio_ibge
+    )
 
     registro_cert = await certificados.ativo(sessao, tenant.id)
     if registro_cert is None:

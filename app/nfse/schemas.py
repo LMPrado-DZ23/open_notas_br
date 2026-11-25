@@ -49,6 +49,15 @@ class EmissaoIn(BaseModel):
     )
     origem: OrigemFatura = OrigemFatura.API
     ambiente: AmbienteFiscal = AmbienteFiscal.HOMOLOGACAO
+    municipio_ibge: str | None = Field(
+        default=None,
+        pattern=r"^\d{7}$",
+        description=(
+            "Município de incidência (7 dígitos). Obrigatório quando o tenant tem "
+            "configuração fiscal para mais de um município no mesmo ambiente: a nota "
+            "não escolhe município por conta própria."
+        ),
+    )
 
     @field_validator("referencia_externa")
     @classmethod

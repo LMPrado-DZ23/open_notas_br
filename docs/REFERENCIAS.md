@@ -823,3 +823,62 @@ emitente aceitar o padrão nacional. Duas saídas, ambas fora do código:
 O código agora traz `orientacao()` — dica acionável por código de erro — para que
 `E0312`, `E0714`, `E0008`, `E1229`, `E2401` e `E2404` não cheguem ao operador sem
 explicação.
+
+---
+
+## 15. EMISSÃO AUTORIZADA — o ciclo completo contra a SEFIN real
+
+Em 25/11/2026, com A1 ICP-Brasil real e certificado do solicitante, a Produção
+Restrita **autorizou uma NFS-e emitida por este sistema**:
+
+```
+POST /v1/emissoes              → 201  status=authorized
+chave                          → 52002582264339333000122000000000000226110763527690
+GET  /v1/emissoes/{id}         → authorized, xml autorizado presente
+GET  .../danfse                → 200, PDF de 4.014 bytes
+POST .../cancelamento          → 200, status=cancelled, evento aceito pela SEFIN
+```
+
+### 15.1 O que descobrimos no caminho (cada código é uma rejeição real)
+
+| Código | Causa | Correção |
+|---|---|---|
+| E1229 | declaração XML com aspas simples | declarar à mão com aspas duplas |
+| E0714 | assinador descartava a declaração | preservar `<?xml ...?>` |
+| E0714 | C14N exclusive sem comentários | `xml-exc-c14n#WithComments` |
+| E0714 | **cadeia inteira no `KeyInfo`** | só o certificado folha |
+| E0004 | `Id` da DPS inconsistente | regra de 45 posições (era erro de teste) |
+| E0312 | município errado (usávamos 3550308; a empresa é de GO) | 5200258 |
+| E0160 | `opSimpNac=3` mas a empresa é **regime normal** | `opSimpNac=1` |
+| E0429 | `pAliq=0.05` lido como 0,05% | converter fração → percentual |
+| E0617 | alíquota informada por não optante do Simples | omitir `pAliq` nesse caso |
+
+### 15.2 Dois bugs de unidade que valiam dinheiro
+
+**`pAliq` é percentual.** A alíquota fica guardada como fração (0,05 = 5%) e ia
+para o XML como 0,05 — o imposto sairia 100x menor. A SEFIN recusou (E0429) porque
+0,05% fica abaixo do mínimo de 2% do ISSQN; sem essa regra, o erro passaria
+silencioso e viraria nota com imposto errado.
+
+**`custom_price` × `price`** (frete): o preço do lojista, não o da transportadora, é
+o que o cliente final paga.
+
+### 15.3 O bug de configuração que quase produziu nota com município errado
+
+`upsert_config` procura por **(município, ambiente)**. Ao trocar o município, o PUT
+criou uma **segunda** configuração em vez de atualizar — e a emissão escolhia a mais
+antiga, em silêncio. Resultado: nota com município errado, chave válida e erro só
+visível na apuração.
+
+Corrigido: `_config_do_tenant` agora **levanta** `ConfiguracaoFiscalAmbigua` listando
+os municípios e exigindo `municipio_ibge` na emissão. Escolher por conta própria
+seria pior que falhar.
+
+### 15.4 `opSimpNac` precisa ser verdadeiro
+
+A empresa é **regime normal**. Mandávamos `3` (ME/EPP) porque o cadastro do tenant
+dizia `simples_nacional: true` por padrão. A SEFIN recusou com E0160 comparando com
+o cadastro real do Simples Nacional.
+
+**A DPS tem de refletir o regime real.** O sistema não adivinha: quem configura o
+tenant precisa informar corretamente, e agora a recusa explica isso.

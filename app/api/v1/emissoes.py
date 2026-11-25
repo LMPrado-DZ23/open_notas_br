@@ -160,9 +160,20 @@ async def emitir(
 
     try:
         documento = await emissao_service.emitir(
-            db, tenant, invoice, adapter=adaptador, settings=settings
+            db,
+            tenant,
+            invoice,
+            municipio_ibge=dados.municipio_ibge,
+            adapter=adaptador,
+            settings=settings,
         )
         await db.commit()
+    # `ConfiguracaoFiscalAmbigua` herda de `ErroDeEmissao`: precisa vir ANTES, senão
+    # o `except` genérico abaixo a captura e o 422 perde a instrução específica
+    # (informar o município). Ordem de `except` é semântica, não estilo.
+    except emissao_service.ConfiguracaoFiscalAmbigua as exc:
+        await db.rollback()
+        raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
     except (ConfiguracaoFiscalAusente, CertificadoAusente, ErroDeEmissao) as exc:
         await db.commit()  # preserva o evento de erro registrado
         raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc

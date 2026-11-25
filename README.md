@@ -15,15 +15,17 @@ apuração com guias plugáveis, fila de trabalho e webhook assinado.
 > qualquer sistema terceiro usa a mesma API com `X-API-Key`.
 
 **Palavras-chave:** NFS-e, NF-e, NFC-e, CT-e, MDF-e, nota fiscal eletrônica, SEFIN,
-SEFAZ, DANFSe, DANFE, DACTE, DAMDfe, Reforma Tributária, IBS, CBS, certificado
-digital A1, assinatura XMLDSig, PHP? não — Python, FastAPI, multi-tenant,
-open source, Brasil.
+SEFAZ, DANFSe, DANFE, DACTE, DAMDFE, Reforma Tributária, IBS, CBS, certificado
+digital A1, assinatura XMLDSig, Melhor Envio, etiqueta de envio, Python, FastAPI,
+multi-tenant, open source, Brasil.
 
-> **Estado atual:** as 6 fases do projeto estão concluídas e verificadas —
-> 749 testes, cobertura 86%, fluxo fim-a-fim reproduzível e validação com
-> certificado ICP-Brasil real contra a SEFIN de homologação. Leia
-> **[o que está pronto e o que não está](#estado-de-maturidade-o-que-pode-e-o-que-não-pode-ir-a-produção)**
-> antes de usar.
+> ### ✅ Emissão real validada contra a SEFIN
+>
+> Uma NFS-e foi **autorizada pela Produção Restrita** com este código, assinada com
+> certificado ICP-Brasil A1 real, e depois **cancelada** — ciclo completo:
+> emitir → consultar → DANFSe → cancelar. Ver
+> [`docs/REFERENCIAS.md` §15](docs/REFERENCIAS.md), que lista as nove rejeições
+> reais que levaram até lá e o que cada uma ensinou.
 
 ## Subir em um comando
 
