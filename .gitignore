@@ -29,19 +29,43 @@ coverage.xml
 .tox/
 .nox/
 
-# --- Fiscal / dados sensíveis ---
-# XML de nota fiscal contém CNPJ, CPF, endereço e valores: nunca versionar.
-*.xml
+# --- SEGREDOS: nunca versionar ---
+# Certificados digitais A1 e cadeias
 *.pfx
 *.p12
 *.pem
 *.key
 *.crt
+*.cer
+*.p7b
+*.jks
+*.keystore
+
+# Chaves e arquivos de ambiente
+.env
+.env.*
+!.env.example
+*.secret
+*.secrets
+secrets/
+
+# --- Fiscal / dados pessoais ---
+# XML de nota fiscal contém CNPJ, CPF, endereço e valores.
+*.xml
 !tests/fixtures/**/*.xml
 dados/
 entrada/
 saida/
 lotes/
+storage/
+media/
+*.sqlite
+*.db
+
+# --- Volumes locais de container ---
+.docker/
+pgdata/
+redisdata/
 
 # --- Editores / SO ---
 .vscode/
@@ -51,8 +75,6 @@ lotes/
 Thumbs.db
 desktop.ini
 
-# --- Local ---
-.env
-.env.*
-!.env.example
+# --- Logs ---
 *.log
+logs/

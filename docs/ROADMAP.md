@@ -1,84 +1,157 @@
-# Roadmap
+# Roadmap — 6 fases
 
-Ordem por valor entregue, não por facilidade. Cada item diz o que destrava e como
-saber que ficou pronto.
+Cada fase tem Definition of Done verificável. Não se avança por calendário, e sim
+por evidência: teste passando, container healthy, chamada real respondendo.
 
-## v0.1 — feito
+## Fase 1 — Fundação do repositório ✅ concluída
 
-Auditoria offline de NF-e, NFC-e e CT-e com 37 regras, CLI, API opcional,
-relatório JSON versionado, 151 testes, documentação de limites.
+**Entregue**
 
-## v0.2 — confiança no mundo real
+- `docker compose up --build` sobe API, worker, PostgreSQL 16 e Redis 7; serviço
+  one-shot `migrate` aplica as migrações antes da API e do worker.
+- `/health` (readiness, com banco e Redis) e `/health/live` (liveness).
+- Migração `0001` com as 9 tabelas base, verificada com `alembic check`.
+- Multi-tenant: criação de tenant, API key só como hash, rotação, isolamento,
+  configuração fiscal por município/ambiente.
+- Cofre AES-256-GCM (primitivas) e assinatura HMAC de webhook já testados.
+- Worker ARQ com `ping` e `heartbeat`, e healthcheck próprio que prova
+  processamento, não apenas processo vivo.
+- 212 testes, ruff limpo, `openapi.json` gerado.
 
-Objetivo: parar de supor que o XML real se parece com a fixture.
+**Evidência coletada nesta máquina**
 
-1. **Validar contra XML real (anonimizado).**
-   Rodar a ferramenta em um conjunto de notas reais e anotar, regra por regra,
-   onde há falso positivo. Sem isso, o resto é suposição.
-   *Pronto quando:* existir `docs/CALIBRAGEM.md` com taxa de falso positivo por
-   regra e as regras ruidosas rebaixadas ou corrigidas.
+```
+docker compose ps  ->  api healthy, worker healthy, postgres healthy, redis healthy
+curl /health       ->  HTTP 200 {"status":"ok", database.ok=true, redis.ok=true}
+alembic check      ->  No new upgrade operations detected.
+pytest             ->  212 passed
+```
 
-2. **Suporte a XML codificado em ISO-8859-1.**
-   Alguns emissores antigos não emitem UTF-8. O parse da stdlib respeita a
-   declaração, mas falta teste e mensagem de erro clara para o caso.
-   *Pronto quando:* houver fixture em latin-1 passando e teste de erro de
-   decodificação.
+**Pendências humanas desta fase**
 
-3. **`--recursivo` e resumo de lote.**
-   Auditoria de diretório inteiro com contagem agregada por código de regra.
-   *Pronto quando:* `notasbr auditar pasta/ --recursivo --resumo` listar os
-   códigos mais frequentes.
+- Confirmar se `MASTER_ENCRYPTION_KEY` será gerenciada por KMS/secret manager ou
+  por arquivo `.env` no host. A aplicação exige a chave em produção; *onde* ela
+  mora é decisão de operação.
 
-4. **Supressão justificada.**
-   Arquivo de configuração por projeto (`notasbr.toml`) para silenciar regra
-   específica com justificativa registrada no relatório.
-   *Pronto quando:* a supressão aparecer em `regras_suprimidas` no JSON com o motivo.
+## Fase 2 — Cofre de certificados A1 + assinatura XML
 
-## v0.3 — schema de verdade
+**DoD**
 
-5. **Validação XSD opcional.**
-   Extra `notasbr[xsd]` com `lxml`, carregando os XSD oficiais de um diretório
-   informado pelo usuário. Nunca embutir XSD no pacote (licença e versionamento).
-   *Pronto quando:* regra `SCHEMA-001` reprovar documento inválido contra XSD real
-   e ficar explicitamente pulada quando o XSD não for fornecido.
+- Upload de `.pfx`/`.p12` cifrado com AES-256-GCM usando a chave-mestra.
+- Teste unitário de cifra/decifra e de extração de validade e CNPJ do certificado.
+- Assinatura XMLDSig válida contra fixture de DPS.
+- Certificado descriptografado apenas em memória.
 
-6. **Conferência de totais por nota técnica.**
-   Com base de casos reais, promover `TOTAL-COMPOSICAO-001` de informação para
-   erro, com a fórmula correta por versão de layout e indicador de operação.
+**Risco conhecido:** gerar fixture de DPS assinada exige um certificado. Será
+gerado um certificado autoassinado **de teste** em tempo de execução — nunca
+commitado — para exercitar o XMLDSig. Assinatura que só valida contra certificado
+autoassinado não prova aceitação pela SEFIN; isso é homologação, não teste unitário.
 
-## v0.4 — NFS-e
+## Fase 3 — Motor tributário + CNPJ + NFS-e (com mocks)
 
-7. **NFS-e municipal por plugin de layout.**
-   Um layout por módulo, registrado por `(município, versão)`. Sem tentativa de
-   generalizar antes de ter dois ou três layouts reais funcionando.
-   *Pronto quando:* dois municípios auditados com fixture real anonimizada.
+**DoD**
 
-8. **NFS-e padrão nacional (DPS).**
-   Só depois que o layout nacional estabilizar o suficiente para existir um XSD
-   que não mude a cada mês.
+- Consulta de CNPJ com cache, limite de requisições e fallback para dados abertos.
+- Calculadora IBS/CBS com alíquotas versionadas por competência (2026: CBS 0,9%,
+  IBS 0,1%), com parâmetros explícitos.
+- Montagem de DPS assinada.
+- `SefinNacionalAdapter` com emissão, consulta por chave e cancelamento, com a URL
+  base vinda de configuração e mocks para os endpoints **[A VALIDAR]**.
+- Teste de integração emite nota mockada e devolve XML autorizado simulado.
 
-## v0.5 — emissão e transmissão
+**Dívida a pagar aqui:** `notasbr.cadastros` rejeita CNPJ alfanumérico. Precisa
+aceitar o formato que entra em vigor em julho/2026.
 
-Pré-requisito: certificado A1 e credenciamento em homologação. Sem isso, não
-começar.
+## Fase 4 — DANFSe local + DANFE adapter + apuração/guias
 
-9. **Assinatura de XML** com A1 (PKCS#12), reusando `signxml`.
-10. **Envelope SOAP e resolução de endpoint por UF/ambiente**, com tabela de
-    endpoints versionada e teste de contrato contra o serviço de homologação.
-11. **Consumo de `retConsReciNFe`** e ciclo de autorização (enviar, consultar
-    recibo, tratar `cStat`).
-12. **Eventos**: cancelamento e carta de correção.
+**DoD**
+
+- DANFSe v2 gerado localmente a partir do XML, com seção IBS/CBS, e teste de
+  fidelidade XML → PDF conferindo campos obrigatórios.
+- Adapter de DANFE com interface unificada.
+- Apuração por tenant e competência, com provedores MAN/DNA, DAS e guia municipal.
+
+**Divergência a resolver antes de começar:** o briefing cita NT 008 v1.02
+(14/07/2026); a referência local implementa v1.01 (30/06/2026). A versão entra como
+parâmetro do gerador, para que a troca seja de template e não de código.
+
+## Fase 5 — Worker de fila, lotes e webhooks
+
+**DoD**
+
+- Job de emissão com transição `PENDING → PROCESSING → AUTHORIZED | REJECTED | ERROR`.
+- Importação em lote (CSV/planilha) com relatório de sucesso/falha por linha.
+- Webhook assinado com HMAC-SHA256, retry com backoff exponencial, registro em
+  `webhook_deliveries`.
+
+## Fase 6 — Conectores DZ23 e Brizu + OpenAPI
+
+**DoD**
+
+- Contrato de entrada/saída para DZ23 (venda/fatura paga → emissão) e Brizu
+  (agendamento/atendimento pago → emissão).
+- Exemplo de chamada fim-a-fim com mocks.
+- `openapi.json` cobrindo todos os endpoints e guia de integração por parceiro.
+
+## Escopo ampliado (solicitado após a Fase 1)
+
+O pedido inicial cobria NFS-e, DANFSe e um adapter de NF-e/DANFE. O solicitante
+acrescentou, com imagens de referência: **DANFE Simplificado – Etiqueta**,
+**etiqueta de envio por volume** (estilo marketplace), e os documentos **CT-e,
+MDF-e e NFP-e**. São três fases novas, além das seis originais.
+
+Detalhe de campos e decisões em [DOCUMENTOS-FISCAIS.md](DOCUMENTOS-FISCAIS.md).
+
+### Fase 7 — NF-e e NFC-e completas
+
+- Emissão de NF-e (55) e NFC-e (65): montagem, assinatura, envio, consulta de
+  recibo, tratamento de `cStat`.
+- Eventos: cancelamento, carta de correção, inutilização de numeração.
+- **DANFE A4** a partir do XML autorizado.
+- **DANFE Simplificado – Etiqueta** (chave em Code128, protocolo, emitente,
+  operação 0/1, destinatário, valor total).
+- **DANFE NFC-e** (cupom) para PDV.
+- **Etiqueta de envio por volume**: `Volume i/n`, peso, nº da nota, coleta,
+  destinatário, remetente, um código de barras por volume.
+- Cobertura de rejeição: mapear os códigos de rejeição mais comuns da SEFAZ para
+  mensagem acionável, sem perder o código original.
+
+### Fase 8 — CT-e e MDF-e
+
+- CT-e (57) e CT-e OS (67): emissão, DACTE, cancelamento.
+- MDF-e (58): abertura, inclusão de NF-e, encerramento, DAMDFE.
+- Vínculo MDF-e ↔ NF-e: o manifesto referencia as chaves das notas da carga;
+  a consistência entre eles é regra de negócio, não detalhe de layout.
+
+### Fase 9 — NFP-e e logística
+
+- NFP-e conforme a UF do emitente (layout e autorizador estaduais).
+- Etiqueta de envio com integração logística: código de rastreio, coleta,
+  consolidação por volume.
+- Impressão em lote (ZPL/PDF) e reimpressão por volume.
+
+**Risco declarado:** NFP-e é estadual e heterogêneo; assim como NFS-e municipal, não
+será implementado pela metade. Se a UF alvo não estiver confirmada, a fase entra
+como adapter com layout por UF e apenas as UFs validadas habilitadas.
+
+## Critério de go-live
+
+
+1. `docker compose up` sobe tudo e o healthcheck responde.
+2. Todos os testes passam, com cobertura ≥ 80% nos módulos fiscais e de segurança.
+3. Fluxo mockado demonstrável: criar tenant → upload de A1 → emitir NFS-e (mock
+   SEFIN) → gerar DANFSe local → disparar webhook assinado.
+4. README separa o que está pronto para produção restrita do que depende de
+   homologação oficial.
+5. Nenhum segredo no repositório.
+
+**Fora do critério, e de propósito:** ligar produção real. Isso exige certificado
+A1 válido, credenciamento municipal/SEFIN e teste em ambiente de homologação — nada
+disso é alcançável por código neste ambiente.
 
 ## Fora do roadmap
 
-- Substituir contador ou parecer fiscal. Não é o produto.
-- Classificação fiscal automática de produto. Exige base normativa e
-  responsabilidade que a ferramenta não deve assumir.
-- Emissão em produção sem ambiente de homologação validado antes.
-
-## Como priorizar
-
-Se aparecer conflito entre "mais regras" e "menos falso positivo", ganha menos
-falso positivo. Uma ferramenta que reprova documento legítimo é abandonada na
-primeira semana; uma que deixa passar caso de borda continua sendo usada e
-melhorada.
+- Substituir contador ou emitir parecer fiscal.
+- Classificação fiscal automática de produto.
+- Emissão em produção sem homologação validada antes.
+- "DART nacional unificado": não existe. Guias são MAN/DNA, DAS e municipal.

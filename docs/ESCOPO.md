@@ -1,93 +1,101 @@
 # Escopo e limites
 
-Este documento existe para tornar explícito o que a ferramenta **não** faz. Um
-auditor fiscal que não declara os próprios limites induz a decisão errada, e a
-decisão errada aqui é tratar documento inconsistente como autorizado.
+Este documento existe para tornar explícito o que o sistema **não** faz. Um motor
+fiscal que não declara os próprios limites induz a decisão errada, e aqui a
+decisão errada é tratar documento não autorizado como autorizado.
 
-## Problema que resolve
+## O que é
 
-XML de nota fiscal chega de terceiros — fornecedor, transportadora, sistema
-legado, integração malfeita. Antes de lançar no ERP, no financeiro ou na
-contabilidade, alguém precisa responder:
+Motor e microserviço de documentos fiscais brasileiros, multi-tenant, com:
 
-1. Este XML está internamente coerente?
-2. A chave de acesso corresponde ao que está escrito dentro do documento?
-3. Os valores fecham?
-4. A assinatura está lá e é plausível?
-5. O regime tributário declarado bate com o CST/CSOSN usado?
+- **emissão e gestão de NFS-e** (padrão nacional) — Fase 3;
+- **geração local de DANFSe** a partir do XML — Fase 4;
+- **apuração e guias** plugáveis (MAN/DNA, DAS, municipal) — Fase 4;
+- **auditoria de XML** de NF-e, NFC-e e CT-e (biblioteca `notasbr`);
+- **API REST + fila + webhook** para integração com ERP, CRM e parceiros.
 
-O `notasbr` responde isso de forma reprodutível, com o caminho exato do nó no XML
-e sem depender de certificado digital, credenciamento ou rede.
+## Estado por fase
 
-## Dentro do escopo (v0.1)
+| Fase | Escopo | Estado |
+|---|---|---|
+| 1 | Fundação: containers, migração, multi-tenant, healthcheck | **concluída e verificada** |
+| 2 | Cofre A1 (AES-256-GCM) + assinatura XMLDSig | a fazer |
+| 3 | Motor tributário IBS/CBS + CNPJ + emissão NFS-e com mocks | a fazer |
+| 4 | DANFSe local + DANFE adapter + apuração/guias | a fazer |
+| 5 | Worker de emissão, lotes e webhooks | a fazer |
+| 6 | Conectores DZ23/Brizu + OpenAPI | a fazer |
+| 7 | NF-e/NFC-e completas + DANFE A4, DANFE Simplificado/Etiqueta, cupom, etiqueta de envio | escopo ampliado |
+| 8 | CT-e, CT-e OS e MDF-e (DACTE, DAMDFE, manifesto) | escopo ampliado |
+| 9 | NFP-e e logística (rastreio, coleta, impressão em lote) | escopo ampliado |
 
-| Capacidade | Como é verificada |
-|---|---|
-| Chave de acesso de 44 dígitos | Decomposição por layout fixo + DV módulo 11 |
-| Coerência chave × documento | Campo a campo: UF, modelo, série, número, `tpEmis`, `cNF`, CNPJ do emitente |
-| Coerência com o protocolo | `chNFe`/`chCTe` do `infProt` e `tpAmb` |
-| Fechamento de totais | Soma dos itens × `vProd`, `vNF` × pagamentos (com `vTroco`) |
-| Formato tributário | CFOP (4 dígitos e grupo), sentido × `tpNF`, NCM (8 dígitos), CST/CSOSN em tabela fechada |
-| Coerência de regime | `CRT` do emitente × uso de CST ou CSOSN |
-| Estrutura mínima | Raiz, namespace, versão do layout, campos escalares obrigatórios, `nItem` |
-| Assinatura | Presença, `Reference/@URI`, `DigestValue`/`SignatureValue`, e verificação criptográfica opcional |
-| CNPJ / CPF | Dígito verificador (módulo 11) |
+As fases 7 a 9 foram acrescentadas depois da Fase 1, a partir de pedido do
+solicitante com imagens de referência. Campos e decisões de layout em
+[DOCUMENTOS-FISCAIS.md](DOCUMENTOS-FISCAIS.md).
 
-## Fora do escopo (e por quê)
+Enquanto uma fase não está concluída, **o endpoint correspondente não existe**.
+Não há rota que responda "em breve" ou que finja emitir nota.
 
-**Validação de schema XSD.** Exigiria carregar e versionar os XSD oficiais de
-cada layout e de cada UF. Sem isso, uma "validação de schema" seria um subconjunto
-disfarçado. A v0.1 faz conferência estrutural curada e declara isso. O caminho
-para incluir XSD está no roadmap, como capacidade explícita e opcional.
+## Fora do escopo, com motivo
 
-**Cadeia de confiança do certificado.** Verificar o XMLDSig contra o certificado
+**Autorização real na SEFAZ/SEFIN.** Confirmar `cStat` de verdade exige
+certificado A1 válido, credenciamento e ambiente de homologação. Nada disso é
+alcançável por código neste ambiente. As integrações são implementadas sobre
+adapters com mock e URL base configurável.
+
+**Cadeia de confiança ICP-Brasil.** Verificar assinatura contra o certificado
 embutido prova integridade em relação àquele certificado; **não** prova que ele é
-ICP-Brasil, que não foi revogado ou que pertence a quem assinou. Fazer essa
-distinção é obrigatório, senão o relatório promete mais do que entrega.
+ICP-Brasil, que não foi revogado ou que pertence a quem assinou.
 
-**Autorização na SEFAZ.** Confirmar `cStat=100` de verdade requer consulta ao
-webservice com certificado e credenciamento. A ferramenta confia no `protNFe`
-presente no arquivo e diz isso.
+**Validação de schema XSD oficial em produção.** A biblioteca de auditoria faz
+conferência estrutural curada. Validação XSD depende de obter e versionar os
+schemas oficiais vigentes, o que está no roadmap como capacidade explícita.
 
-**NFS-e.** O cenário municipal é heterogêneo (centenas de layouts) e o padrão
-nacional está em transição. Implementar pela metade produziria falso negativo em
-escala. Está fora da v0.1 por decisão consciente, não por esquecimento.
+**Guia nacional única de arrecadação.** Não existe. O que existe é MAN (que gera
+DNA) para ISS do regime geral, DAS (regime geral via MAN até 31/12/2032) e guia
+municipal. Modelar um "DART nacional" seria inventar documento.
 
-**NCM e enquadramento fiscal.** A tabela NCM muda por ato normativo e a
-classificação correta depende da operação. A ferramenta confere a **forma**
-(8 dígitos), não o mérito.
+**Classificação fiscal automática de produto.** Exige base normativa e
+responsabilidade que o sistema não deve assumir.
 
-**Idoneidade do emitente.** Situação cadastral, sonegação, fraude e crédito
-tributário não são inferíveis de um XML.
+**Idoneidade do emitente, fraude, crédito tributário.** Não é inferível de XML.
 
-## Fatos verificados vs. hipóteses neste repositório
+**Auditoria de NFS-e pela biblioteca `notasbr`.** A biblioteca valida chave de 44
+dígitos (NF-e/CT-e). NFS-e nacional usa identificador próprio — o Id da DPS tem 45
+posições — e por isso é tratada por módulo de tipo próprio no serviço, não pela
+biblioteca. A distinção é intencional: reaproveitar a validação de 44 dígitos para
+NFS-e produziria erro silencioso.
 
-**Verificado por teste automatizado** (151 testes):
+## Fatos verificados vs. hipóteses
 
-- O algoritmo do DV reproduz um vetor conferido por três formulações independentes.
-- CNPJ 11.222.333/0001-81 e CPF 111.444.777-35 são aceitos; variantes com DV
-  trocado são rejeitadas.
-- Cada regra tem ao menos um caso que a faz disparar e um caso que não a dispara.
-- Documento com `DOCTYPE` é recusado; XML malformado vira erro de leitura.
-- A API responde 422 para XML inválido e 413 acima do limite.
+**Verificado por execução nesta máquina**
 
-**Hipótese a validar com documento real** — a v0.1 foi construída e testada com
-XML **sintético**. Nenhum XML real de contribuinte foi usado. Consequências:
+- `docker compose up --build` sobe os 4 serviços e todos ficam `healthy`.
+- `/health` responde 200 com PostgreSQL e Redis reais; responde 503 quando o banco
+  é forçado a falhar (teste dedicado).
+- A migração `0001` aplica e `alembic check` confirma que não há drift entre
+  modelo ORM e migração.
+- Criação de tenant devolve API key uma única vez; o banco guarda só o hash
+  (verificado por consulta SQL: `guardou_claro = f`).
+- Uma API key de um tenant não alcança dado de outro (teste de isolamento).
+- 212 testes passam.
 
-- Fixtures podem não cobrir idiossincrasias de emissores reais (prefixos de
-  namespace, campos opcionais ausentes por regime, `indPres`, `vTroco`).
-- As tabelas de CST/CSOSN são fechadas e estáveis, mas a **coerência** exigida
-  pela regra `TRIB-CRT-001` é um aviso, não um erro, justamente porque há
-  exceções legítimas.
-- A fórmula de composição de `vNF` está implementada como **informação**, não
-  como erro, porque ela muda por nota técnica (ST, FCP, desoneração, IPI na base).
+**Hipótese a validar — e que não pode ser tratada como fato**
 
-O próximo passo de validação é rodar a ferramenta contra um conjunto real e
-anotar, regra por regra, onde há falso positivo. Isso está no roadmap como
-primeira tarefa da v0.2.
+- **Nenhum documento fiscal real foi emitido ou recebido.** Não há certificado A1
+  real, não houve chamada a SEFIN, ADN, prefeitura ou Serpro.
+- **URL base da SEFIN/ADN não confirmada.** Vem de `SEFIN_*_BASE_URL`. Os caminhos
+  de rota foram lidos de biblioteca de referência (ver `REFERENCIAS.md`), não de
+  documentação oficial.
+- **Versão do layout DANFSe em disputa:** briefing cita v1.02 (14/07/2026),
+  referência local implementa v1.01 (30/06/2026).
+- **Lista de municípios com `aderenteEmissorNacional = 1` não verificada.**
+- **CNPJ alfanumérico** (julho/2026) ainda não é aceito por
+  `notasbr.cadastros` — dívida registrada para a Fase 3.
+- **Cota da API Serpro** não exercitada; o desenho de cache e fallback é
+  preventivo, não medido.
 
 ## Público e uso pretendido
 
-Desenvolvedor de integração, analista fiscal, time de QA de ERP, contador que
-precisa de segunda opinião mecânica. Não é ferramenta de decisão fiscal: o
-relatório é insumo para uma pessoa decidir.
+Desenvolvedor de integração, ERP/CRM de terceiros (DZ23, Brizu), analista fiscal e
+time de QA fiscal. O sistema é ferramenta de emissão e conferência: não substitui
+contador e não decide regime tributário.

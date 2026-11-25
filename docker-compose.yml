@@ -1,0 +1,127 @@
+# open_notas_br — stack local
+#
+#   docker compose up --build
+#   curl http://localhost:8080/health
+#
+# Portas no host foram escolhidas fora das padrão (5432/6379) para não colidir
+# com um PostgreSQL ou Redis já instalado na máquina.
+
+name: open-notas-br
+
+x-app-env: &app-env
+  ENVIRONMENT: ${ENVIRONMENT:-development}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  LOG_JSON: ${LOG_JSON:-true}
+  DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://notasbr:notasbr@postgres:5432/notasbr}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+  MASTER_ENCRYPTION_KEY: ${MASTER_ENCRYPTION_KEY:-}
+  ADMIN_API_TOKEN: ${ADMIN_API_TOKEN:-}
+  SEFIN_BASE_URL: ${SEFIN_BASE_URL:-}
+  SEFIN_HOMOLOGACAO_BASE_URL: ${SEFIN_HOMOLOGACAO_BASE_URL:-}
+  SEFIN_PRODUCAO_BASE_URL: ${SEFIN_PRODUCAO_BASE_URL:-}
+  SERPRO_CNPJ_TOKEN: ${SERPRO_CNPJ_TOKEN:-}
+  CNPJ_FALLBACK_ENABLED: ${CNPJ_FALLBACK_ENABLED:-true}
+  RTC_CBS_ALIQUOTA_2026: ${RTC_CBS_ALIQUOTA_2026:-0.009}
+  RTC_IBS_ALIQUOTA_2026: ${RTC_IBS_ALIQUOTA_2026:-0.001}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: notasbr
+      POSTGRES_PASSWORD: notasbr
+      POSTGRES_DB: notasbr
+    ports:
+      # Porta do host configurável: a 55432 padrão pode estar ocupada por outro
+      # projeto local. 5432 do container não muda.
+      - "${POSTGRES_HOST_PORT:-55434}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notasbr -d notasbr"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_HOST_PORT:-56379}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  # Serviço one-shot: aplica migrações e encerra. API e worker esperam por ele,
+  # o que evita corrida de duas instâncias migrando ao mesmo tempo.
+  migrate:
+    build:
+      context: .
+    command: ["alembic", "upgrade", "head"]
+    environment: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: .
+    command:
+      [
+        "uvicorn",
+        "app.main:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8080",
+        "--proxy-headers",
+      ]
+    environment: *app-env
+    ports:
+      - "${API_HOST_PORT:-8081}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+    command: ["arq", "app.worker.main.WorkerSettings"]
+    environment: *app-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-m", "app.worker.healthcheck"]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 15s
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:

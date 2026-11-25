@@ -1,286 +1,211 @@
 # open_notas_br
 
-Auditoria **offline** de documentos fiscais brasileiros — NF-e, NFC-e e CT-e.
+Motor e microserviço de **documentos fiscais brasileiros**: emissão e gestão de
+NFS-e (padrão nacional), auditoria de XML, geração local de DANFSe, apuração com
+guias plugáveis e entrega de webhook assinada. Pluga em qualquer ERP, CRM ou site
+por API REST, fila e webhook, com isolamento multi-tenant por `X-API-Key`.
 
-O programa lê o XML que você já tem e responde, regra por regra e com o caminho
-exato no arquivo, o que está inconsistente: chave de acesso que não fecha, total
-que não soma, CFOP de entrada em nota de saída, assinatura ausente, protocolo de
-outra nota.
+> **Estado:** Fase 1 de 6 concluída — fundação (containers, migração, multi-tenant,
+> healthcheck). Emissão, certificados, DANFSe e conectores entram nas fases
+> seguintes. Leia **[o que está pronto e o que não está](#o-que-está-pronto-e-o-que-não-está)**
+> antes de usar.
+>
+> **Escopo ampliado (após a Fase 1):** NF-e, NFC-e, CT-e, MDF-e e NFP-e, além de
+> DANFE A4, **DANFE Simplificado – Etiqueta** e **etiqueta de envio por volume**
+> (estilo marketplace). Ver [docs/DOCUMENTOS-FISCAIS.md](docs/DOCUMENTOS-FISCAIS.md)
+> e as Fases 7–9 no [roadmap](docs/ROADMAP.md).
 
-```
-$ notasbr auditar nota.xml
-
-nota.xml
-  NF-e | layout 4.00 | 3525 0111 2223 3300 0181 5500 1000 0001 2311 2345 6782
-  ambiente: Produção
-  emitente: Empresa Exemplo LTDA | 11.222.333/0001-81 | SP
-  valor total: 1000.00
-  situação: REPROVADO (1 erro(s), 1 aviso(s), 1 info, 35 regra(s), 1 pulada(s))
-  ERRO  TOTAL-VPROD-001: vProd total (999.00) difere da soma dos itens (1000.00)  [nfeProc/NFe/infNFe/total/ICMSTot/vProd]
-  AVISO ASSIN-005: Signature sem X509Certificate: não é possível conferir a autoria  [nfeProc/NFe/Signature]
-```
-
-## O que ele é e o que ele não é
-
-**É** um conferente de consistência: valida a aritmética da chave de acesso,
-o fechamento dos totais, a coerência entre regime tributário e CST/CSOSN, a
-estrutura do XMLDSig e a integridade do que está escrito no documento.
-
-**Não é** emissor, não é transmissor, não é homologação junto à SEFAZ e não é
-parecer fiscal. Em particular, ele **não**:
-
-- valida contra o XSD oficial (a conferência de estrutura é curada, não schema validation);
-- valida cadeia ICP-Brasil, revogação ou autenticidade do certificado;
-- acessa a SEFAZ — não confirma autorização, cancelamento ou denegação;
-- audita NFS-e (municipal ou padrão nacional);
-- confere NCM ou enquadramento fiscal contra a legislação vigente;
-- avalia idoneidade do emitente, fraude ou crédito tributário.
-
-Essas limitações viajam **dentro do relatório**, no campo `limitacoes`. Quem
-consome o JSON recebe junto o que a ferramenta não prova.
-
-## Instalação
-
-Requer Python 3.10+. O núcleo **não tem dependências externas**.
+## Subir em um comando
 
 ```bash
-pip install -e .              # núcleo + CLI
-pip install -e ".[api]"       # + API HTTP (FastAPI)
-pip install -e ".[assinatura]" # + verificação criptográfica do XMLDSig
-pip install -e ".[dev]"       # + pytest, ruff
+cp .env.example .env      # opcional em dev; obrigatório em produção
+docker compose up --build
 ```
 
-## Uso
-
-### Linha de comando
+Serviços: `api` (FastAPI), `worker` (ARQ), `postgres` 16, `redis` 7, mais o
+serviço one-shot `migrate` que aplica as migrações antes da API e do worker
+subirem.
 
 ```bash
-notasbr auditar nota.xml                    # relatório legível
-notasbr auditar lote/*.xml --json           # JSON, um ou vários arquivos
-notasbr auditar nota.xml --estrito          # aviso também reprova (saída 1)
-notasbr auditar nota.xml --verboso          # mostra info, regras puladas e limitações
-
-notasbr chave 35250111222333000181550010000001231123456782
-notasbr cnpj 11.222.333/0001-81
-notasbr cpf 111.444.777-35
-notasbr regras                              # catálogo completo
+curl http://localhost:8081/health
 ```
-
-Códigos de saída (úteis em CI e em script de lote):
-
-| Código | Significado |
-|---|---|
-| `0` | aprovado, ou aprovado com avisos (sem `--estrito`) |
-| `1` | reprovado: ao menos um erro (ou aviso com `--estrito`) |
-| `2` | falha de leitura: XML inválido, arquivo não UTF-8, documento não suportado |
-| `3` | erro de uso: arquivo inexistente, argumento inválido |
-
-### Biblioteca
-
-```python
-from notasbr import auditar_arquivo, auditar_bytes, Severidade
-
-relatorio = auditar_arquivo("nota.xml")
-
-relatorio.aprovado  # False se houver erro
-relatorio.resumo.situacao  # "aprovado" | "aprovado_com_avisos" | "reprovado"
-relatorio.chave  # 44 dígitos, ou None
-relatorio.valor_total  # "1000.00"
-
-for achado in relatorio.por_severidade(Severidade.ERRO):
-    print(achado.codigo, achado.caminho, achado.mensagem)
-
-relatorio.to_dict()  # contrato JSON notasbr.relatorio/1
-```
-
-Erros de leitura são exceções, problemas de documento são achados:
-
-```python
-from notasbr import XmlInvalido, DocumentoNaoSuportado, ArquivoGrandeDemais
-
-try:
-    relatorio = auditar_bytes(dados)
-except (XmlInvalido, DocumentoNaoSuportado, ArquivoGrandeDemais) as exc:
-    print("não auditado:", exc)
-```
-
-### API HTTP
-
-```bash
-uvicorn notasbr.api:app --reload
-```
-
-| Método | Rota | Função |
-|---|---|---|
-| `GET` | `/v1/saude` | versão, quantidade de regras |
-| `GET` | `/v1/regras` | catálogo de regras |
-| `GET` | `/v1/limitacoes` | o que a auditoria não prova |
-| `POST` | `/v1/auditar` | multipart `arquivo=<xml>` → relatório |
-| `GET` | `/v1/chave/{chave}` | decompõe a chave |
-| `GET` | `/v1/cnpj/{valor}` | valida CNPJ |
-| `GET` | `/v1/cpf/{valor}` | valida CPF |
-
-Documentação interativa em `/docs`.
-
-```bash
-curl -F "arquivo=@nota.xml" http://127.0.0.1:8000/v1/auditar
-```
-
-## Catálogo de regras
-
-37 regras em seis famílias. Os códigos são estáveis: use-os em supressão,
-dashboards e testes.
-
-**Estrutura** — raiz, namespace, versão do layout, campos obrigatórios, itens.
-
-**Chave de acesso** — 44 dígitos, DV módulo 11, UF, modelo, AAMM, `Id`,
-`cDV`, e a coerência entre cada campo da chave e o conteúdo do XML (UF, modelo,
-série, número, `tpEmis`, `cNF`, CNPJ do emitente) mais o protocolo de autorização.
-
-**Totais** — soma dos itens × `vProd` total, `vNF` positivo, pagamentos (com
-`vTroco`), arredondamento por item e composição indicativa do valor total.
-
-**Tributos** — formato do CFOP e seu grupo, sentido do CFOP × `tpNF`, NCM com
-8 dígitos, CST/CSOSN nas tabelas fechadas, CRT × CSOSN, presença de PIS/COFINS.
-
-**Assinatura** — presença da `Signature`, `Reference/@URI`, `DigestValue`,
-`SignatureValue` e, com o extra `notasbr[assinatura]`, a verificação
-criptográfica contra o certificado embutido.
-
-**CT-e** — tomador identificado, `vTPrest`, `vRec` e soma dos componentes.
-
-<details>
-<summary>Tabela completa (37 regras)</summary>
-
-| Código | Descrição | Tipos |
-|---|---|---|
-| `AMB-001` | Ambiente de emissão válido e coerente | NFE, CTE |
-| `ASSIN-001` | Documento assinado (elemento Signature presente) | NFE, CTE |
-| `ASSIN-002` | Reference aponta para o Id do documento | NFE, CTE |
-| `ASSIN-003` | DigestValue e SignatureValue preenchidos | NFE, CTE |
-| `ASSIN-004` | Assinatura confere criptograficamente | NFE, CTE |
-| `ASSIN-005` | Certificado do assinante presente | NFE, CTE |
-| `CHAVE-AMM-001` | Ano/mês da chave é possível | NFE, CTE |
-| `CHAVE-AMM-002` | AAMM da chave coerente com a data de emissão | NFE, CTE |
-| `CHAVE-CDV-001` | cDV do ide bate com o DV da chave | NFE, CTE |
-| `CHAVE-CONSIST-001` | Campos do ide conferem com a chave | NFE, CTE |
-| `CHAVE-DV-001` | Dígito verificador da chave confere | NFE, CTE |
-| `CHAVE-EMIT-001` | CNPJ/CPF do emitente confere com a chave | NFE, CTE |
-| `CHAVE-FMT-001` | Chave com 44 dígitos numéricos | NFE, CTE |
-| `CHAVE-ID-001` | Id do documento bate com a chave | NFE, CTE |
-| `CHAVE-MOD-001` | Modelo da chave corresponde ao documento | NFE, CTE |
-| `CHAVE-UF-001` | Código de UF da chave existe | NFE, CTE |
-| `CTE-PREST-001` | Prestação do serviço coerente | CTE |
-| `CTE-TOMADOR-001` | Tomador do serviço identificado | CTE |
-| `DOC-ID-001` | Identificador do documento presente | NFE, CTE |
-| `DOC-ITENS-001` | Documento tem ao menos um item | NFE, CTE |
-| `DOC-NS-001` | Namespace do documento corresponde ao tipo | NFE, CTE |
-| `DOC-OBRIG-001` | Campos escalares obrigatórios preenchidos | NFE, CTE |
-| `DOC-VER-001` | Versão do layout presente e reconhecida | NFE, CTE |
-| `NFE-DEST-001` | Destinatário presente quando exigido | NFE |
-| `NFE-DET-001` | nItem sequencial começando em 1 | NFE |
-| `PROT-001` | Protocolo de autorização corresponde ao documento | NFE, CTE |
-| `TOTAL-COMPOSICAO-001` | Composição indicativa do valor total | NFE |
-| `TOTAL-ITEM-001` | Quantidade x valor unitário confere com o item | NFE |
-| `TOTAL-PAG-001` | Pagamentos somam o valor total | NFE |
-| `TOTAL-VNF-001` | Valor total da nota é positivo | NFE |
-| `TOTAL-VPROD-001` | Total de produtos é a soma dos itens | NFE |
-| `TRIB-CFOP-001` | CFOP com 4 dígitos e primeiro dígito válido | NFE, CTE |
-| `TRIB-CFOP-002` | CFOP coerente com o sentido da operação | NFE |
-| `TRIB-CRT-001` | Regime do emitente coerente com CST/CSOSN | NFE |
-| `TRIB-ICMS-001` | ICMS presente com CST ou CSOSN conhecido | NFE |
-| `TRIB-NCM-001` | NCM com 8 dígitos | NFE |
-| `TRIB-PIS-COFINS-001` | Grupos de PIS e COFINS presentes | NFE |
-
-Além destes, `MOTOR-001` sinaliza uma regra que quebrou durante a execução. Ele
-é sempre severidade **erro**: falha de software nunca vira aprovação.
-
-</details>
-
-## Contrato do relatório
-
-`schema: "notasbr.relatorio/1"`. Mudanças incompatíveis alteram essa string.
 
 ```json
-{
-  "schema": "notasbr.relatorio/1",
-  "versao_ferramenta": "0.1.0",
-  "arquivo": "nota.xml",
-  "sha256": "…",
-  "documento": {
-    "tipo": "nfe",
-    "raiz": "nfeProc",
-    "versao_layout": "4.00",
-    "chave": "35250111222333000181550010000001231123456782",
-    "modelo": "NF-e",
-    "ambiente": "Produção",
-    "emitente": {"cnpj": "11.222.333/0001-81", "nome": "…", "uf": "SP"},
-    "destinatario": {"cnpj": "…", "nome": "…", "uf": "SP"},
-    "valor_total": "1000.00"
-  },
-  "resumo": {
-    "situacao": "reprovado",
-    "erros": 1,
-    "avisos": 1,
-    "informacoes": 1,
-    "regras_avaliadas": 35,
-    "regras_puladas": 1
-  },
-  "achados": [
-    {
-      "codigo": "TOTAL-VPROD-001",
-      "severidade": "erro",
-      "mensagem": "vProd total (999.00) difere da soma dos itens (1000.00)",
-      "caminho": "nfeProc/NFe/infNFe/total/ICMSTot/vProd",
-      "detalhe": {"total": "999.00", "soma_itens": "1000.00"}
-    }
-  ],
-  "regras_puladas": [{"codigo": "ASSIN-004", "motivo": "…"}],
-  "limitacoes": ["…"],
-  "duracao_ms": 1.4
-}
+{"status":"ok","versao":"0.2.0","ambiente":"development","uptime_segundos":7.531,
+ "verificacoes":{"database":{"ok":true,"detalhe":null},"redis":{"ok":true,"detalhe":null}}}
 ```
 
-`regras_puladas` é transparência, não aprovação: uma regra que não pôde ser
-avaliada nunca conta como satisfeita.
+Portas no host (configuráveis, escolhidas fora das padrão para não colidir com
+outros projetos locais): API `8081`, PostgreSQL `55434`, Redis `56379`.
 
-## Segurança e privacidade
+## Fluxo mínimo: tenant → credencial → configuração fiscal
 
-- XML de nota fiscal contém CNPJ, CPF, endereço e valores. O `.gitignore` do
-  projeto bloqueia `*.xml` justamente por isso; só as fixtures sintéticas de
-  `tests/fixtures` são versionadas.
-- `parse_seguro` recusa documentos com `DOCTYPE` ou `ENTITY`. XML fiscal não
-  precisa de DTD, e recusar elimina a classe de ataque por expansão de entidade.
-- Tamanho de entrada é limitado (20 MiB por padrão, configurável).
-- O relatório expõe CNPJ/CPF do emitente e destinatário porque a chave de acesso
-  já contém o CNPJ do emitente — mascarar só o campo daria falsa sensação de
-  proteção. Trate o relatório como dado pessoal.
+```bash
+# 1) cria o tenant e recebe a API key UMA única vez
+curl -X POST http://localhost:8081/v1/tenants \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"barbearia-centro","nome":"Barbearia Centro LTDA"}'
 
-## Documentação
+# 2) usa a chave para ver o próprio tenant
+curl http://localhost:8081/v1/me -H "X-API-Key: nb_..."
 
-- [Escopo e limites](docs/ESCOPO.md)
-- [Arquitetura](docs/ARQUITETURA.md)
-- [Decisões (ADRs)](docs/DECISOES.md)
-- [Roadmap](docs/ROADMAP.md)
+# 3) configura o município de emissão
+curl -X PUT http://localhost:8081/v1/me/config-fiscal \
+  -H "Content-Type: application/json" -H "X-API-Key: nb_..." \
+  -d '{"municipio_ibge":"3550308","uf":"SP","aderente_emissor_nacional":true}'
+```
+
+A API key aparece **apenas** na resposta de criação/rotação: o servidor guarda só
+o SHA-256. Perdeu a chave, rotaciona.
+
+## Arquitetura
+
+```
+                       ┌──────────────────────────────────────────┐
+   parceiro / ERP ───▶ │  API FastAPI  (app/api)                  │
+   X-API-Key           │  ├── /health, /health/live, /version     │
+                       │  └── /v1/tenants, /v1/me/*               │
+                       └───────────────┬──────────────────────────┘
+                                       │  tenant_id vem SÓ da credencial
+                       ┌───────────────▼──────────────────────────┐
+                       │  Domínio                                 │
+                       │  tenants · certificates · tax · nfse ·   │
+                       │  danfse · danfe · assessment · batches · │
+                       │  webhooks · integrations/{dz23,brizu}    │
+                       └───────────────┬──────────────────────────┘
+                                       │
+        ┌──────────────────────────────┼──────────────────────────────┐
+        ▼                              ▼                              ▼
+  PostgreSQL 16                  Redis + ARQ                    Adapters
+  (JSONB, multi-tenant)          (fila, cache, batimento)        SEFIN/ADN,
+                                                                prefeitura, Serpro
+                                                                ([A VALIDAR])
+```
+
+Decisões estruturais que sustentam o resto estão em
+[docs/ARQUITETURA.md](docs/ARQUITETURA.md); as decisões com trade-off estão em
+[docs/DECISOES.md](docs/DECISOES.md).
+
+### Estrutura de diretórios
+
+```
+open_notas_br/
+├── docker-compose.yml        # api + worker + postgres + redis + migrate
+├── Dockerfile                # python:3.12-slim, usuário não-root
+├── .env.example              # todas as variáveis, nenhum segredo real
+├── alembic/versions/         # migrações (0001 = nove tabelas base)
+├── app/
+│   ├── main.py               # app FastAPI, middleware, lifespan
+│   ├── core/                 # config, crypto (AES-256-GCM), security, logging, redis
+│   ├── db/                   # base, session, models
+│   ├── tenants/              # schemas, repository, service
+│   ├── api/v1/               # health, tenants
+│   ├── worker/               # ARQ (ping + heartbeat) e healthcheck
+│   ├── certificates/         # Fase 2: cofre A1 + XMLDSig
+│   ├── cnpj/  tax/  nfse/    # Fase 3
+│   ├── danfse/ danfe/ assessment/  # Fase 4
+│   ├── batches/ webhooks/    # Fase 5
+│   └── integrations/{dz23,brizu}/  # Fase 6
+├── src/notasbr/              # biblioteca de auditoria de XML (sem dependências)
+├── tests/                    # 212 testes
+├── docs/                     # arquitetura, decisões, escopo, referências, roadmap
+└── openapi.json              # contrato gerado do FastAPI
+```
+
+`src/notasbr` é a biblioteca de **auditoria** de NF-e/NFC-e/CT-e herdada da
+versão anterior do projeto. Ela continua sem dependências e é usada para conferir
+o XML que o motor gerar ou receber. O serviço é o extra `app`.
+
+## Stack e por quê
+
+| Escolha | Por quê | Trade-off aceito |
+|---|---|---|
+| **Python 3.12 + FastAPI** | tipagem, OpenAPI nativo, asyncio | menos performático que Go em pico extremo; irrelevante para emissão fiscal |
+| **PostgreSQL 16** | JSONB para payload fiscal, constraint real, transação confiável | exige serviço extra no compose |
+| **SQLAlchemy 2.0 async + Alembic** | migração versionada e reversível | mais cerimônia que SQL puro |
+| **ARQ** em vez de Celery | já é asyncio ponta a ponta; mesmo loop e mesma conexão Redis | ecossistema menor que Celery |
+| **AES-256-GCM (`cryptography`)** | AEAD: confidencialidade + detecção de adulteração no mesmo passo | gestão de chave-mestra é responsabilidade do operador |
+| **WeasyPrint** (Fase 4) | HTML→PDF com layout fiel e CSS | peso de dependências nativas no container |
+| **Docker + compose** | ambiente reproduzível com um comando | requer Docker |
+
+## Segurança
+
+- **Nenhum segredo no repositório.** `.gitignore` bloqueia `.env`, `*.pfx`,
+  `*.p12`, `*.pem`, `*.key`, `*.crt`. O `.env.example` traz só placeholders.
+- **Chave-mestra obrigatória em produção.** Sem `MASTER_ENCRYPTION_KEY` e com
+  `ENVIRONMENT=production`, a aplicação **não sobe**. Em desenvolvimento, gera
+  chave efêmera em memória e avisa no log.
+- **Certificado A1 nunca em claro.** Serializado com AES-256-GCM, com `aad`
+  amarrado ao `tenant_id` — um envelope não pode ser movido de uma conta para
+  outra. Descriptografia só em memória (Fase 2).
+- **API key só como hash.** SHA-256 de 256 bits de entropia real, comparado em
+  tempo constante.
+- **Multi-tenant estrito.** `tenant_id` vem exclusivamente da credencial; nenhuma
+  rota aceita `tenant_id` do corpo. Há teste dedicado a vazamento entre tenants.
+- **XML com DTD é recusado** pela biblioteca de auditoria (defesa contra expansão
+  de entidade).
+
+## O que está pronto e o que não está
+
+**Pronto e verificado nesta máquina (Fase 1)**
+
+- `docker compose up` sobe os 4 serviços, com `migrate` aplicando as migrações antes.
+- `/health` retorna 200 com banco e Redis reais (e 503 quando algum cai — testado).
+- Migração inicial com as 9 tabelas, sem drift (`alembic check`).
+- Multi-tenant com API key, rotação, isolamento e configuração fiscal por município.
+- Worker ARQ com batimento e healthcheck próprio.
+- 212 testes passando; `openapi.json` gerado do app.
+
+**Depende de validação humana antes de qualquer produção**
+
+- **URL base da SEFIN/ADN não foi confirmada.** Vem de variável de ambiente
+  (`SEFIN_*_BASE_URL`); nenhum endpoint é hardcoded. Ver
+  [docs/REFERENCIAS.md](docs/REFERENCIAS.md).
+- **Versão do layout DANFSe:** o briefing cita NT 008 v1.02 (14/07/2026); a
+  referência local implementa v1.01 (30/06/2026). Divergência declarada, não resolvida.
+- **Lista de municípios com `aderenteEmissorNacional = 1`** não foi verificada.
+- **Cota e contrato da API Serpro** não foram exercitados.
+- **Nenhum certificado A1 real foi usado**; nenhuma chamada real a SEFAZ,
+  prefeitura ou Serpro foi feita.
+- **CNPJ alfanumérico:** `notasbr.cadastros` ainda trata documento como numérico e
+  rejeitaria um CNPJ alfanumérico. Dívida registrada para a Fase 3.
 
 ## Desenvolvimento
 
 ```bash
-pip install -e ".[dev]"
-python -m pytest
+pip install -e ".[app,dev,pdf,assinatura]"
+docker compose up -d postgres redis
+python -m pytest                  # os testes de integração exigem o banco acima
 python -m ruff check .
 python -m ruff format --check .
+python -m alembic upgrade head    # DATABASE_URL no ambiente
+python -m alembic check           # falha se modelo e migração divergirem
 ```
 
-Sem instalar nada, os testes também rodam apontando o `PYTHONPATH`:
+Os testes de integração criam o banco `notasbr_test`, aplicam a migração real e
+truncam as tabelas entre casos. Sem PostgreSQL acessível, eles são **pulados com
+motivo** — nunca aprovados silenciosamente.
 
-```bash
-python -m pytest            # pyproject já define pythonpath = ["src", "."]
-```
+## Documentação
 
-Para criar uma regra nova: escreva a função em `src/notasbr/regras/`, decore com
-`@regra("FAMILIA-999", "descrição", tipos=("nfe",))` e **importe o módulo em
-`regras/__init__.py`** — sem esse import a regra nunca executa.
+- [Escopo e limites](docs/ESCOPO.md)
+- [Documentos fiscais e etiquetas](docs/DOCUMENTOS-FISCAIS.md)
+- [Arquitetura](docs/ARQUITETURA.md)
+- [Decisões (ADRs)](docs/DECISOES.md)
+- [Referências e etiquetas de confiança](docs/REFERENCIAS.md)
+- [Roadmap das fases](docs/ROADMAP.md)
+
+## Etiquetas de confiança
+
+Toda referência a endpoint oficial, schema, código de erro ou regra
+governamental carrega uma das marcas:
+
+- **[CONFIRMADO]** — verificado em arquivo local, com caminho.
+- **[INFERIDO]** — inferência a partir de padrão observado.
+- **[A VALIDAR]** — depende de documentação/homologação que não posso executar aqui.
+
+Trecho **[A VALIDAR]** sempre vive atrás de um adapter substituível, com interface
+explícita. Nenhuma lacuna é preenchida com suposição silenciosa.
 
 ## Licença
 

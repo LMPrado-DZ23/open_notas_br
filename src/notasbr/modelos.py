@@ -7,13 +7,13 @@ versionado por ``notasbr.relatorio/1``.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from .versao import SCHEMA_RELATORIO, VERSAO
 
 
-class Severidade(str, Enum):
+class Severidade(StrEnum):
     """Gravidade de um achado.
 
     - ``ERRO``: o documento está inconsistente segundo a regra. Reprova.

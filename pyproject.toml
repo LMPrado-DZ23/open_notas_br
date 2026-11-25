@@ -4,14 +4,17 @@ build-backend = "hatchling.build"
 
 [project]
 name = "notasbr"
-version = "0.1.0"
-description = "Auditoria offline de documentos fiscais brasileiros: NF-e, NFC-e e CT-e"
+version = "0.2.0"
+description = "Auditoria offline e motor de emissão de documentos fiscais brasileiros (NF-e, NFC-e, CT-e, NFS-e Nacional)"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Leandro Prado" }]
-keywords = ["nfe", "nfce", "cte", "fiscal", "brasil", "xml", "sefaz", "auditoria"]
+keywords = [
+  "nfe", "nfce", "cte", "nfse", "fiscal", "brasil", "xml", "sefaz", "sefin",
+  "danfse", "reforma-tributaria", "ibs", "cbs", "multi-tenant",
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
@@ -20,29 +23,43 @@ classifiers = [
   "Natural Language :: Portuguese (Brazilian)",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Topic :: Office/Business :: Financial :: Accounting",
   "Typing :: Typed",
 ]
+
+# O núcleo (biblioteca `notasbr` de auditoria) continua SEM dependências.
+# Todo o stack de servidor vive no extra `app`.
 dependencies = []
 
 [project.optional-dependencies]
-# API HTTP. O núcleo funciona sem nenhuma destas dependências.
-api = [
-  "fastapi>=0.110",
-  "uvicorn[standard]>=0.27",
+app = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
   "python-multipart>=0.0.9",
+  "sqlalchemy[asyncio]>=2.0.30",
+  "asyncpg>=0.29",
+  "alembic>=1.13",
+  "pydantic-settings>=2.3",
+  "email-validator>=2.1",
+  "redis>=5.0",
+  "arq>=0.26",
+  "cryptography>=42",
+  "httpx>=0.27",
 ]
-# Verificação criptográfica de XMLDSig. Sem isto, a assinatura só é conferida
-# estruturalmente (presença, Reference, DigestValue) — não criptograficamente.
+# Geração local de DANFSe/DANFE (Fase 4).
+pdf = [
+  "weasyprint>=62",
+  "jinja2>=3.1",
+]
+# Verificação e geração de XMLDSig (Fase 2).
 assinatura = [
   "signxml>=3.2",
   "cryptography>=42",
 ]
 dev = [
   "pytest>=8.0",
+  "pytest-asyncio>=0.23",
   "pytest-cov>=5.0",
   "ruff>=0.5",
   "mypy>=1.10",
@@ -58,29 +75,42 @@ Issues = "https://github.com/LMPrado-DZ23/open_notas_br/issues"
 notasbr = "notasbr.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/notasbr"]
+packages = ["src/notasbr", "app"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
-src = ["src", "tests"]
+target-version = "py312"
+src = ["src", "app", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
 ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+"alembic/versions/*" = ["E501", "I001"]
+# B008: `Depends(...)` em valor padrão é a forma canônica de injeção do FastAPI,
+# não um bug. O aviso do Ruff é falso positivo neste contexto.
+"app/api/*" = ["B008"]
+"app/api/**/*" = ["B008"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src", "."]
 addopts = "-q --strict-markers"
-filterwarnings = ["error::DeprecationWarning:notasbr.*"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+  "integracoes: testes que exigem PostgreSQL/Redis reais",
+]
+filterwarnings = ["error::DeprecationWarning:notasbr.*", "error::DeprecationWarning:app.*"]
 
 [tool.mypy]
-python_version = "3.10"
-files = ["src/notasbr"]
+python_version = "3.12"
+files = ["src/notasbr", "app"]
 warn_unused_ignores = true
 no_implicit_optional = true
+plugins = ["pydantic.mypy"]
 
 [tool.coverage.run]
-source = ["notasbr"]
-omit = ["*/api.py"]
+source = ["notasbr", "app"]
+omit = ["*/alembic/*", "*/tests/*"]
