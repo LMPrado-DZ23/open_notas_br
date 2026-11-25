@@ -81,8 +81,11 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/LMPrado-DZ23/open_notas_br"
-Repositorio = "https://github.com/LMPrado-DZ23/open_notas_br"
+Repository = "https://github.com/LMPrado-DZ23/open_notas_br"
+Documentation = "https://github.com/LMPrado-DZ23/open_notas_br#readme"
+Changelog = "https://github.com/LMPrado-DZ23/open_notas_br/blob/main/CHANGELOG.md"
 Issues = "https://github.com/LMPrado-DZ23/open_notas_br/issues"
+Security = "https://github.com/LMPrado-DZ23/open_notas_br/blob/main/SECURITY.md"
 
 [project.scripts]
 notasbr = "notasbr.cli:main"

@@ -7,7 +7,7 @@ documentação oficial, tem que estar marcado como tal.
 ## Antes de abrir PR
 
 ```bash
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[app,dev]"
 ruff check . && ruff format --check .
 pytest
 ```
