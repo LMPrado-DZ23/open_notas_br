@@ -389,3 +389,33 @@ citada. Acrescentar 2028 é uma linha, não uma mudança de lógica.
   informada pelo tenant; o catálogo entra como validação e como seletor na UI.
 - Regras de `gTribRegular`, `gDif` (diferimento) e monofasia: lidas no código,
   não implementadas — dependem do catálogo acima.
+
+---
+
+## 10. Primeira resposta real da SEFIN (403) — evidência de alcance
+
+Durante a verificação da Fase 4, o container estava com `NFSE_ADAPTER=sefin`
+(padrão) e emitiu contra o ambiente de Produção Restrita usando o certificado
+**autoassinado de teste**. Resultado:
+
+```
+HTTP 403 — "403 - Forbidden: Access is denied."
+host: sefin.producaorestrita.nfse.gov.br
+```
+
+O que isso **prova**:
+
+- [CONFIRMADO] O host `sefin.producaorestrita.nfse.gov.br` resolve e responde a
+  partir desta máquina.
+- [CONFIRMADO] A requisição chegou ao serviço (resposta IIS, não timeout).
+- [CONFIRMADO] A classificação de erro funcionou: 403 virou
+  `tipo=autenticacao`, e não "indisponível" nem "rejeição".
+
+O que isso **não** prova: que o contrato de payload está correto. A recusa ocorre
+antes de o corpo ser interpretado — certificado autoassinado não é aceito. O
+contrato só será validado com A1 real.
+
+**Correção aplicada por causa disso**: a resposta veio como página HTML de ~3 KB
+e estava sendo guardada inteira na mensagem do erro. Agora mensagens são
+resumidas a 300 caracteres e HTML vira "resposta HTML do servidor", para não
+poluir banco, log e webhook com ruído que esconde o código real.

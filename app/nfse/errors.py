@@ -116,12 +116,31 @@ class ErroSefin(Exception):
         return dados
 
 
+#: Limite de tamanho de uma mensagem. Resposta de erro de servidor web pode vir
+#: como página HTML inteira: sem limite, isso entra no banco, no log e no webhook.
+LIMITE_MENSAGEM = 300
+
+
+def _resumir(texto: str) -> str:
+    """Colapsa espaços e trunca, marcando o corte.
+
+    Uma página de erro HTML de 3 KB não é "mensagem da SEFIN": é ruído que
+    esconde o código real e polui o registro do documento.
+    """
+    limpo = " ".join(texto.split())
+    if limpo.startswith("<"):
+        return "resposta HTML do servidor (sem mensagem estruturada)"
+    if len(limpo) <= LIMITE_MENSAGEM:
+        return limpo
+    return limpo[:LIMITE_MENSAGEM].rstrip() + "…"
+
+
 def _achatar(valor: Any) -> str | None:
     """Texto de um valor que pode vir como str, número, dict ou lista."""
     if valor is None:
         return None
     if isinstance(valor, str):
-        return valor.strip() or None
+        return _resumir(valor) or None
     if isinstance(valor, (int, float)):
         return str(valor)
     if isinstance(valor, dict):

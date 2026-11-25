@@ -56,6 +56,9 @@ from app.nfse.transport import (
 
 logger = logging.getLogger(__name__)
 
+#: Namespace do XML de NFS-e (mesmo da DPS).
+NS_NFSE_MOCK = "http://www.sped.fazenda.gov.br/nfse"
+
 
 # ---------------------------------------------------------------------------
 # Resultados
@@ -453,11 +456,10 @@ class SefinMockAdapter:
         falhar_timeout: bool = False,
     ) -> None:
         self.ambiente = ambiente
-        self.xml_nfse = xml_nfse or (
-            b'<?xml version="1.0" encoding="UTF-8"?>'
-            b'<NFSe xmlns="http://www.sped.fazenda.gov.br/nfse" versao="1.01">'
-            b'<infNFSe Id="NFSeMOCK"><emit/></infNFSe></NFSe>'
-        )
+        #: Quando None, a NFS-e é derivada da DPS recebida em `emitir` — um dublê
+        #: que devolve XML fixo faz o DANFSe parecer quebrado e esconde erro real
+        #: de extração.
+        self.xml_nfse = xml_nfse
         self.falhar_emissao = falhar_emissao
         self.falhar_timeout = falhar_timeout
         self.chamadas: list[tuple[str, Any]] = []
@@ -486,9 +488,13 @@ class SefinMockAdapter:
 
         id_dps = _extrair_id_dps(dps_assinada)
         chave = _chave_simulada(id_dps)
+        # Se o XML da NFS-e não foi fixado explicitamente, deriva da DPS recebida:
+        # um dublê que devolve XML vazio faz o DANFSe parecer quebrado e esconde
+        # erro real de extração.
+        xml_nfse = self.xml_nfse or _nfse_de_dps(dps_assinada, chave)
         resposta = RespostaEmissao(
             chave_acesso=chave,
-            nfse_xml=self.xml_nfse,
+            nfse_xml=xml_nfse,
             id_dps=id_dps,
             data_processamento="2026-11-25T12:00:00-03:00",
         )
@@ -557,6 +563,93 @@ class SefinMockAdapter:
         ]
         status = "DOCUMENTOS_LOCALIZADOS" if documentos else "NENHUM_DOCUMENTO_LOCALIZADO"
         return LoteDistribuicao(status=status, documentos=documentos)
+
+
+def _nfse_de_dps(dps: bytes, chave: str) -> bytes:
+    """Monta um XML de NFS-e autorizada a partir da DPS recebida.
+
+    Dublê: valores de IBS/CBS são proporcionais fixos (0,10% de IBS e 0,90% de
+    CBS), só para o documento ter conteúdo coerente. **Não** é cálculo fiscal.
+    """
+    from decimal import Decimal
+
+    from notasbr.xml_util import local, parse_seguro, texto
+
+    try:
+        raiz_dps = parse_seguro(dps)
+    except Exception:
+        raiz_dps = None
+
+    def buscar(caminho: list[str]) -> str:
+        if raiz_dps is None:
+            return ""
+        atual = raiz_dps
+        for parte in caminho:
+            proximo = None
+            for filho in atual:
+                if local(filho.tag) == parte:
+                    proximo = filho
+                    break
+            if proximo is None:
+                return ""
+            atual = proximo
+        return texto(atual) or ""
+
+    valor = buscar(["infDPS", "valores", "vServPrest", "vServ"]) or "0.00"
+    descricao = buscar(["infDPS", "serv", "cServ", "xDescServ"])
+    c_trib = buscar(["infDPS", "serv", "cServ", "cTribNac"])
+    c_nbs = buscar(["infDPS", "serv", "cServ", "cNBS"])
+    municipio = buscar(["infDPS", "cLocEmi"])
+    prestador_doc = buscar(["infDPS", "prest", "CNPJ"]) or buscar(["infDPS", "prest", "CPF"])
+    prestador_nome = buscar(["infDPS", "prest", "xNome"])
+    tomador_doc = buscar(["infDPS", "toma", "CNPJ"]) or buscar(["infDPS", "toma", "CPF"])
+    tomador_nome = buscar(["infDPS", "toma", "xNome"])
+    competencia = buscar(["infDPS", "dCompet"])
+    serie = buscar(["infDPS", "serie"])
+    numero_dps = buscar(["infDPS", "nDPS"])
+    dh_emi = buscar(["infDPS", "dhEmi"])
+
+    try:
+        base = Decimal(valor)
+    except Exception:
+        base = Decimal("0")
+    ibs_total = (base * Decimal("0.001")).quantize(Decimal("0.01"))
+    cbs = (base * Decimal("0.009")).quantize(Decimal("0.01"))
+
+    def esc(valor_texto: str) -> str:
+        return valor_texto.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    return (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        f'<NFSe xmlns="{NS_NFSE_MOCK}" versao="1.01">'
+        f'<infNFSe Id="NFS{chave}">'
+        f"<nNFSe>{esc(numero_dps or '1')}</nNFSe>"
+        "<cStat>100</cStat>"
+        "<dhProc>2026-11-25T13:12:43-03:00</dhProc>"
+        "<ambGer>2</ambGer><finNFSe>0</finNFSe>"
+        f"<emit><CNPJ>{esc(prestador_doc)}</CNPJ><xNome>{esc(prestador_nome)}</xNome></emit>"
+        f"<DPS><infDPS><serie>{esc(serie)}</serie><nDPS>{esc(numero_dps)}</nDPS>"
+        f"<dCompet>{esc(competencia)}</dCompet><dhEmi>{esc(dh_emi)}</dhEmi>"
+        f"<toma><CNPJ>{esc(tomador_doc)}</CNPJ><xNome>{esc(tomador_nome)}</xNome></toma>"
+        f"<serv><locPrest><cLocPrestacao>{esc(municipio)}</cLocPrestacao></locPrest>"
+        f"<cServ><cTribNac>{esc(c_trib)}</cTribNac><cNBS>{esc(c_nbs)}</cNBS>"
+        f"<xDescServ>{esc(descricao)}</xDescServ></cServ></serv>"
+        f"<valores><vServPrest><vServ>{esc(valor)}</vServ></vServPrest>"
+        "<trib><tribMun><tribISSQN>1</tribISSQN><tpRetISSQN>1</tpRetISSQN>"
+        "<pAliq>0.0500</pAliq></tribMun></trib></valores>"
+        "</infDPS></DPS>"
+        f"<valores><vLiq>{esc(valor)}</vLiq></valores>"
+        "<IBSCBS><valores><trib><gIBSCBS>"
+        "<CST>000</CST><cClassTrib>000001</cClassTrib>"
+        f"<vBC>{esc(valor)}</vBC><vIBSTot>{ibs_total}</vIBSTot>"
+        f"<gIBSUF><pIBSUF>0.0010</pIBSUF><vIBSUF>{ibs_total}</vIBSUF></gIBSUF>"
+        "<gIBSMun><pIBSMun>0.0000</pIBSMun><vIBSMun>0.00</vIBSMun></gIBSMun>"
+        f"<gCBS><pCBS>0.0090</pCBS><vCBS>{cbs}</vCBS></gCBS>"
+        "</gIBSCBS></trib>"
+        f"<vTotIBSCBS>{(ibs_total + cbs).quantize(Decimal('0.01'))}</vTotIBSCBS>"
+        "</valores></IBSCBS>"
+        "</infNFSe></NFSe>"
+    ).encode()
 
 
 def _extrair_id_dps(dps: bytes) -> str | None:
