@@ -236,3 +236,27 @@ Brizu 1ª chamada  -> HTTP 201, ja_existia=false, chave=<50 dígitos>
 **O que NÃO está pronto** (fases 7 a 9): NF-e/NFC-e, CT-e/MDF-e, NFP-e e as
 etiquetas de volume. Pedir essas representações hoje devolve 422 com a lista das
 que existem.
+
+---
+
+## Critérios de go-live — verificação
+
+| Critério | Evidência | Estado |
+|---|---|---|
+| `docker compose up` sobe tudo | `down` + `up`: api, worker, postgres, redis `healthy` | ✅ |
+| `/health` responde | 200 em readiness | ✅ |
+| Testes passando | **573** | ✅ |
+| Cobertura ≥ 80% nos módulos fiscais e de segurança | total **85,41%**; servico 85%, dps 91%, signer 89%, adapter 80%, tax 90%, certificates 97%, crypto 100%, security 100%, tenants 93/100% | ✅ |
+| Piso de cobertura imposto no CI/local | `[tool.coverage.report] fail_under = 80` | ✅ |
+| Fluxo fim-a-fim mockado demonstrável | `python -m scripts.demo_e2e` → **18/18** | ✅ |
+| README diz o que é produção restrita e o que falta validar | seção "Estado de maturidade" | ✅ |
+| Nenhum segredo no repositório | testes: `.gitignore` cobre `*.pfx`/`*.p12`/`.env`; nenhum certificado no diretório | ✅ |
+| `.env.example` cobre todas as variáveis | teste compara com `Settings.model_fields` (30 campos) | ✅ |
+
+### O que a cobertura NÃO prova
+
+Cobertura mede execução, não correção fiscal. Os contratos com a SEFIN seguem
+`[A VALIDAR]` até um A1 real emitir em homologação. Medição em ambiente Windows:
+o caminho assíncrono da rota HTTP de emissão aparece como não coberto, embora
+execute (comprovado por instrumentação); o módulo está coberto por testes diretos
+do serviço.

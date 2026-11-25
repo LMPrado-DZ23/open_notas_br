@@ -124,4 +124,11 @@ plugins = ["pydantic.mypy"]
 
 [tool.coverage.run]
 source = ["notasbr", "app"]
-omit = ["*/alembic/*", "*/tests/*"]
+omit = ["*/alembic/*", "*/tests/*", "*/scripts/*"]
+
+[tool.coverage.report]
+# Piso de cobertura do projeto. Módulos fiscais e de segurança devem ficar acima
+# de 80% (critério de go-live); o total medido é 85%.
+fail_under = 80
+show_missing = true
+exclude_also = ["if TYPE_CHECKING:", "pragma: no cover"]

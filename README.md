@@ -213,7 +213,46 @@ Configurado em `POST /v1/me/webhook`. Assinatura
 Verificação de referência em `scripts/receptor_webhook.py` — validar o timestamp
 é obrigatório, senão um corpo capturado pode ser reenviado.
 
-## O que está pronto e o que não está
+## Estado de maturidade: o que pode e o que não pode ir a produção
+
+Esta seção existe para não haver dúvida sobre o que está pronto.
+
+### Pronto e verificado
+
+| Área | Evidência |
+|---|---|
+| `docker compose up` sobe API, worker, PostgreSQL e Redis | 4 containers `healthy`, `/health` 200 |
+| **567 testes** passando, cobertura total **85%** | `pytest --cov=app --cov=notasbr` |
+| Módulos fiscais e de segurança ≥ 80% | servico 85%, dps 91%, signer 89%, adapter 80%, tax/rtc 90%, certificates 97%, core/crypto 100%, core/security 100%, tenants 93/100% |
+| Fluxo fim-a-fim mockado | `python -m scripts.demo_e2e` → **18/18 verificações** |
+| Cofre A1 AES-256-GCM, assinatura XMLDSig | testes de cifra/decifra e validação de assinatura |
+| Webhook HMAC-SHA256 com retry/backoff | receptor real recebeu e validou a assinatura |
+| Idempotência em emissão, lote e parceiros | reenvio devolve 200 com a nota existente |
+| Configuração documentada sem divergir do código | teste compara `.env.example` com `Settings` |
+
+### Produção restrita (homologação) — exige A1 real
+
+| Item | O que validar |
+|---|---|
+| Emissão na SEFIN | payload real aceito; hoje só temos a recusa 403 por certificado autoassinado |
+| Contrato da API SEFIN | todos os `[A VALIDAR]` de `docs/REFERENCIAS.md` §7 |
+| Cancelamento e eventos | fluxo completo com nota real |
+| DANFSe | leiaute conferido contra o manual vigente (NT 008 v1.02 vs v1.01 implementada) |
+
+### Não pronto
+
+| Item | Situação |
+|---|---|
+| NF-e / NFC-e | fase 7 |
+| CT-e / MDF-e (DACTE/DAMDFE) | fase 8 |
+| NFP-e e etiquetas de volume por volume | fase 9 |
+| MAN/DNA, DAS e guia municipal reais | provedores são determinísticos, sem integração oficial |
+| Catálogo `cClassTrib` como validação de entrada | importado; ainda não bloqueia valor inválido na emissão |
+
+Pedir representação de documento não implementado devolve **422 com a lista do que
+existe** — nunca PDF incompleto.
+
+## Detalhes por fase
 
 **Pronto e verificado nesta máquina**
 
