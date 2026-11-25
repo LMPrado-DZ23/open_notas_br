@@ -194,16 +194,19 @@ class TestParser:
             parse_danfse(b"<NFSe><infNFSe>")
 
 
+@pytest.fixture(scope="module")
+def pdf() -> bytes:
+    """DANFSe gerado uma vez e reaproveitado pelos casos de PDF."""
+    return gerar_danfse(parse_danfse(NFSE_XML))
+
+
+@pytest.fixture(scope="module")
+def texto(pdf: bytes) -> str:
+    leitor = PdfReader(BytesIO(pdf))
+    return "\n".join(pagina.extract_text() or "" for pagina in leitor.pages)
+
+
 class TestPDF:
-    @pytest.fixture(scope="class")
-    def pdf(self) -> bytes:
-        return gerar_danfse(parse_danfse(NFSE_XML))
-
-    @pytest.fixture(scope="class")
-    def texto(self, pdf: bytes) -> str:
-        leitor = PdfReader(BytesIO(pdf))
-        return "\n".join(pagina.extract_text() or "" for pagina in leitor.pages)
-
     def test_e_pdf_valido(self, pdf: bytes) -> None:
         assert pdf.startswith(b"%PDF")
         assert len(pdf) > 3000

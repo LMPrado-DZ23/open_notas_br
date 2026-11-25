@@ -1,4 +1,32 @@
-"""Adapter de DANFE para NF-e, com interface unificada junto ao DANFSe.
+"""Representações impressas de documentos fiscais.
 
-Fase 4 entrega: interface comum de geração de representação impressa.
+Registra as representações disponíveis no import, para que a interface
+`RepresentacaoImpressa` tenha conteúdo sem passo manual de bootstrap.
 """
+
+from app.danfe.base import (
+    ErroRepresentacao,
+    RepresentacaoImpressa,
+    RepresentacaoNaoImplementada,
+    TipoRepresentacao,
+    disponiveis,
+    gerar,
+    obter,
+    registrar,
+)
+from app.danfe.nfe import DanfeSimplificado, Danfse, registrar_todas
+
+registrar_todas()
+
+__all__ = [
+    "DanfeSimplificado",
+    "Danfse",
+    "ErroRepresentacao",
+    "RepresentacaoImpressa",
+    "RepresentacaoNaoImplementada",
+    "TipoRepresentacao",
+    "disponiveis",
+    "gerar",
+    "obter",
+    "registrar",
+]

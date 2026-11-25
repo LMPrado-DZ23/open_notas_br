@@ -16,7 +16,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import tenant_atual
+from app.assessment.service import competencia_de
 from app.core.config import Settings, get_settings
+from app.danfe import ErroRepresentacao
+from app.danfe import gerar as gerar_representacao
+from app.danfe.nfe import registrar_todas as registrar_representacoes
 from app.danfse.service import ErroDanfse, gerar_pdf_do_documento
 from app.db.models.enums import StatusFatura, TipoDocumento
 from app.db.models.invoice import FiscalDocument, Invoice
@@ -37,6 +41,7 @@ HTTP_422 = 422
 HTTP_502 = 502
 
 router = APIRouter(tags=["emissao"])
+registrar_representacoes()
 
 
 def _documento_out(documento: FiscalDocument | None) -> DocumentoOut | None:
@@ -125,7 +130,9 @@ async def emitir(
         ambiente=dados.ambiente,
         valor_servico=dados.valor,
         descricao_servico=dados.descricao,
-        competencia=dados.competencia,
+        # Sem competência explícita, usa o mês corrente: apuração consolida
+        # por competência e fatura sem essa informação ficaria fora da apuração.
+        competencia=dados.competencia or competencia_de(),
         tomador_documento=dados.tomador_documento,
         tomador_nome=dados.tomador_nome,
         tomador_email=str(dados.tomador_email) if dados.tomador_email else None,
@@ -246,6 +253,60 @@ async def baixar_danfse(
         raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
 
     nome = f"danfse-{documento.chave or invoice.id}.pdf"
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{nome}"'},
+    )
+
+
+@router.get(
+    "/emissoes/{invoice_id}/representacao",
+    summary="Representação impressa do documento (DANFE simplificado, DANFSe)",
+    response_class=Response,
+    responses={
+        200: {"content": {"application/pdf": {}}, "description": "PDF da representação"},
+        404: {"description": "Emissão não encontrada"},
+        422: {"description": "Representação não existe para este documento"},
+    },
+)
+async def baixar_representacao(
+    invoice_id: uuid.UUID,
+    formato: str = Query(
+        default="danfe_simplificado",
+        description="danfe_simplificado (NF-e) ou danfse (NFS-e)",
+    ),
+    tenant: Tenant = Depends(tenant_atual),
+    db: AsyncSession = Depends(get_session),
+) -> Response:
+    """Escolhe a representação pelo tipo do documento.
+
+    Pedir representação inexistente devolve 422 com a lista do que existe — nunca
+    um PDF incompleto, que pareceria válido.
+    """
+    resultado = await db.execute(
+        select(Invoice).where(Invoice.tenant_id == tenant.id, Invoice.id == invoice_id)
+    )
+    invoice = resultado.scalar_one_or_none()
+    if invoice is None:
+        raise HTTPException(status_code=404, detail="emissão não encontrada")
+
+    documento = await _documento_da_fatura(db, invoice)
+    if documento is None or not documento.xml_autorizado:
+        raise HTTPException(
+            status_code=HTTP_422, detail="emissão sem XML autorizado para representar"
+        )
+
+    try:
+        pdf = gerar_representacao(
+            documento.tipo_documento.value,
+            documento.xml_autorizado.encode("utf-8"),
+            formato=formato,
+        )
+    except ErroRepresentacao as exc:
+        raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
+
+    nome = f"{formato}-{documento.chave or invoice.id}.pdf"
     return Response(
         content=pdf,
         media_type="application/pdf",

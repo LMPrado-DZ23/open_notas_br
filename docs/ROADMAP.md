@@ -42,7 +42,7 @@ pytest             ->  212 passed
 - Assinatura XMLDSig válida contra fixture de DPS.
 - Certificado descriptografado apenas em memória.
 
-**Entregue**: `POST /v1/me/certificados` (upload multipart, selagem AES-256-GCM,
+Fase 2 entregue: `POST /v1/me/certificados` (upload multipart, selagem AES-256-GCM,
 metadados, 409 em duplicata), `GET`/`DELETE`/`ativar`/`saude`; assinatura XMLDSig
 RSA-SHA256 com C14N exclusiva e `Signature` sem prefixo; DPS 1.01 montada com
 validação de forma; emissão fim-a-fim idempotente.
@@ -76,7 +76,7 @@ com base na fórmula oficial, alíquotas versionadas por ano e endpoint
 real; CNPJ alfanumérico devolve 404 com explicação (as fontes públicas ainda não
 cobrem o formato).
 
-## Fase 4 — DANFSe local + DANFE adapter + apuração/guias
+## Fase 4 — DANFSe local + DANFE adapter + apuração/guias ✅ concluída
 
 **DoD**
 
@@ -85,9 +85,17 @@ cobrem o formato).
 - Adapter de DANFE com interface unificada.
 - Apuração por tenant e competência, com provedores MAN/DNA, DAS e guia municipal.
 
-**Divergência a resolver antes de começar:** o briefing cita NT 008 v1.02
-(14/07/2026); a referência local implementa v1.01 (30/06/2026). A versão entra como
-parâmetro do gerador, para que a troca seja de template e não de código.
+**Entregue**: DANFSe v2 local em PDF (ReportLab) com seção IBS/CBS e teste de
+fidelidade XML → PDF; catálogo `cClassTrib` versionado extraído da calculadora
+oficial (168 registros, 155 códigos); adapter de representação impressa com
+registro por (documento, formato) e **DANFE Simplificado/Etiqueta** de NF-e;
+apuração por tenant/competência e guias com provedores MAN/DNA, DAS e municipal.
+
+**Divergência declarada:** o briefing cita NT 008 v1.02 (14/07/2026); a referência
+local implementa v1.01 (30/06/2026). A versão é declarada no rodapé do PDF.
+
+**Pendente real desta fase**: DANFE A4 de NF-e, cupom de NFC-e, DACTE e DAMDFE —
+reservados às fases 7 e 8, com erro explícito se pedidos hoje.
 
 ## Fase 5 — Worker de fila, lotes e webhooks
 
