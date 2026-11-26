@@ -32,7 +32,14 @@ SOAP_VERSAO = "1.2"
 VERSAO = "4.00"
 
 
-def montar_evento(*, chave: str, tipo_evento: str, n_seq: int = 1, ambiente: str = "2") -> bytes:
+def montar_evento(
+    *,
+    chave: str,
+    tipo_evento: str,
+    cnpj: str,
+    n_seq: int = 1,
+    ambiente: str = "2",
+) -> bytes:
     """Monta um `eventoCTe` mínimo de cancelamento.
 
     `tipo_evento` é o código do evento no leiaute (110111 = cancelamento). Não é inventado
@@ -44,13 +51,17 @@ def montar_evento(*, chave: str, tipo_evento: str, n_seq: int = 1, ambiente: str
         raise ValueError(f"tipo de evento precisa ter 6 dígitos: {tipo_evento!r}")
     if n_seq < 1:
         raise ValueError("sequência do evento começa em 1")
+    if len(cnpj) != 14 or not cnpj.isdigit():
+        # O CNPJ do emitente é do tenant, nunca um literal de biblioteca: hardcodar um CNPJ
+        # aqui faria todo evento sair em nome de outra empresa.
+        raise ValueError(f"CNPJ precisa ter 14 dígitos: {cnpj!r}")
 
     raiz = etree.Element(f"{{{NS_CTE}}}eventoCTe", nsmap={None: NS_CTE}, versao=VERSAO)
     inf = etree.SubElement(raiz, f"{{{NS_CTE}}}infEvento")
     inf.set("Id", f"ID{tipo_evento}{chave}{n_seq:02d}")
     etree.SubElement(inf, f"{{{NS_CTE}}}cOrgao").text = chave[:2]
     etree.SubElement(inf, f"{{{NS_CTE}}}tpAmb").text = ambiente
-    etree.SubElement(inf, f"{{{NS_CTE}}}CNPJ").text = "64339333000122"
+    etree.SubElement(inf, f"{{{NS_CTE}}}CNPJ").text = cnpj
     etree.SubElement(inf, f"{{{NS_CTE}}}chCTe").text = chave
     etree.SubElement(inf, f"{{{NS_CTE}}}dhEvento").text = "2026-11-26T18:00:00-03:00"
     etree.SubElement(inf, f"{{{NS_CTE}}}tpEvento").text = tipo_evento
