@@ -649,3 +649,84 @@ têm apenas representação impressa.
 - `estados()` expõe o mapa para métrica/health.
 - **Ainda ausente**: injetar o registro no `emissao_service` e no worker, e ligar a
   métrica `sefaz_circuit_state`.
+
+## 15. Decisão final por lacuna (formato da missão)
+
+Cada item com estado, prova, teste, risco e **decisão registrada**.
+
+### 1. Drivers NFS-e multi-prefeitura — PARCIAL
+
+- **Prova**: `app/nfse/adapter.py` implementa só `SefinNacionalClient`/`SefinMockAdapter`.
+  Não existe `app/nfse/drivers/`.
+- **Testes**: fluxo nacional coberto; nenhum teste de driver municipal (não há driver).
+- **Risco**: cadastrar município com provedor ABRASF/GINFES e o roteamento cair no
+  nacional geraria rejeição sem causa clara.
+- **Decisão**: **manter no roadmap.** Falta URL e leiaute oficial por provedor; implementar
+  por suposição violaria P2 e produziria driver que não funciona no município real.
+
+### 2. Modelos + serviço + seed + rotas — IMPLEMENTADO E TESTADO
+
+- **Prova**: `app/db/models/{municipio,credencial_municipal,webservice_sefaz}.py`,
+  `app/nfse/credenciais.py`, `scripts/seed_municipios.py`,
+  `app/api/v1/{municipios,credenciais}.py`, migrations 0004–0006.
+- **Testes**: 10 (municípios) + 10 (credenciais serviço) + 10 (rotas credencial) = 30.
+  Seed verificado com 5571 municípios reais, duas execuções idempotentes.
+- **Risco residual**: `testar_conectividade` no cadastro não existe — depende de URL real
+  por município.
+- **Decisão**: **implementado**; a conectividade fica registrada como pendência do item 1.
+
+### 3. Transporte SOAP DF-e — AUSENTE
+
+- **Prova**: 0 ocorrências de `soap`/`SOAPAction` em `app/`. Existem geração, assinatura e
+  envelope (`app/nfe/lote.py`) validados contra o PL_010h.
+- **Testes**: nenhum de transmissão (não há o que transmitir).
+- **Risco**: apresentar NF-e como "emitida" sem transmissão seria a mentira mais grave
+  possível neste projeto.
+- **Decisão**: **bloqueado externamente** — credenciamento NF-e em Goiás. Sem isso não há
+  como verificar sequer o `NFeStatusServico`.
+
+### 4. `CalculoAudit` — IMPLEMENTADO E TESTADO
+
+- **Prova**: `app/tax/auditoria.py`, `app/db/models/tax.py`, migration 0003,
+  `app/tax/auditoria_service.py`, `app/api/v1/auditoria.py`,
+  `app/tax/integracao_emissao.py`, ligado em `POST /v1/emissoes`.
+- **Testes**: 18 (determinismo) + 11 (persistência) + 11 (integração) + 5 (rotas) = 45.
+  Migration executada nos dois sentidos. Gravação na emissão provada por `SELECT`.
+- **Decisão**: **implementado**. Nada pendente.
+
+### 5. RFC 7807 / circuit / DLQ / rate limit — PARCIAL
+
+- **Prova**: `app/core/errors.py` + handler em `main.py` (RFC 7807 ativo);
+  `app/core/ratelimit.py` + `middleware_ratelimit.py`; `app/core/circuit.py`;
+  `app/nfse/resiliencia.py` + `registro_padrao`; `app/worker/dlq.py` + migration 0007;
+  `GET /v1/health/circuitos`.
+- **Testes**: 26 (errors) + 12 (ratelimit) + 8 (middleware) + 10 (circuit) + 14
+  (resiliencia) + 11 (dlq) + 5 (observabilidade) = 86.
+- **Risco**: as peças existem e são testadas isoladamente, mas **o circuito não está
+  injetado no `emissao_service`** — hoje ele só abre se alguém chamar `executar`.
+- **Decisão**: **injetar é o próximo passo técnico**; o replay autenticado fica
+  **bloqueado por decisão do proprietário** (não existe admin auth no projeto).
+
+### 6. Hash SHA-256 de XSD — IMPLEMENTADO E TESTADO
+
+- **Prova**: `app/core/schemas.py`, `data/xsd_manifest.json` (21 schemas),
+  `scripts/gerar_manifesto_xsd.py`. 13 testes, incluindo o que confere o manifesto real.
+- **Decisão**: **implementado** em modo `WARN`, com `STRICT` disponível. Divergência de
+  procedência oficial do PL continua registrada em §16.3.
+
+### 7. `Idempotency-Key` por header — IMPLEMENTADO E TESTADO
+
+- **Prova**: `app/api/v1/emissoes.py` (`Header(alias="Idempotency-Key")`),
+  `app/nfse/schemas.py` (campo opcional). 6 testes.
+- **Testes provam**: body-only (compat), header-only, reenvio sem duplicar, header vence
+  o body, ausência → 422, chave curta → 422.
+- **Decisão**: **implementado**. Nada pendente.
+
+### Placar
+
+| Estado | Itens |
+|---|---|
+| Implementado e testado | 2, 4, 6, 7 |
+| Parcial | 1, 5 |
+| Ausente | 3 |
+| Bloqueado externamente | 3 (credenciamento), parte do 5 (admin auth) |
