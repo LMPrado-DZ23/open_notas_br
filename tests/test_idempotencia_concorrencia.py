@@ -31,9 +31,7 @@ CHAVE = "concorrente-0001-abcd"
 
 @pytest.fixture
 async def pronto(cliente, app_teste):
-    criado = await cliente.post(
-        "/v1/tenants", json={"slug": "conc-1", "nome": "Concorrencia LTDA"}
-    )
+    criado = await cliente.post("/v1/tenants", json={"slug": "conc-1", "nome": "Concorrencia LTDA"})
     tenant = criado.json()
     cabecalho = {"X-API-Key": tenant["api_key"]}
 
@@ -66,9 +64,7 @@ async def pronto(cliente, app_teste):
 class TestRepeticaoSequencial:
     """O caminho que o cliente faz quando repete: 201 e depois 200, uma fatura só."""
 
-    async def test_envio_repetido_nao_cria_segunda_fatura(
-        self, cliente, pronto, sessao_db
-    ) -> None:
+    async def test_envio_repetido_nao_cria_segunda_fatura(self, cliente, pronto, sessao_db) -> None:
         cabecalho = {**pronto["cabecalho"], "Idempotency-Key": CHAVE}
 
         primeira = await cliente.post("/v1/emissoes", json=CORPO, headers=cabecalho)
@@ -76,14 +72,14 @@ class TestRepeticaoSequencial:
 
         assert primeira.status_code == 201, primeira.text
         assert segunda.status_code == 200, segunda.text
-        assert primeira.json()["invoice_id"] == segunda.json()["invoice_id"], "cliente recebeu dois documentos"
+        assert primeira.json()["invoice_id"] == segunda.json()["invoice_id"], (
+            "cliente recebeu dois documentos"
+        )
         assert segunda.json().get("ja_existia") is True
 
         total = (
             await sessao_db.execute(
-                select(func.count())
-                .select_from(Invoice)
-                .where(Invoice.idempotency_key == CHAVE)
+                select(func.count()).select_from(Invoice).where(Invoice.idempotency_key == CHAVE)
             )
         ).scalar_one()
         assert total == 1
@@ -92,10 +88,14 @@ class TestRepeticaoSequencial:
         self, cliente, pronto, sessao_db
     ) -> None:
         a = await cliente.post(
-            "/v1/emissoes", json=CORPO, headers={**pronto["cabecalho"], "Idempotency-Key": "chave-a-0001"}
+            "/v1/emissoes",
+            json=CORPO,
+            headers={**pronto["cabecalho"], "Idempotency-Key": "chave-a-0001"},
         )
         b = await cliente.post(
-            "/v1/emissoes", json=CORPO, headers={**pronto["cabecalho"], "Idempotency-Key": "chave-b-0002"}
+            "/v1/emissoes",
+            json=CORPO,
+            headers={**pronto["cabecalho"], "Idempotency-Key": "chave-b-0002"},
         )
         assert a.status_code == 201, a.text
         assert b.status_code == 201, b.text
