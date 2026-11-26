@@ -410,8 +410,14 @@ têm apenas representação impressa.
 - **Bug pego pelos testes de persistência**: `TabelaConsultada.para_dict()` devolvia
   `date` cru, que JSONB não serializa. O laudo em memória funcionava; gravar quebrava.
   Corrigido com ISO na origem.
-- **Pendente**: endpoint admin `GET /v1/tax/audit/{id}` e a ligação ao fluxo de
-  emissão.
+- ✅ **endpoint implementado**: `app/api/v1/auditoria.py` com
+  `GET /v1/tax/audit/{id}`, `GET /v1/tax/audit?trace_id=` e
+  `GET /v1/tax/audit/{id}/integridade`. Rotas passaram de 46 para **49**; OpenAPI
+  regenerado (o teste de sincronia confere).
+- Não existe rota de escrita, de propósito: laudo se grava no fluxo de emissão, nunca
+  por API. Aceitar laudo do cliente transformaria a prova em declaração.
+- **Pendente**: gravar o laudo automaticamente no fluxo de emissão (`POST /v1/emissoes`).
+  Hoje a gravação é feita pelo serviço, mas a rota de emissão ainda não o chama.
 - **VERIFICADO no Postgres** (containers `open-notas-br-postgres-1`, porta 55434):
 
   ```

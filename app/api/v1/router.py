@@ -6,6 +6,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     apuracoes,
+    auditoria,
     certificados,
     cnpj,
     consulta,
@@ -28,6 +29,7 @@ router.include_router(certificados.router)
 router.include_router(emissoes.router)
 router.include_router(cnpj.router)
 router.include_router(tax.router)
+router.include_router(auditoria.router)
 router.include_router(apuracoes.router)
 router.include_router(lotes.router)
 router.include_router(integracoes.router)

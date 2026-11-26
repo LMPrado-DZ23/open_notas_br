@@ -2169,6 +2169,199 @@
         }
       }
     },
+    "/v1/tax/audit/{registro_id}": {
+      "get": {
+        "tags": [
+          "auditoria"
+        ],
+        "summary": "Obter Laudo",
+        "description": "Devolve o laudo completo. Laudo de outro tenant responde 404, não 403.",
+        "operationId": "obter_laudo_v1_tax_audit__registro_id__get",
+        "parameters": [
+          {
+            "name": "registro_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Registro Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Obter Laudo V1 Tax Audit  Registro Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tax/audit": {
+      "get": {
+        "tags": [
+          "auditoria"
+        ],
+        "summary": "Listar Por Trace",
+        "description": "Todos os cálculos de um `trace_id`. Lista, porque o mesmo trace pode cobrir\nmais de um cálculo (produto e serviço na mesma operação).",
+        "operationId": "listar_por_trace_v1_tax_audit_get",
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64,
+              "title": "Trace Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Listar Por Trace V1 Tax Audit Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/tax/audit/{registro_id}/integridade": {
+      "get": {
+        "tags": [
+          "auditoria"
+        ],
+        "summary": "Verificar Laudo",
+        "description": "Recalcula os hashes do que está gravado.\n\n`integra` falso significa que o conteúdo foi alterado direto no banco: o laudo\nexiste, mas não corresponde mais ao cálculo original.",
+        "operationId": "verificar_laudo_v1_tax_audit__registro_id__integridade_get",
+        "parameters": [
+          {
+            "name": "registro_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Registro Id"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Verificar Laudo V1 Tax Audit  Registro Id  Integridade Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/apuracoes": {
       "post": {
         "tags": [
