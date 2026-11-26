@@ -16,7 +16,7 @@ from decimal import Decimal
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
@@ -100,6 +100,22 @@ class Settings(BaseSettings):
     webhook_max_attempts: int = 5
 
     # -- derivados ----------------------------------------------------
+    @model_validator(mode="after")
+    def _mock_proibido_em_producao(self) -> Settings:
+        """Recusa subir em produção com dublê ligado.
+
+        Regra 11 da missão e P4 do v10.0: mock não pode estar habilitado em
+        produção. Um dublê ativo em produção não "falha" — ele responde sucesso com
+        dados inventados, que é o pior modo de falha possível num sistema fiscal:
+        nota com aparência de autorizada e nenhum documento real.
+        """
+        if self.environment == "production" and self.nfse_adapter == "mock":
+            raise ValueError(
+                "NFSE_ADAPTER=mock não é permitido com ENVIRONMENT=production. "
+                "Use 'sefin' ou remova a variável."
+            )
+        return self
+
     @field_validator("log_level")
     @classmethod
     def _normalizar_nivel(cls, valor: str) -> str:

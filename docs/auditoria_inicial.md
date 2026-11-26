@@ -354,3 +354,16 @@ têm apenas representação impressa.
 - **Bug de portabilidade pego pelo teste**: `str(relative_to)` produz `\\` no
   Windows e `/` no Linux; o manifesto gerado aqui não casaria no CI. Corrigido com
   `as_posix()`.
+
+### 13. Etapa 2 — estabilização: mock em produção bloqueado
+
+- `app/core/config.py`: `model_validator` recusa `ENVIRONMENT=production` com
+  `NFSE_ADAPTER=mock`, com mensagem que diz o que usar.
+- Motivo (regra 11 / P4): dublê em produção não falha — responde **sucesso com dado
+  inventado**, o pior modo de falha num sistema fiscal. Nota com aparência de
+  autorizada e nenhum documento real.
+- 5 testes em `tests/test_mock_em_producao.py`: bloqueia em produção, permite em
+  `test`, `development` e `staging` (onde o dublê é legítimo), e aceita produção com
+  `sefin`.
+- Verificado: a suíte inteira (954 testes) usa mock em ambiente `test` e continua
+  passando.
