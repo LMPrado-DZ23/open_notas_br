@@ -388,3 +388,25 @@ iterar (arquivo, prefixo, modelo, mapa de serviços):
 **CT-e e MDF-e continuam sem geração de XML e sem transmissão.** O que existe agora é o
 endpoint catalogado com fonte. Geração, assinatura e ciclo de autorização desses documentos
 não estão implementados — só NF-e e NFC-e têm geração (e só até o envelope).
+
+---
+
+## XSD de CT-e: tentativa registrada (2026-11-26)
+
+Próximo bloco planejado é o gerador de XML de CT-e/MDF-e. Antes de escrever o gerador é
+preciso o schema oficial. Duas tentativas, com resultado medido:
+
+| URL | Resultado |
+|---|---|
+| `https://www.cte.fazenda.gov.br/portal/exibirArquivo.aspx?conteudo=2PvF6G0uxyY=` | HTTP 200, `Content-Type: text/html`, 29.812 bytes — **é a página do portal, não o ZIP** |
+| `https://dfe-portal.svrs.rs.gov.br/Cte/Documentos` | HTTP **404** |
+
+**Conclusão**: o link com `exibirArquivo.aspx` responde 200 mas entrega HTML; não serve como
+fonte de schema. Obter o pacote exige navegar a página e localizar o anexo real.
+
+**Não escrevi gerador de CT-e sem o XSD**, e não usei schema de terceiro sem procedência: a
+regra do projeto é que schema tem versão e origem registradas (item 6). O gerador de NF-e usa
+`PL_010h`, e o de CT-e precisa do equivalente.
+
+Próxima tentativa deve inspecionar o HTML da página (links de anexo) em vez de assumir que a
+URL é download direto.
