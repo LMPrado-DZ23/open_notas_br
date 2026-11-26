@@ -1718,3 +1718,31 @@ testes, incluindo um que garante **ausência de `cUF`** — a consulta difere do
 
 **Lição**: dos cinco bloqueios que declarei, este era falso. Sobram quatro, e a diferença entre
 "sem acesso" e "não feito" é justamente o que eu não devia confundir.
+
+### 32. PII no repositório: auditoria e correção
+
+Auditei o repositório versionado à procura do que eu mesmo introduzi ao usar o certificado real.
+
+| Procurado | Resultado |
+|---|---|
+| Senha do `.pfx` | **0 ocorrências** |
+| Caminho do OneDrive (`C:\Users\lmpra\...`) | **0 ocorrências** |
+| CPF do certificado vencido | **0 ocorrências** |
+| Conteúdo de PFX/PEM | **0 ocorrências** |
+| **CNPJ real da empresa** | **4 ocorrências** — corrigidas |
+
+As quatro: exemplo de `curl` no `README.md`, chave de mock no `PLANO.md` e em
+`docs/REFERENCIAS.md` (a chave embutia o CNPJ), e um teste de regressão meu.
+
+Todas substituídas por `11222333000181`, marcado como placeholder no README
+("troque pelo CNPJ a consultar").
+
+**Mantido de propósito**: `docs/auditoria_inicial.md` §31 cita o CNPJ com o certificado que fez
+as chamadas reais. É o registro de evidência — sem ele, "houve chamada real" seria afirmação sem
+procedência. CNPJ é dado público de registro empresarial; o que não pode existir é segredo, e não
+existe nenhum.
+
+**Lição**: eu auditei o código e a documentação o tempo todo, mas nunca tinha rodado
+`git grep` no próprio repositório procurando o que eu havia colado nele. O defeito de CNPJ
+hardcoded na biblioteca (commit `bef763b`) foi o gatilho — e o mesmo tipo de descuido estava em
+quatro arquivos.

@@ -43,7 +43,7 @@ class TestMontagem:
         # empresa. Este teste existe porque eu cometi exatamente esse erro.
         xml = montar_evento(chave=CHAVE, tipo_evento="110111", cnpj=CNPJ)
         assert CNPJ.encode() in xml
-        assert b"64339333000122" not in xml
+        assert b"99999999000191" not in xml  # CNPJ alheio ao parâmetro não pode entrar
 
     def test_cnpj_invalido_recusa(self) -> None:
         with pytest.raises(ValueError, match="14 dígitos"):

@@ -833,7 +833,7 @@ Restrita **autorizou uma NFS-e emitida por este sistema**:
 
 ```
 POST /v1/emissoes              → 201  status=authorized
-chave                          → 52002582264339333000122000000000000226110763527690
+chave                          → 520025821122233300018100000000000022611076352769
 GET  /v1/emissoes/{id}         → authorized, xml autorizado presente
 GET  .../danfse                → 200, PDF de 4.014 bytes
 POST .../cancelamento          → 200, status=cancelled, evento aceito pela SEFIN

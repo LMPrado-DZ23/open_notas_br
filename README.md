@@ -40,7 +40,7 @@ curl "$API/v1/cep/01001-000" -H "X-API-Key: $CHAVE"
 #  "municipio":"São Paulo","uf":"SP","codigo_ibge":"3550308","fonte":"viacep"}
 
 # CNPJ -> razão social, município e IBGE
-curl "$API/v1/cnpj/64339333000122" -H "X-API-Key: $CHAVE"
+curl "$API/v1/cnpj/11222333000181" -H "X-API-Key: $CHAVE"  # troque pelo CNPJ a consultar
 # {"razao_social":"...","municipio":"AGUAS LINDAS DE GOIAS","codigo_municipio_ibge":"5200258"}
 ```
 

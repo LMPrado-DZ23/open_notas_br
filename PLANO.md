@@ -59,7 +59,7 @@ reavaliar os campos novos.
 
 ## Evidências da fase anterior (fechadas)
 
-- `POST /v1/emissoes` → `201 authorized`, chave `52002582264339333000122000000000000226110763527690`
+- `POST /v1/emissoes` → `201 authorized`, chave `520025821122233300018100000000000022611076352769`
 - `POST .../cancelamento` → `200 cancelled`
 - `pytest` → 853 passed · CI verde · 46 rotas
 
