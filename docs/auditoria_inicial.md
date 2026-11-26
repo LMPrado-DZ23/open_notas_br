@@ -1207,7 +1207,7 @@ e o banco foi alinhado ao índice único.
 **Consequência**: `alembic upgrade head` a partir do zero agora reproduz os modelos. O CI não
 roda `alembic check`; por isso o defeito sobreviveu até aqui — ver §25.
 
-### 25. Geradores de CT-e e MDF-e existem **na biblioteca**, não na API
+### 25. Geradores de CT-e e MDF-e — **CONCLUÍDO: biblioteca + API** (5/5 passos)
 
 **Correção de classificação anterior.** Eu vinha marcando "geração ✅" para CT-e e MDF-e. A
 medição abaixo mostra que o critério de conclusão da missão não está satisfeito para eles.
@@ -1246,3 +1246,28 @@ CT-e e MDF-e ficam como **parcial**, não concluídos.
 **Por que não fiz agora**: contexto de sessão insuficiente para entregar rota + schema +
 serviço + testes + OpenAPI com verificação. Entregar rota sem teste de isolamento de tenant
 violaria o item 6 das regras principais.
+
+#### Fechamento da lacuna §25
+
+Os cinco passos foram executados e verificados:
+
+| # | Passo | Evidência |
+|---|---|---|
+| 1 | Schemas Pydantic de entrada | `app/cte/schemas.py`, `app/mdfe/schemas.py`, 16 testes |
+| 2 | Rotas `POST /v1/transportes/cte` e `/mdfe` | `app/api/v1/transportes.py` |
+| 3 | Serviço carregando A1 do cofre | `certificados.ativo` + `abrir_em_memoria` |
+| 4 | Caminho feliz e isolamento entre tenants | `tests/test_transporte_isolamento.py`, 4 testes |
+| 5 | OpenAPI congelado sincronizado | `openapi.json` regenerado, 559 linhas |
+
+**O que os testes de isolamento provam**: tenant A com certificado ativo recebe 200 com
+`<Signature>`; tenant B **sem** certificado recebe 422 e a resposta **não contém** `Signature`.
+O certificado de A não assina em nome de B.
+
+**O que continua ausente**: transmissão. As rotas devolvem XML assinado e validado contra o
+schema; nenhuma chama autorizador. O `summary` de cada rota diz "não transmite" e há teste que
+quebra se essa frase for removida.
+
+**Armadilha encontrada no caminho**: override de `get_settings` com um `Settings` novo faz o
+upload selar o certificado com uma chave e a assinatura abrir com outra. O erro aparece como
+`ErroDeCriptografia` — "chave errada, dados corrompidos" — que é enganoso: a chave está certa,
+o que muda é qual instância de configuração cada lado enxerga. Registrado na fixture.
