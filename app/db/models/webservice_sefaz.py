@@ -29,11 +29,9 @@ class ServicoSefaz(enum.StrEnum):
     NFE_INUTILIZACAO = "NFeInutilizacao"
     CTE_RECEPCAO_SINC = "CTeRecepcaoSinc"
     CTE_RECEPCAO_EVENTO = "CTeRecepcaoEvento"
-    CTE_RET_RECEPCAO = "CTeRetRecepcao"
     CTE_STATUS = "CTeStatusServico"
     MDFE_RECEPCAO_SINC = "MDFeRecepcaoSinc"
     MDFE_RECEPCAO_EVENTO = "MDFeRecepcaoEvento"
-    MDFE_RET_RECEPCAO = "MDFeRetRecepcao"
     MDFE_STATUS = "MDFeStatusServico"
 
 

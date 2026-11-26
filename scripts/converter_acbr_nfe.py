@@ -47,7 +47,6 @@ MAPA_CTE = {
     "recepcaoevento_4.00": "CTeRecepcaoEvento",
     "ctestatusservico_3.00": "CTeStatusServico",
     "ctestatusservico_4.00": "CTeStatusServico",
-    "cteretrecepcao_3.00": "CTeRetRecepcao",
 }
 MAPA_MDFE = {
     "mdferecepcaosinc_3.00": "MDFeRecepcaoSinc",
@@ -57,7 +56,6 @@ MAPA_MDFE = {
     "recepcaoevento_3.00": "MDFeRecepcaoEvento",
     "mdfestatusservico_1.00": "MDFeStatusServico",
     "mdfestatusservico_3.00": "MDFeStatusServico",
-    "mdferetrecepcao_1.00": "MDFeRetRecepcao",
 }
 
 MAPA = {

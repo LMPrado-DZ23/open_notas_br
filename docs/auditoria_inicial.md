@@ -1813,3 +1813,38 @@ conhecidos**, porque sem controle um 404 não prova nada.
 **Consulta de protocolo**: em CT-e 4.00 o `CTeConsultaV4` já devolve o protocolo completo, então não
 há serviço separado — o `consulta_situacao` implementado (§31) cobre o caso. O
 `CTE_CONSULTA_PROTOCOLO` que eu havia adicionado era conceito de 3.00; foi revertido.
+
+### 35. Catálogo auditado por sonda: 108 endpoints mortos removidos
+
+Depois do §33/§34, sondei **todos** os endpoints de CT-e e MDF-e do catálogo para ES/homologação:
+
+| Serviço | Sonda |
+|---|---|
+| `CTE_RECEPCAO_EVENTO` | **200** |
+| `CTE_RECEPCAO_SINC` | **200** |
+| `CTE_STATUS` | **200** |
+| `MDFE_RECEPCAO_EVENTO` | **200** |
+| `MDFE_RECEPCAO_SINC` | **200** |
+| `MDFE_STATUS` | **200** |
+| `CTE_RET_RECEPCAO` | **404** |
+| `MDFE_RET_RECEPCAO` | **404** |
+
+Estendi a `RET_RECEPCAO` para as 27 UFs: **7 URLs distintas, 1 viva** (a de SP,
+`cteWEB/services/cteRetRecepcao.asmx`), as outras seis 404 (SVRS, MG, PR, MS, MT).
+
+**Causa**: `RetRecepcao` é o retorno do fluxo **assíncrono da versão 3.00**. Em 4.00 a recepção é
+síncrona (`RecepcaoSinc`), então o serviço não tem razão de existir. A única URL viva é legado do
+SP.
+
+**Removidas as 108 linhas** (2 serviços × 27 UFs × 2 ambientes) e os membros do enum.
+Catálogo: 972 → **864** (55:270, 65:270, **57:162**, **58:162**).
+
+Sete serviços vivos por documento de transporte, todos com sonda registrada:
+
+| Modelo 57 (CT-e) | Modelo 58 (MDF-e) |
+|---|---|
+| `RECEPCAO_SINC`, `RECEPCAO_EVENTO`, `STATUS` (54 cada = 162) | idem (162) |
+
+**Lição**: cobertura não é quantidade — é quantidade de endpoints que respondem. O catálogo
+encolheu 11% e ficou mais correto. Um número menor com sonda vale mais que um número maior com
+404 dentro.
