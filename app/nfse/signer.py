@@ -63,6 +63,8 @@ def assinar(
     *,
     id_elemento: str | None = None,
     c14n: CanonicalizationMethod = C14N,
+    assinatura: SignatureMethod = SignatureMethod.RSA_SHA256,
+    digest: DigestAlgorithm = DigestAlgorithm.SHA256,
 ) -> etree._Element:
     """Assina `raiz` referenciando o `Id` do primeiro filho que tiver um.
 
@@ -78,8 +80,8 @@ def assinar(
     chave_pem, cadeia = certificado.material_para_assinatura()
 
     assinador = XMLSigner(
-        signature_algorithm=SignatureMethod.RSA_SHA256,
-        digest_algorithm=DigestAlgorithm.SHA256,
+        signature_algorithm=assinatura,
+        digest_algorithm=digest,
         c14n_algorithm=c14n,
     )
     assinador.namespaces = {None: NS_DSIG}
@@ -105,7 +107,12 @@ def assinar(
 
 
 def assinar_bytes(
-    xml: bytes, certificado: CertificadoA1, *, c14n: CanonicalizationMethod = C14N
+    xml: bytes,
+    certificado: CertificadoA1,
+    *,
+    c14n: CanonicalizationMethod = C14N,
+    assinatura: SignatureMethod = SignatureMethod.RSA_SHA256,
+    digest: DigestAlgorithm = DigestAlgorithm.SHA256,
 ) -> bytes:
     """Assina um XML serializado e devolve os bytes assinados.
 
@@ -122,7 +129,9 @@ def assinar_bytes(
         raiz = etree.fromstring(xml)
     except etree.XMLSyntaxError as exc:
         raise ErroAssinatura(f"XML mal formado para assinatura: {exc}") from exc
-    corpo = etree.tostring(assinar(raiz, certificado, c14n=c14n))
+    corpo = etree.tostring(
+        assinar(raiz, certificado, c14n=c14n, assinatura=assinatura, digest=digest)
+    )
     return b'<?xml version="1.0" encoding="UTF-8"?>' + corpo
 
 
