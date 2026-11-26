@@ -5422,6 +5422,26 @@
   {
     "uf": "AC",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -5440,6 +5460,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "AC",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "AL",
     "modelo": "57",
     "ambiente": "1",
@@ -5455,6 +5495,26 @@
     "ambiente": "1",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -5480,6 +5540,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "AL",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "AM",
     "modelo": "57",
     "ambiente": "1",
@@ -5502,6 +5582,26 @@
   {
     "uf": "AM",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AM",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AM",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -5515,6 +5615,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AM",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AM",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -5542,6 +5662,26 @@
   {
     "uf": "AP",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://nfe.fazenda.sp.gov.br/CTeWS/WS/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "AP",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://nfe.fazenda.sp.gov.br/cteWEB/services/cteRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "AP",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://homologacao.nfe.fazenda.sp.gov.br/CTeWS/WS/CTeRecepcaoSincV4.asmx",
@@ -5560,6 +5700,26 @@
     "autorizador": "SP"
   },
   {
+    "uf": "AP",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/CTeWS/WS/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "AP",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/cteWEB/services/cteRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
     "uf": "BA",
     "modelo": "57",
     "ambiente": "1",
@@ -5582,6 +5742,26 @@
   {
     "uf": "BA",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "BA",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "BA",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -5595,6 +5775,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "BA",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "BA",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -5622,6 +5822,26 @@
   {
     "uf": "CE",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -5640,6 +5860,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "CE",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "DF",
     "modelo": "57",
     "ambiente": "1",
@@ -5662,6 +5902,26 @@
   {
     "uf": "DF",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -5675,6 +5935,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -5702,6 +5982,26 @@
   {
     "uf": "ES",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -5720,6 +6020,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "ES",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "GO",
     "modelo": "57",
     "ambiente": "1",
@@ -5735,6 +6055,26 @@
     "ambiente": "1",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "GO",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "GO",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -5760,6 +6100,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "GO",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "GO",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "MA",
     "modelo": "57",
     "ambiente": "1",
@@ -5782,6 +6142,26 @@
   {
     "uf": "MA",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MA",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MA",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -5795,6 +6175,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MA",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MA",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -5822,6 +6222,26 @@
   {
     "uf": "MG",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.fazenda.mg.gov.br/cte/services/CTeStatusServicoV4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.fazenda.mg.gov.br/cte/services/CteRetRecepcao",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://hcte.fazenda.mg.gov.br/cte/services/CTeRecepcaoSincV4",
@@ -5835,6 +6255,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://hcte.fazenda.mg.gov.br/cte/services/CTeRecepcaoEventoV4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://hcte.fazenda.mg.gov.br/cte/services/CTeStatusServicoV4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://hcte.fazenda.mg.gov.br/cte/services/CteRetRecepcao",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "MG"
@@ -5862,6 +6302,26 @@
   {
     "uf": "MS",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://producao.cte.ms.gov.br/ws/CTeStatusServicoV4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://producao.cte.ms.gov.br/ws/CteRetRecepcao",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://homologacao.cte.ms.gov.br/ws/CTeRecepcaoSincV4",
@@ -5875,6 +6335,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://homologacao.cte.ms.gov.br/ws/CTeRecepcaoEventoV4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://homologacao.cte.ms.gov.br/ws/CTeStatusServicoV4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://homologacao.cte.ms.gov.br/ws/CteRetRecepcao",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "MS"
@@ -5902,6 +6382,26 @@
   {
     "uf": "MT",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.sefaz.mt.gov.br/ctews2/services/CTeStatusServicoV4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.sefaz.mt.gov.br/ctews/services/CteRetRecepcao",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeRecepcaoSincV4",
@@ -5920,6 +6420,26 @@
     "autorizador": "MT"
   },
   {
+    "uf": "MT",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://homologacao.sefaz.mt.gov.br/ctews2/services/CTeStatusServicoV4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://homologacao.sefaz.mt.gov.br/ctews/services/CteRetRecepcao",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
     "uf": "PA",
     "modelo": "57",
     "ambiente": "1",
@@ -5935,6 +6455,26 @@
     "ambiente": "1",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -5960,6 +6500,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "PA",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "PB",
     "modelo": "57",
     "ambiente": "1",
@@ -5982,6 +6542,26 @@
   {
     "uf": "PB",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -5995,6 +6575,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -6022,6 +6622,26 @@
   {
     "uf": "PE",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://nfe.fazenda.sp.gov.br/CTeWS/WS/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "PE",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://nfe.fazenda.sp.gov.br/cteWEB/services/cteRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "PE",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://homologacao.nfe.fazenda.sp.gov.br/CTeWS/WS/CTeRecepcaoSincV4.asmx",
@@ -6035,6 +6655,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://homologacao.nfe.fazenda.sp.gov.br/CTeWS/WS/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "PE",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/CTeWS/WS/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "PE",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/cteWEB/services/cteRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SP"
@@ -6062,6 +6702,26 @@
   {
     "uf": "PI",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -6075,6 +6735,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -6102,6 +6782,26 @@
   {
     "uf": "PR",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.fazenda.pr.gov.br/cte4/CTeStatusServicoV4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.fazenda.pr.gov.br/cte/CteRetRecepcao",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://homologacao.cte.fazenda.pr.gov.br/cte4/CTeRecepcaoSincV4",
@@ -6120,6 +6820,26 @@
     "autorizador": "PR"
   },
   {
+    "uf": "PR",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://homologacao.cte.fazenda.pr.gov.br/cte4/CTeStatusServicoV4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://homologacao.cte.fazenda.pr.gov.br/cte/CteRetRecepcao",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
     "uf": "RJ",
     "modelo": "57",
     "ambiente": "1",
@@ -6135,6 +6855,26 @@
     "ambiente": "1",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -6160,6 +6900,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "RJ",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "RN",
     "modelo": "57",
     "ambiente": "1",
@@ -6175,6 +6935,26 @@
     "ambiente": "1",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -6200,6 +6980,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "RN",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "RO",
     "modelo": "57",
     "ambiente": "1",
@@ -6222,6 +7022,26 @@
   {
     "uf": "RO",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -6235,6 +7055,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -6262,6 +7102,26 @@
   {
     "uf": "RR",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://nfe.fazenda.sp.gov.br/CTeWS/WS/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "RR",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://nfe.fazenda.sp.gov.br/cteWEB/services/cteRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "RR",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://homologacao.nfe.fazenda.sp.gov.br/CTeWS/WS/CTeRecepcaoSincV4.asmx",
@@ -6280,6 +7140,26 @@
     "autorizador": "SP"
   },
   {
+    "uf": "RR",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/CTeWS/WS/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "RR",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/cteWEB/services/cteRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
     "uf": "RS",
     "modelo": "57",
     "ambiente": "1",
@@ -6295,6 +7175,26 @@
     "ambiente": "1",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -6320,6 +7220,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "RS",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "SC",
     "modelo": "57",
     "ambiente": "1",
@@ -6335,6 +7255,26 @@
     "ambiente": "1",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -6360,6 +7300,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "SC",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "SE",
     "modelo": "57",
     "ambiente": "1",
@@ -6382,6 +7342,26 @@
   {
     "uf": "SE",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -6395,6 +7375,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoEventoV4/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SVRS"
@@ -6422,6 +7422,26 @@
   {
     "uf": "SP",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://nfe.fazenda.sp.gov.br/CTeWS/WS/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://nfe.fazenda.sp.gov.br/cteWEB/services/cteRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://homologacao.nfe.fazenda.sp.gov.br/CTeWS/WS/CTeRecepcaoSincV4.asmx",
@@ -6435,6 +7455,26 @@
     "ambiente": "2",
     "servico": "CTeRecepcaoEvento",
     "url": "https://homologacao.nfe.fazenda.sp.gov.br/CTeWS/WS/CTeRecepcaoEventoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/CTeWS/WS/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/cteWEB/services/cteRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
     "autorizador": "SP"
@@ -6462,6 +7502,26 @@
   {
     "uf": "TO",
     "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeStatusServico",
+    "url": "https://cte.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "57",
+    "ambiente": "1",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "57",
     "ambiente": "2",
     "servico": "CTeRecepcaoSinc",
     "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx",
@@ -6480,6 +7540,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "TO",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeStatusServico",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "57",
+    "ambiente": "2",
+    "servico": "CTeRetRecepcao",
+    "url": "https://cte-homologacao.svrs.rs.gov.br/ws/cteretrecepcao/CTeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "AC",
     "modelo": "58",
     "ambiente": "1",
@@ -6502,6 +7582,26 @@
   {
     "uf": "AC",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6515,6 +7615,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -6542,6 +7662,26 @@
   {
     "uf": "AL",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6560,6 +7700,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "AL",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "AM",
     "modelo": "58",
     "ambiente": "1",
@@ -6582,6 +7742,26 @@
   {
     "uf": "AM",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AM",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AM",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6595,6 +7775,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AM",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AM",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -6622,6 +7822,26 @@
   {
     "uf": "AP",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6640,6 +7860,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "AP",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "BA",
     "modelo": "58",
     "ambiente": "1",
@@ -6662,6 +7902,26 @@
   {
     "uf": "BA",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "BA",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "BA",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6675,6 +7935,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "BA",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "BA",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -6702,6 +7982,26 @@
   {
     "uf": "CE",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6720,6 +8020,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "CE",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "DF",
     "modelo": "58",
     "ambiente": "1",
@@ -6742,6 +8062,26 @@
   {
     "uf": "DF",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6755,6 +8095,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -6782,6 +8142,26 @@
   {
     "uf": "ES",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6800,6 +8180,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "ES",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "GO",
     "modelo": "58",
     "ambiente": "1",
@@ -6822,6 +8222,26 @@
   {
     "uf": "GO",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "GO",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "GO",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6835,6 +8255,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "GO",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "GO",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -6862,6 +8302,26 @@
   {
     "uf": "MA",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MA",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MA",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6880,6 +8340,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "MA",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MA",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "MG",
     "modelo": "58",
     "ambiente": "1",
@@ -6902,6 +8382,26 @@
   {
     "uf": "MG",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MG",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MG",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6915,6 +8415,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MG",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MG",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -6942,6 +8462,26 @@
   {
     "uf": "MS",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6960,6 +8500,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "MS",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "MT",
     "modelo": "58",
     "ambiente": "1",
@@ -6982,6 +8542,26 @@
   {
     "uf": "MT",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MT",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MT",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -6995,6 +8575,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MT",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "MT",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -7022,6 +8622,26 @@
   {
     "uf": "PA",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7040,6 +8660,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "PA",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "PB",
     "modelo": "58",
     "ambiente": "1",
@@ -7062,6 +8702,26 @@
   {
     "uf": "PB",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7075,6 +8735,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -7102,6 +8782,26 @@
   {
     "uf": "PE",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PE",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PE",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7120,6 +8820,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "PE",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PE",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "PI",
     "modelo": "58",
     "ambiente": "1",
@@ -7142,6 +8862,26 @@
   {
     "uf": "PI",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7155,6 +8895,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -7182,6 +8942,26 @@
   {
     "uf": "PR",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PR",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PR",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7200,6 +8980,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "PR",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PR",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "RJ",
     "modelo": "58",
     "ambiente": "1",
@@ -7222,6 +9022,26 @@
   {
     "uf": "RJ",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7235,6 +9055,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -7262,6 +9102,26 @@
   {
     "uf": "RN",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7280,6 +9140,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "RN",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "RO",
     "modelo": "58",
     "ambiente": "1",
@@ -7302,6 +9182,26 @@
   {
     "uf": "RO",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7315,6 +9215,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -7342,6 +9262,26 @@
   {
     "uf": "RR",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7360,6 +9300,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "RR",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "RS",
     "modelo": "58",
     "ambiente": "1",
@@ -7382,6 +9342,26 @@
   {
     "uf": "RS",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7395,6 +9375,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -7422,6 +9422,26 @@
   {
     "uf": "SC",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7440,6 +9460,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "SC",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "SE",
     "modelo": "58",
     "ambiente": "1",
@@ -7455,6 +9495,26 @@
     "ambiente": "1",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -7480,6 +9540,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "SE",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "SP",
     "modelo": "58",
     "ambiente": "1",
@@ -7495,6 +9575,26 @@
     "ambiente": "1",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SP",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SP",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"
@@ -7520,6 +9620,26 @@
     "autorizador": "SVRS"
   },
   {
+    "uf": "SP",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SP",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
     "uf": "TO",
     "modelo": "58",
     "ambiente": "1",
@@ -7542,6 +9662,26 @@
   {
     "uf": "TO",
     "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "58",
+    "ambiente": "1",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "58",
     "ambiente": "2",
     "servico": "MDFeRecepcaoSinc",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx",
@@ -7555,6 +9695,26 @@
     "ambiente": "2",
     "servico": "MDFeRecepcaoEvento",
     "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferecepcaoevento/MDFeRecepcaoEvento.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeStatusServico",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdfestatusservico/MDFeStatusServico.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "58",
+    "ambiente": "2",
+    "servico": "MDFeRetRecepcao",
+    "url": "https://mdfe-homologacao.svrs.rs.gov.br/ws/mdferetrecepcao/MDFeRetRecepcao.asmx",
     "versao_soap": "1.2",
     "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini",
     "autorizador": "SVRS"

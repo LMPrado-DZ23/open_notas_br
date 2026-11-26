@@ -1565,3 +1565,31 @@ Importação: `válidas=756 inserir=108 atualizar=0 inalterado=648`.
 recepção assíncrona de CT-e/MDF-e. As URLs estão no INI (`CTeStatusServico_3.00`,
 `MDFeStatusServico_3.00`, `CTeRetRecepcao_3.00`), mas não há valor correspondente em
 `ServicoSefaz`, e o importador recusa serviço desconhecido — o que é o comportamento correto.
+
+#### Fechamento do §30 — CT-e e MDF-e com 4 serviços cada
+
+Descoberta que simplificou: **não existe CHECK em `servico`** no banco (só em `ambiente`, `url`,
+`fonte_url` e `modelo`). O `ServicoSefaz` é `StrEnum` gravado como VARCHAR, então **acrescentar
+serviço não exige migration** — só o enum Python e o mapa do conversor.
+
+Adicionados: `CTE_STATUS`, `CTE_RET_RECEPCAO`, `MDFE_STATUS`, `MDFE_RET_RECEPCAO`, e as chaves
+correspondentes do INI (`CTeStatusServico_3.00/4.00`, `CTeRetRecepcao_3.00`,
+`MDFeStatusServico_1.00/3.00`, `MDFeRetRecepcao_1.00`).
+
+| Modelo | Antes | Depois |
+|---|---|---|
+| 57 (CT-e) | 54 (1 serviço) | **216 (4 serviços)** |
+| 58 (MDF-e) | 54 (1 serviço) | **216 (4 serviços)** |
+| **Total** | 648 | **972** |
+
+Serviços de CT-e/MDF-e agora catalogados: recepção síncrona, recepção de evento, retorno de
+recepção e **status**. O status era o que faltava para exercitar o ciclo de CT-e com o
+autorizador.
+
+**O que continua faltando em CT-e/MDF-e**: consulta de situação, inutilização e contingência.
+As URLs não estão no INI compartilhado do ACBr (a biblioteca as constrói em código), então
+exigiriam os WSDLs/MOC oficiais de cada autorizador — mesma disciplina dos 112 XSDs.
+
+**Lição registrada**: a lacuna durou porque eu olhei a métrica ("27 UFs") e não a fonte. Duas
+consultas ao INI e ao catálogo do banco resolveram o que três rounds de documentação não
+resolveram.

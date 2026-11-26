@@ -45,6 +45,9 @@ MAPA_CTE = {
     # entrava no catálogo e o CT-e ficava com 1 de 7 serviços (auditoria §30).
     "recepcaoevento_3.00": "CTeRecepcaoEvento",
     "recepcaoevento_4.00": "CTeRecepcaoEvento",
+    "ctestatusservico_3.00": "CTeStatusServico",
+    "ctestatusservico_4.00": "CTeStatusServico",
+    "cteretrecepcao_3.00": "CTeRetRecepcao",
 }
 MAPA_MDFE = {
     "mdferecepcaosinc_3.00": "MDFeRecepcaoSinc",
@@ -52,6 +55,9 @@ MAPA_MDFE = {
     # Mesma indireção do CT-e: a chave do evento aparece sem o prefixo do documento.
     "recepcaoevento_1.00": "MDFeRecepcaoEvento",
     "recepcaoevento_3.00": "MDFeRecepcaoEvento",
+    "mdfestatusservico_1.00": "MDFeStatusServico",
+    "mdfestatusservico_3.00": "MDFeStatusServico",
+    "mdferetrecepcao_1.00": "MDFeRetRecepcao",
 }
 
 MAPA = {
