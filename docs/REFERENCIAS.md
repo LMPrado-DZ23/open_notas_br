@@ -939,6 +939,14 @@ Consulta ao Portal Nacional deu redirecionamento em excesso (não consegui baixa
 oficial nesta sessão), então a versão exata publicada pelo governo **não foi
 verificada**. O gerador atual **não emite grupo IBS/CBS**.
 
+**Conteúdo de `PL_010h` verificado** na listagem da API do GitHub (fonte canônica):
+contém `nfe_v4.00.xsd`, `leiauteNFe_v4.00.xsd`, `DFeTiposBasicos_v1.00.xsd`,
+`enviNFe_v4.00.xsd` (o envelope do lote), `consStatServ_v4.00.xsd` (status do
+serviço), `consSitNFe_v4.00.xsd`, `consReciNFe_v4.00.xsd` (recibo),
+`eventoCancNFe_v1.00.xsd`, `eventoEPEC_v1.00.xsd` e `eventoEPEC_v0.01.xsd`. Ou seja:
+o pacote já traz tudo o que F9.3–F9.5 precisam — envelope, status, recibo,
+cancelamento e contingência EPEC.
+
 Referências canônicas para a próxima fatia:
 - [nfephp-org/sped-nfe](https://github.com/nfephp-org/sped-nfe) — schemas por PL e
   implementação de referência em PHP
