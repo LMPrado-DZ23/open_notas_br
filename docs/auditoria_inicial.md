@@ -1148,3 +1148,35 @@ reverti duas vezes. A NFC-e entra quando houver CSC real de uma UF.
 O caminho correto, quando houver CSC: parametrizar `mod`, montar `infNFeSupl` com o QR Code
 (v2 ou v3 conforme a UF) e validar contra `enviNFe_v4.00.xsd`. A UF define a versão do QR Code —
 não é decisão do sistema.
+
+### 24. Drift de migrations: 8 operações em 3 tabelas (medido, não corrigido)
+
+`python -m alembic check` **falha** (exit 1). Medido nesta data, contra o banco local:
+
+| Tabela | Operação detectada | Diagnóstico |
+|---|---|---|
+| `calculo_audit` (5 colunas: `versao_formato`, `regras`, `tabelas`, `entrada`, `saida`) | `modify_default`: banco tem `server_default`, modelo não declara | divergência de declaração |
+| `dlq.payload` | idem | idem |
+| `frete_credenciais` | `remove_constraint uq_frete_credenciais_tenant_id` + `remove_index ix_...` (unique=False) + `add_index ix_...` (unique=True) | modelo quer **índice único**; banco tem **constraint única** + índice não-único |
+
+**Consequência real**: um `alembic upgrade head` do zero não reproduz os modelos exatamente.
+Quem criar um banco novo e comparar verá diferença.
+
+**Por que não corrigi nesta sessão**: uma migration de correção precisa de round-trip verificado
+(`upgrade` → `check` limpo → `downgrade` → `upgrade`). O contexto era insuficiente para fazer
+isso com verificação, e migration sem round-trip é exatamente o tipo de meia-medida que já
+reverti três vezes neste projeto.
+
+**Plano de correção (para a próxima sessão)**:
+
+1. `calculo_audit` e `dlq.payload`: decidir a fonte de verdade. Se o default é só Python
+   (`default=`), a migration `0011` remove os `server_default` do banco; se for intencional no
+   banco, o modelo declara `server_default` — **uma** das duas, nunca as duas.
+2. `frete_credenciais`: dropar `uq_frete_credenciais_tenant_id` e
+   `ix_frete_credenciais_tenant_id` (não-único) e criar o índice único — alinhando ao modelo,
+   que é a declaração intencional.
+3. Verificar com `alembic upgrade head` → `alembic check` (deve passar) → `downgrade -1` →
+   `upgrade head` → `alembic check` de novo.
+
+**Risco se ficar como está**: baixo para o banco atual (o schema funciona, os testes passam),
+alto para reprodutibilidade — um ambiente novo divergiria do que os modelos descrevem.
