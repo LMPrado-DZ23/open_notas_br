@@ -68,11 +68,14 @@ class TabelaConsultada:
     vigencia_fim: date | None = None
 
     def para_dict(self) -> dict[str, Any]:
+        # Datas em ISO: o destino é coluna JSONB e `date` não é serializável.
+        # Bug pego pelos testes de persistência — o laudo em memória funcionava,
+        # gravar no banco quebrava.
         return {
             "nome": self.nome,
             "versao": self.versao,
-            "vigencia_inicio": self.vigencia_inicio,
-            "vigencia_fim": self.vigencia_fim,
+            "vigencia_inicio": (self.vigencia_inicio.isoformat() if self.vigencia_inicio else None),
+            "vigencia_fim": self.vigencia_fim.isoformat() if self.vigencia_fim else None,
         }
 
 

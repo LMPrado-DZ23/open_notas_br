@@ -395,8 +395,23 @@ têm apenas representação impressa.
   mostrar o conteúdo; o hash prova que não foi editado depois.
 - `invoice_id` com `ON DELETE SET NULL`: apagar a nota não apaga a prova de que o
   cálculo existiu.
-- **Pendente**: `service` de registro/consulta por `trace_id`, endpoint admin e a
-  ligação ao fluxo de emissão. Testes de persistência real ainda não escritos.
+- ✅ **`service` implementado e testado contra Postgres real**:
+  `app/tax/auditoria_service.py` com `registrar`, `por_trace`, `por_id`,
+  `do_documento`, `verificar_integridade`. 11 testes de integração em
+  `tests/test_tax_auditoria_db.py` (não mock: usam `sessao_db`).
+- `registrar` **não faz commit**: o laudo precisa ser gravado na mesma transação do
+  documento. Commitado à parte, uma emissão que falhasse depois deixaria laudo de um
+  cálculo que nunca virou nota.
+- Isolamento verificado: `por_trace`/`por_id` de outro tenant devolvem vazio/`None`;
+  `por_id` de outro tenant devolve `None` e não 403, porque 403 já revelaria que o id
+  existe.
+- `verificar_integridade` recalcula os hashes do que está gravado: edição por SQL
+  manual faz o recálculo não bater. Testado.
+- **Bug pego pelos testes de persistência**: `TabelaConsultada.para_dict()` devolvia
+  `date` cru, que JSONB não serializa. O laudo em memória funcionava; gravar quebrava.
+  Corrigido com ISO na origem.
+- **Pendente**: endpoint admin `GET /v1/tax/audit/{id}` e a ligação ao fluxo de
+  emissão.
 - **VERIFICADO no Postgres** (containers `open-notas-br-postgres-1`, porta 55434):
 
   ```
