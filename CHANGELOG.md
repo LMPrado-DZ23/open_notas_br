@@ -5,6 +5,38 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — catálogo nacional, CT-e/MDF-e e primeira chamada real à SEFAZ
+
+Medido nesta sessão: **1319 testes**, 57 rotas, 15 tabelas, 11 migrations, gate 6/6, CI verde.
+
+- **Catálogo SEFAZ completo**: NF-e, NFC-e, CT-e e MDF-e em **27/27 UFs** (648 endpoints), cada
+  um com `fonte_url` e SHA-256 no manifesto. Importação idempotente por
+  `(uf, modelo, ambiente, servico)`.
+- **Municípios**: 5571/5571 com provedor identificado a partir do `ACBrNFSeXServicos.ini`.
+- **Schemas versionados**: 112 XSD (NFS-e 1.01, NF-e 4.00, CT-e 4.00, MDF-e 3.00) com hash no
+  manifesto e verificação no boot.
+- **Geradores de CT-e e MDF-e**: geram, assinam e **validam contra o XSD oficial**. Rotas
+  `POST /v1/transportes/cte` e `/mdfe`, com tenant derivado da API key e isolamento entre
+  tenants provado por teste.
+- **`desenvelopar` corrigido**: devolvia o embrulho `nfeResultMsg` do WSDL e `ler()` recusava —
+  quebraria a autorização real. Descoberto com resposta real da SEFAZ-GO.
+- **TLS multi-autorizador**: `ssl.create_default_context()` não usava a loja do Windows, e
+  SVRS/SP falhavam com `CERTIFICATE_VERIFY_FAILED`. Agora carrega as raízes do sistema.
+- **SOAP por serviço**: `envelopar(ns_servico=)` e `TransporteHTTP(soap_action=)`, com valores
+  derivados do WSDL oficial (versionado em `tests/fixtures/wsdl/`).
+- **Migration 0011**: alinha banco aos modelos e zera o drift; `alembic check` passou a rodar no
+  gate local e no CI (a causa de o drift ter sobrevivido).
+- **Primeira chamada real a autorizador**: `NFeStatusServico4` de GO em homologação respondeu
+  `cStat 107 — Serviço em operação`, com certificado A1 real. **Nenhuma nota foi emitida.**
+
+#### Limitações conhecidas
+
+- `cStat 215` do SVRS não resolvido: envelope correto pelo WSDL e XML fiscal correto pelo XSD;
+  as hipóteses testáveis foram eliminadas com evidência (`docs/auditoria_inicial.md` §28).
+- NFC-e sem geração: depende de CSC por UF.
+- Autorização de NF-e/CT-e/MDF-e depende de credenciamento do contribuinte.
+
+
 ### Adicionado — evolução para gateway fiscal (v10.0)
 
 Idempotência, contrato de erro, resiliência, auditoria de cálculo e a base de
