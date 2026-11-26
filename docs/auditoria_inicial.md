@@ -146,3 +146,89 @@ O documento pede um gateway enterprise com: multi-prefeitura por driver, DF-e co
 **Conclusão da auditoria**: a base é sólida (multi-tenant, cofre, assinatura, NFS-e real autorizada, 873 testes), mas **nada** das quatro fases do v10.0 está implementado. As proibições P2/P3 têm infraestrutura pronta (cofre AES-256-GCM com AAD por tenant).
 
 **Estimativa honesta**: Fase 1 isolada (modelos + seed + 3 drivers + rotas + DoD) é comparável ao trabalho já feito neste repositório inteiro. Não sai em um turno.
+
+## 9. Schemas por endpoint (request/response)
+
+Extraído do OpenAPI gerado. Nomes referenciam `components.schemas`.
+
+| Rota | Método | Request | Response |
+|---|---|---|---|
+| `/health` | GET | — | SaudeOut |
+| `/health/live` | GET | — | VivoOut |
+| `/v1/apuracoes` | GET | — | (inline) |
+| `/v1/apuracoes` | POST | ApuracaoIn | ApuracaoOut |
+| `/v1/apuracoes/{apuracao_id}` | GET | — | ApuracaoDetalheOut |
+| `/v1/apuracoes/{apuracao_id}/guia` | POST | — | GuiaOut |
+| `/v1/cep/{cep}` | GET | — | EnderecoOut |
+| `/v1/cnpj/{cnpj}` | GET | — | (inline) |
+| `/v1/emissoes` | GET | — | (inline) |
+| `/v1/emissoes` | POST | EmissaoIn | — |
+| `/v1/emissoes/cancelamento/motivos` | GET | — | (inline) |
+| `/v1/emissoes/eventos/disponiveis` | GET | — | (inline) |
+| `/v1/emissoes/eventos/tipos` | GET | — | (inline) |
+| `/v1/emissoes/{invoice_id}` | GET | — | EmissaoDetalheOut |
+| `/v1/emissoes/{invoice_id}/cancelamento` | POST | CancelamentoIn | CancelamentoOut |
+| `/v1/emissoes/{invoice_id}/danfse` | GET | — | — |
+| `/v1/emissoes/{invoice_id}/eventos` | POST | EventoIn | EventoRegistradoOut |
+| `/v1/emissoes/{invoice_id}/representacao` | GET | — | — |
+| `/v1/fretes/cotacao` | POST | CotacaoIn | CotacaoOut |
+| `/v1/fretes/credencial` | DELETE | — | (inline) |
+| `/v1/fretes/oauth/callback` | GET | — | StatusOut |
+| `/v1/fretes/oauth/iniciar` | GET | — | AutorizacaoOut |
+| `/v1/fretes/status` | GET | — | StatusOut |
+| `/v1/health` | GET | — | SaudeOut |
+| `/v1/health/live` | GET | — | VivoOut |
+| `/v1/integracoes/brizu/atendimentos` | POST | (inline) | — |
+| `/v1/integracoes/dz23/vendas` | POST | (inline) | — |
+| `/v1/lotes` | GET | — | (inline) |
+| `/v1/lotes` | POST | — | LoteDetalheOut |
+| `/v1/lotes/{lote_id}` | GET | — | LoteDetalheOut |
+| `/v1/me` | GET | — | TenantOut |
+| `/v1/me/certificados` | GET | — | (inline) |
+| `/v1/me/certificados` | POST | — | CertificadoOut |
+| `/v1/me/certificados/saude` | GET | — | SaudeCertificadoOut |
+| `/v1/me/certificados/{certificado_id}` | DELETE | — | — |
+| `/v1/me/certificados/{certificado_id}/ativar` | POST | — | CertificadoOut |
+| `/v1/me/config-fiscal` | GET | — | (inline) |
+| `/v1/me/config-fiscal` | PUT | TenantFiscalConfigIn | TenantFiscalConfigOut |
+| `/v1/me/rotacionar-chave` | POST | — | TenantKeyRotacionadaOut |
+| `/v1/me/webhook` | GET | — | WebhookConfigOut |
+| `/v1/me/webhook` | POST | WebhookConfigIn | WebhookConfigOut |
+| `/v1/me/webhook/entregas` | GET | — | (inline) |
+| `/v1/representacoes` | GET | — | (inline) |
+| `/v1/representacoes` | POST | — | — |
+| `/v1/tax/aliquotas` | GET | — | (inline) |
+| `/v1/tax/aliquotas/{ano}` | GET | — | AliquotaOut |
+| `/v1/tax/classificacoes` | GET | — | (inline) |
+| `/v1/tax/classificacoes/catalogo` | GET | — | CatalogoOut |
+| `/v1/tax/classificacoes/{codigo}` | GET | — | ClassificacaoOut |
+| `/v1/tax/simular` | POST | SimulacaoIn | SimulacaoOut |
+| `/v1/tenants` | GET | — | PaginaTenants |
+| `/v1/tenants` | POST | TenantCreate | TenantCriadoOut |
+| `/v1/version` | GET | — | VersaoOut |
+| `/version` | GET | — | VersaoOut |
+
+## 10. `pytest --durations=10` (baseline de tempo)
+
+Executado nesta sessão. Os 10 mais lentos são **todos de `setup`** — criação de
+tenant, certificado e configuração fiscal por teste. Nenhum teste individual passa
+de 5 s; o gargalo é fixture, não lógica.
+
+```
+4.80s setup  test_cancelamento.py::TestMotivos::test_lista_motivos
+4.52s setup  test_apuracao.py::TestConsolidacao::test_soma_documentos_autorizados
+4.41s setup  test_eventos_rota.py::TestDisponiveis::test_lista_sem_cancelamento
+3.85s setup  test_eventos_rota.py::TestRegistro::test_confirmacao_do_prestador
+3.80s setup  test_eventos_rota.py::TestRegistro::test_motivo_curto_da_422
+3.55s setup  test_eventos_rota.py::TestDisponiveis::test_incluir_oficio
+3.47s setup  test_cancelamento.py::TestCancelamento::test_cancela_nota_autorizada
+3.30s setup  test_eventos_rota.py::TestRegistro::test_tipo_inexistente_da_422
+2.82s setup  test_eventos_rota.py::TestRegistro::test_emissao_inexistente_da_404
+2.46s setup  test_eventos_rota.py::TestRegistro::test_rejeicao_com_motivo
+```
+
+**Schemas Pydantic registrados**: 55 em `components.schemas`.
+
+**Implicação para o v10.0**: o custo de fixture por teste sugere que a suíte vai
+ficar lenta quando triplicar. Antes da Fase 1, vale transformar as fixtures de
+tenant/certificado em factory com escopo de módulo.
