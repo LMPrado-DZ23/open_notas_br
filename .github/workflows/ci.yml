@@ -68,6 +68,17 @@ jobs:
       - name: Testes com cobertura
         run: pytest --cov=app --cov=notasbr --cov-report=term-missing
 
+      # Sem esta checagem o drift de migrations nao aparece: `alembic check` responde "as
+      # migrations reproduzem os modelos?", e ficou fora do CI por tempo demais (auditoria §24).
+      # Banco dedicado porque a suite cria e derruba `notasbr_test` a cada execucao.
+      - name: Migrations reproduzem os modelos
+        env:
+          DATABASE_URL: postgresql+asyncpg://notasbr:notasbr@127.0.0.1:5432/notasbr_migracoes
+        run: |
+          python -m scripts.preparar_banco_migracoes
+          alembic upgrade head
+          alembic check
+
       - name: Guardar relatório de cobertura
         if: always()
         uses: actions/upload-artifact@v4

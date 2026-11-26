@@ -38,6 +38,14 @@ CHECAGENS: tuple[Checagem, ...] = (
         "schema da DPS",
         [sys.executable, "-m", "pytest", "tests/test_schema_dps.py", "-q"],
     ),
+    # `alembic check` responde "as migrations reproduzem os modelos?". Ficou fora por tempo
+    # demais: o drift de defaults e do índice de `frete_credenciais` sobreviveu até a auditoria
+    # §24 justamente porque nenhum gate olhava para isso.
+    Checagem(
+        "migrations reproduzem os modelos",
+        [sys.executable, "-m", "alembic", "check"],
+        rapida=False,
+    ),
     Checagem(
         "suite completa",
         [sys.executable, "-m", "pytest", "-q"],
