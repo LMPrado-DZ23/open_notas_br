@@ -18,23 +18,20 @@ import subprocess
 import sys
 from pathlib import Path
 
+import app.db.models  # noqa: F401 - importa os modelos e registra as tabelas
+from app.db.base import Base
+
 RAIZ = Path(__file__).resolve().parent.parent
 
 #: Banco administrativo de onde o banco de teste é criado.
 DB_ADMIN_PADRAO = "postgresql+asyncpg://notasbr:notasbr@127.0.0.1:55434/notasbr"
 NOME_BANCO_TESTE = "notasbr_test"
 
-TABELAS = (
-    "invoice_events",
-    "fiscal_documents",
-    "invoices",
-    "tenant_certificates",
-    "tenant_fiscal_configs",
-    "tax_assessments",
-    "batch_jobs",
-    "webhook_deliveries",
-    "tenants",
-)
+#: Derivado do metadata, não escrito à mão. A lista fixa tinha 9 tabelas enquanto o
+#: metadata tinha 14: os 5 nomes novos ficavam fora do TRUNCATE e dado vazava entre
+#: testes. Um teste passava por causa da sobra do anterior — pior que falhar.
+#: `RESTART IDENTITY CASCADE` já resolve a ordem, então não é preciso ordenar por FK.
+TABELAS = tuple(sorted(Base.metadata.tables))
 
 
 def url_admin() -> str:

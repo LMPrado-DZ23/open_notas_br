@@ -525,3 +525,15 @@ têm apenas representação impressa.
 - **Defeito de infraestrutura de teste encontrado**: `municipios_nfse` não está na lista
   de truncate do `conftest`, então dado vaza entre testes. Contornado com helper
   idempotente; a correção definitiva é incluir as tabelas novas no truncate.
+
+### 14. Defeito de infraestrutura de teste corrigido
+
+- `tests/suporte.py`: a lista `TABELAS` era **escrita à mão com 9 nomes** enquanto o
+  metadata tem **14**. Ficavam fora do `TRUNCATE`: `calculo_audit`,
+  `credenciais_municipais`, `frete_credenciais`, `municipios_nfse`, `webservices_sefaz`.
+- Consequência real: dado vazava entre testes. Um teste passava **por causa da sobra do
+  anterior** — pior que falhar, porque o verde não significava nada.
+- Corrigido na raiz: `TABELAS = tuple(sorted(Base.metadata.tables))`. Tabela nova entra
+  no truncate automaticamente, sem ninguém lembrar de editar a lista.
+- Verificado: `len(TABELAS) == 14` e os testes de credencial/auditoria passam sem o
+  helper idempotente precisar mascarar a sobra.
