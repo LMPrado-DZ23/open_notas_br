@@ -73,23 +73,24 @@ class BaseNFSeDriver(Protocol):
 
 #: Provedores com contrato definido mas **sem** implementação verificável.
 #: O motivo é factual: falta fonte oficial de URL e leiaute por provedor.
+_ENGINE = "motor SOAP pronto em app/nfse/drivers_abrasf.py; falta confirmar "
 PENDENTES: dict[str, str] = {
-    "abrasf_1_0": "falta XSD e endpoint oficial da versão 1.0 por município",
-    "abrasf_2_01": "falta XSD e endpoint oficial da versão 2.01",
-    "abrasf_2_02": "falta XSD e endpoint oficial da versão 2.02",
-    "abrasf_2_03": "falta XSD e endpoint oficial da versão 2.03",
-    "abrasf_2_04": "falta XSD e endpoint oficial da versão 2.04; exige assinatura seletiva",
-    "abrasf_2_06": "falta XSD e endpoint oficial da versão 2.06",
-    "goiania": "falta URL e manual do provedor de Goiânia",
-    "ginfes": "falta URL por município e confirmação do encoding ISO-8859-1",
-    "issnet": "falta URL e manual do provedor ISSNet",
-    "betha": "falta URL e manual do provedor Betha",
-    "webiss": "falta URL e manual do provedor WebISS",
-    "simpliss": "falta URL e manual do provedor SimplISS",
-    "dsf": "falta URL e manual do provedor DSF",
-    "proddata": "falta URL e manual do provedor PRODATA",
-    "centri": "falta URL e manual do provedor CENTRI",
-    "fisco_simplex": "falta URL e manual do provedor Fisco Simplex",
+    "abrasf_1_0": _ENGINE + "endpoint e XSD da versão 1.0 do município",
+    "abrasf_2_01": _ENGINE + "endpoint e XSD da versão 2.01",
+    "abrasf_2_02": _ENGINE + "endpoint e XSD da versão 2.02",
+    "abrasf_2_03": _ENGINE + "endpoint e XSD da versão 2.03",
+    "abrasf_2_04": _ENGINE + "endpoint da 2.04 (exige assinatura seletiva)",
+    "abrasf_2_06": _ENGINE + "endpoint e XSD da versão 2.06",
+    "goiania": _ENGINE + "URL e manual do provedor de Goiânia",
+    "ginfes": _ENGINE + "URL por município e encoding ISO-8859-1 no provedor",
+    "issnet": _ENGINE + "URL e manual do ISSNet",
+    "betha": _ENGINE + "URL e manual do Betha",
+    "webiss": _ENGINE + "URL e manual do WebISS",
+    "simpliss": _ENGINE + "URL e manual do SimplISS",
+    "dsf": _ENGINE + "URL e manual do DSF",
+    "proddata": _ENGINE + "URL e manual do PRODATA",
+    "centri": _ENGINE + "URL e manual do CENTRI",
+    "fisco_simplex": _ENGINE + "URL e manual do Fisco Simplex",
 }
 
 

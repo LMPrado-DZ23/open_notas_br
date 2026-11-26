@@ -928,3 +928,22 @@ primeira coisa a fazer antes de qualquer outra evolução.
   coincidem, senão o contrato de erro quebraria na borda do driver.
 - **Ainda ausente**: `AbrasfBaseDriver` (SOAP 1.1/1.2, assinatura seletiva, encoding) e os
   cinco drivers especializados. Todos param na mesma falta: fonte oficial por provedor.
+
+### 1b. Motor ABRASF parametrizável (Etapa E, parte 2)
+
+- `app/nfse/drivers_abrasf.py`: `AbrasfBaseDriver`, `ConfiguracaoAbrasf`, `envelopar`,
+  `desenvelopar`, `interpretar`, `ErroAbrasf`. 20 testes.
+- **Nenhuma URL no código.** Endpoint, namespace, versão de SOAP e encoding vêm do
+  registro do município. Por isso o motor pôde ser escrito e testado **sem
+  credenciamento**: verifica-se o contrato do envelope, não a rede.
+- **SOAP 1.1 e 1.2** com namespaces distintos, testados separadamente — provedor legado
+  usa 1.1 e recusa 1.2.
+- **Encoding vem da configuração**: GINFES/DSF declaram ISO-8859-1 e a declaração do XML
+  precisa acompanhar, senão a acentuação corrompe.
+- **Assinatura seletiva é guardada, não presumida**: provedor que exige assinatura de lote
+  com `assinador=None` recebe falha `INTERNO` clara em vez de o driver enviar sem assinar
+  e receber recusa opaca. Um dos testes me corrigiu: eu esperava sucesso sem assinador.
+- Operações sem leiaute confirmado (`consultar_nfse_por_rps`, `consultar_nfse_tomadas`)
+  recusam com motivo — não inventam envelope.
+- **Ainda ausente**: os cinco drivers especializados, cada um só com URL/leiaute oficial,
+  e a assinatura XMLDSig real do RPS (o motor recebe o assinador, não o implementa).
