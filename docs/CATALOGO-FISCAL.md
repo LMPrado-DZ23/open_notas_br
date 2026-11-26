@@ -410,3 +410,38 @@ regra do projeto é que schema tem versão e origem registradas (item 6). O gera
 
 Próxima tentativa deve inspecionar o HTML da página (links de anexo) em vez de assumir que a
 URL é download direto.
+
+---
+
+## Gerador de CT-e: até onde cheguei e onde parou (2026-11-26)
+
+O validador está pronto e testado (`app/cte/__init__.py`, 4 testes). O **gerador** foi
+começado e **removido**, não commitado. Motivo e evidência abaixo.
+
+### Erros que o schema apontou, em ordem
+
+1. `CTe@versao` — a raiz **não** aceita atributo `versao`; ela fica só em `infCte`.
+2. `ide` — faltam `cMunEnv` (ou `indGlobalizado`), e a cadeia continua: `xMunEnv`, `UFEnv`,
+   `modal`, `tpServ`, `xMunIni`, `UFIni`, `xMunFim`, `UFFim`, `retira`…
+
+O leiaute do CT-e exige ~15 elementos em `ide` antes de chegar em `emit`. Cada iteração custa
+uma rodada e o contexto da sessão acabou antes de fechar a cadeia.
+
+### Por que o gerador foi removido em vez de commitado
+
+Um `gerar()` que levanta erro de schema em toda chamada é pior que ausência: quem importar
+espera XML válido e recebe exceção. Mesma decisão tomada no round 54 com a tarefa ARQ — a
+meia-medida foi revertida, não maquiada.
+
+### O que fica pronto para quem continuar
+
+- `app.cte.validar(xml)` — valida contra `cte_v4.00.xsd`, com mensagem de linha e campo.
+- 49 XSD oficiais versionados e hasheados.
+- Os dois erros acima já mapeados: começar de `ide` com `cMunEnv`, `xMunEnv`, `UFEnv`,
+  `modal=57`, `tpServ=0`, `xMunIni/UFIni`, `xMunFim/UFFim`, `retira=1`.
+
+### Alternativa registrada, não executada
+
+Copiar a ordem dos elementos direto do `cte_v4.00.xsd` (`xs:sequence` de `ide`) em vez de
+iterar por tentativa e erro — mais barato e determinístico. Não fiz por falta de contexto,
+não por falta de fonte.
