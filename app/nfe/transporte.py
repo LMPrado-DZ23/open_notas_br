@@ -71,12 +71,13 @@ class ClienteSefaz:
         xml_fiscal: bytes,
         timeout_s: float | None = None,
         ns_servico: str | None = None,
+        soap_versao: str = "1.2",
     ) -> RespostaSefaz:
         if not url.startswith("https://"):
             # R3: serviço fiscal em http é dado e credencial em texto claro.
             raise ValueError("URL de webservice precisa ser https")
 
-        envelope = envelopar(xml_fiscal, ns_servico=ns_servico)
+        envelope = envelopar(xml_fiscal, ns_servico=ns_servico, soap_versao=soap_versao)
 
         try:
             bruto = await self._transporte.enviar(
@@ -119,6 +120,7 @@ class TransporteHTTP:
         key_pem: str | None = None,
         cliente: Any = None,
         soap_action: str = "",
+        soap_versao: str = "1.2",
     ) -> None:
         # `cliente` permite injetar um `httpx.AsyncClient` já configurado (teste).
         self._cert = (cert_pem, key_pem) if cert_pem and key_pem else None
@@ -127,15 +129,29 @@ class TransporteHTTP:
         # HTTP 500 ao mesmo XML que GO aceita. O valor vem do WSDL oficial de cada serviço
         # (`soap12:operation soapAction=...`), nunca de chute.
         self._soap_action = soap_action
+        # SOAP 1.2 usa `application/soap+xml` com a action no Content-Type; SOAP 1.1 usa
+        # `text/xml` com a action no header `SOAPAction`. Endpoints `.asmx` do SVRS exigem 1.1.
+        self._soap_versao = soap_versao
 
     async def enviar(self, *, url: str, corpo: bytes, timeout_s: float) -> bytes:
         import httpx
 
-        cabecalhos = {
-            # SOAP 1.2 usa `application/soap+xml`, não `text/xml` do SOAP 1.1.
-            "Content-Type": (f'application/soap+xml; charset=utf-8; action="{self._soap_action}"'),
-            "Accept": "application/soap+xml",
-        }
+        if self._soap_versao == "1.1":
+            # SOAP 1.1: `text/xml` e a action vai no header `SOAPAction`. Medido: o SVRS
+            # responde "media type is unsupported" a quem manda `application/soap+xml` com
+            # envelope 1.1.
+            cabecalhos = {
+                "Content-Type": "text/xml; charset=utf-8",
+                "SOAPAction": f'"{self._soap_action}"',
+                "Accept": "text/xml",
+            }
+        else:
+            cabecalhos = {
+                "Content-Type": (
+                    f'application/soap+xml; charset=utf-8; action="{self._soap_action}"'
+                ),
+                "Accept": "application/soap+xml",
+            }
 
         if self._cliente is not None:
             resposta = await self._cliente.post(url, content=corpo, headers=cabecalhos)

@@ -1480,3 +1480,33 @@ Os itens 1, 2, 4, 5, 6 e 7 estavam implementados **antes** desta sessão; eu ape
 no código, porque a missão proíbe tratar documentação como prova. O item 3 foi o único que
 mudou de estado, e apenas na parte que não depende de terceiros (geração e assinatura passaram a
 existir para CT-e e MDF-e).
+
+#### RESOLVIDO: o 215 era **SOAP 1.1** e **prefixo de namespace**
+
+Duas causas, ambas encontradas testando o **outro binding que o WSDL declara** (não por chute):
+
+1. **Versão do SOAP**: o WSDL declara `soap:binding` (1.1) **e** `soap12:binding`. O SVRS
+   responde 215 ao envelope 1.2 e aceita o 1.1 com `Content-Type: text/xml` +
+   `SOAPAction` no header.
+2. **Prefixo do XML fiscal**: o `envelopar` declarava `xmlns:nfe` no envelope, então o lxml
+   serializava o documento como `<nfe:consStatServ>` em vez de `<consStatServ xmlns=...>`.
+   O SVRS recusa a forma prefixada com o mesmo 215.
+
+**Resultado medido com o código do projeto** (não com script avulso):
+
+| UF | Via SVRS | Resultado |
+|---|---|---|
+| ES | `NFeStatusServico4` | **cStat 107 — Serviço em Operação** |
+| SC | idem | **cStat 107** |
+| TO | idem | **cStat 107** |
+| GO | SEFAZ-GO (SOAP 1.2) | **cStat 107** (sem regressão) |
+
+O SVRS atende ~18 UFs, então o cliente passou de "só GO" para o conjunto servido pelo SVRS.
+
+**Implementado e testado** (39 testes no conjunto SOAP):
+`envelopar(soap_versao=)`, `TransporteHTTP(soap_versao=)`, `ClienteSefaz.chamar(soap_versao=)`
+e `desenvelopar` aceitando `Body` de 1.1 **e** 1.2. Os defaults preservam 1.2, que é o que GO
+exige — nenhuma regressão.
+
+**O que isso NÃO muda**: nenhuma nota foi emitida. `NFeAutorizacao4` continua sem chamada, e
+autorizar exige credenciamento. Status é leitura, não emissão.

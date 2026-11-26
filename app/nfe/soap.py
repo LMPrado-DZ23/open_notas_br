@@ -17,6 +17,9 @@ from __future__ import annotations
 from lxml import etree
 
 NS_SOAP12 = "http://www.w3.org/2003/05/soap-envelope"
+#: SOAP 1.1 — exigido por endpoints `.asmx` do SVRS/SEFAZ-SP. Medido: com 1.2 o SVRS
+#: responde 215 "Falha no schema XML"; com 1.1 aceita e devolve o retorno fiscal.
+NS_SOAP11 = "http://schemas.xmlsoap.org/soap/envelope/"
 NS_NFE = "http://www.portalfiscal.inf.br/nfe"
 
 #: Nome do elemento que carrega o XML fiscal no corpo. É fixo no leiaute.
@@ -27,8 +30,14 @@ class ErroSOAP(Exception):
     """Envelope malformado ou resposta sem corpo reconhecível."""
 
 
-def envelopar(xml_fiscal: bytes, *, versao: str = "4.00", ns_servico: str | None = None) -> bytes:
-    """Embrulha o XML fiscal num envelope SOAP 1.2.
+def envelopar(
+    xml_fiscal: bytes,
+    *,
+    versao: str = "4.00",
+    ns_servico: str | None = None,
+    soap_versao: str = "1.2",
+) -> bytes:
+    """Embrulha o XML fiscal num envelope SOAP 1.1 ou 1.2.
 
     O `versao` fica no documento fiscal, não no envelope: o envelope SOAP 1.2 não tem
     atributo de versão de leiaute.
@@ -38,8 +47,12 @@ def envelopar(xml_fiscal: bytes, *, versao: str = "4.00", ns_servico: str | None
     except etree.XMLSyntaxError as exc:
         raise ErroSOAP(f"XML fiscal inválido: {exc}") from exc
 
-    envelope = etree.Element(f"{{{NS_SOAP12}}}Envelope", nsmap={"soap12": NS_SOAP12, "nfe": NS_NFE})
-    corpo = etree.SubElement(envelope, f"{{{NS_SOAP12}}}Body")
+    ns_soap, prefixo = (NS_SOAP11, "soap") if soap_versao == "1.1" else (NS_SOAP12, "soap12")
+    # Sem declarar o prefixo `nfe` no envelope: se ele existe, o lxml serializa o XML
+    # fiscal como `<nfe:consStatServ>` em vez de namespace padrão, e o SVRS recusa com
+    # 215 "Falha no schema XML". Medido: sem o prefixo, o mesmo pedido passa.
+    envelope = etree.Element(f"{{{ns_soap}}}Envelope", nsmap={prefixo: ns_soap})
+    corpo = etree.SubElement(envelope, f"{{{ns_soap}}}Body")
     # O wrapper vive no namespace **do serviço** (`.../wsdl/NFeStatusServico4`), não no fiscal.
     # Medido: GO aceita o namespace fiscal, SVRS responde 242 "Mensagem SOAP inválida".
     dados_msg = etree.SubElement(corpo, f"{{{ns_servico or NS_NFE}}}{ELEMENTO_DADOS}")
@@ -60,10 +73,14 @@ def desenvelopar(resposta: bytes) -> etree._Element:
     except etree.XMLSyntaxError as exc:
         raise ErroSOAP(f"resposta não é XML: {exc}") from exc
 
+    # A resposta pode vir em SOAP 1.2 (GO, endpoints `.svc`) ou 1.1 (SVRS/SEFAZ-SP, `.asmx`).
+    # Procurar só em 1.2 fazia a resposta do SVRS falhar com "não é XML".
     corpo = raiz.find(f".//{{{NS_SOAP12}}}Body")
+    if corpo is None:
+        corpo = raiz.find(f".//{{{NS_SOAP11}}}Body")
     if corpo is None or len(corpo) == 0:
-        # Também acontece quando a SEFAZ devolve SOAP 1.1 ou um HTML de erro de gateway.
-        raise ErroSOAP("resposta sem Body SOAP 1.2 com conteúdo")
+        # Também acontece quando a SEFAZ devolve um HTML de erro de gateway.
+        raise ErroSOAP("resposta sem Body SOAP com conteúdo")
 
     elemento = corpo[0]
 

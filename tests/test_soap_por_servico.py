@@ -13,7 +13,7 @@ Os valores vêm do WSDL oficial de cada serviço (`soap12:operation soapAction=.
 
 from __future__ import annotations
 
-from app.nfe.soap import NS_NFE, NS_SOAP12, envelopar
+from app.nfe.soap import NS_NFE, NS_SOAP11, NS_SOAP12, desenvelopar, envelopar
 from lxml import etree
 
 NS_SERVICO = "http://www.portalfiscal.inf.br/nfe/wsdl/NFeStatusServico4"
@@ -59,3 +59,57 @@ class TestActionNoTransporte:
         from app.nfe.transporte import TransporteHTTP
 
         assert TransporteHTTP()._soap_action == ""
+
+
+class TestSoap11:
+    """SOAP 1.1 destrava os endpoints `.asmx` do SVRS, que recusam 1.2 com 215."""
+
+    def test_envelope_11_usa_namespace_soap_11(self) -> None:
+        envelope = envelopar(FISCAL, ns_servico=NS_SERVICO, soap_versao="1.1")
+        assert NS_SOAP11.encode() in envelope
+        assert NS_SOAP12.encode() not in envelope
+
+    def test_envelope_12_continua_padrao(self) -> None:
+        envelope = envelopar(FISCAL, ns_servico=NS_SERVICO)
+        assert NS_SOAP12.encode() in envelope
+
+    def test_fiscal_usa_namespace_padrao_e_nao_prefixo(self) -> None:
+        # Achado medido: se o envelope declara o prefixo `nfe`, o lxml serializa o XML fiscal
+        # como `<nfe:consStatServ>` e o SVRS recusa com 215 "Falha no schema XML".
+        envelope = envelopar(FISCAL, ns_servico=NS_SERVICO, soap_versao="1.1").decode()
+        assert "<nfe:consStatServ" not in envelope
+        assert "<consStatServ xmlns=" in envelope
+        assert 'versao="4.00"' in envelope
+
+    def test_desenvelopar_le_resposta_soap_11(self) -> None:
+        resposta = (
+            b'<?xml version="1.0"?>'
+            b'<soap:Envelope xmlns:soap="' + NS_SOAP11.encode() + b'">'
+            b'<soap:Body><retConsStatServ xmlns="http://www.portalfiscal.inf.br/nfe" '
+            b'versao="4.00"><cStat>107</cStat></retConsStatServ></soap:Body></soap:Envelope>'
+        )
+        extraido = desenvelopar(resposta)
+        assert etree.QName(extraido).localname == "retConsStatServ"
+
+    def test_desenvelopar_le_resposta_soap_12(self) -> None:
+        resposta = (
+            b'<?xml version="1.0"?>'
+            b'<env:Envelope xmlns:env="' + NS_SOAP12.encode() + b'">'
+            b'<env:Body><retConsStatServ xmlns="http://www.portalfiscal.inf.br/nfe" '
+            b'versao="4.00"><cStat>107</cStat></retConsStatServ></env:Body></env:Envelope>'
+        )
+        extraido = desenvelopar(resposta)
+        assert etree.QName(extraido).localname == "retConsStatServ"
+
+
+class TestCabecalhosPorVersao:
+    def test_11_usa_text_xml_e_soapaction(self) -> None:
+        from app.nfe.transporte import TransporteHTTP
+
+        tr = TransporteHTTP(soap_action="http://x/y", soap_versao="1.1")
+        assert tr._soap_versao == "1.1"
+
+    def test_12_continua_padrao(self) -> None:
+        from app.nfe.transporte import TransporteHTTP
+
+        assert TransporteHTTP()._soap_versao == "1.2"
