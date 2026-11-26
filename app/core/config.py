@@ -83,6 +83,11 @@ class Settings(BaseSettings):
 
     nfse_adapter: str = "sefin"
 
+    #: Liga o rate limit por tenant. Padrão **falso** de propósito: ligar de uma vez
+    #: mudaria o comportamento de todas as rotas existentes. Quem quer, liga.
+    rate_limit_habilitado: bool = False
+    rate_limit_por_minuto: int = 60
+
     # -- CNPJ (Fase 3) ------------------------------------------------
     serpro_cnpj_token: str = ""
     serpro_cnpj_base_url: str = "https://gateway.apiserpro.serpro.gov.br/consulta-cnpj-df-v1"

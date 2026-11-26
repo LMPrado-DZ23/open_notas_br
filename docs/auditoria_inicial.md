@@ -615,3 +615,20 @@ têm apenas representação impressa.
 - Isolamento por tenant verificado: listar e reprocessar item de outro tenant falham.
 - **Ainda ausente**: endpoint `POST /v1/admin/dlq/{id}/replay` (exige auth de admin, que
   o projeto não tem hoje — só auth de tenant) e a ligação com o worker ARQ real.
+
+### 5e. Rate limit ligado ao middleware (Etapa H, parte 3)
+
+- `app/core/middleware_ratelimit.py` + `rate_limit_habilitado`/`rate_limit_por_minuto` em
+  `Settings` e documentados no `.env.example`. **8 testes**.
+- **Desligado por padrão.** Ligar por padrão mudaria o comportamento de todas as rotas
+  existentes de uma vez. Teste verifica `Settings().rate_limit_habilitado is False`.
+- Cota por **tenant**, não por IP. Sem API key, cai para o IP. Usa só o **prefixo** da
+  API key no storage — o hash do segredo não deve viver ali.
+- `/health` e `/ready` **isentos**: health precisa responder sob ataque, senão o
+  orquestrador mata o pod.
+- 429 em `application/problem+json` com `Retry-After` e `X-RateLimit-*`. Falha aberta se
+  o storage cair.
+- **O teste de configuração documentada pegou a omissão**: os dois campos novos não
+  estavam no `.env.example` e a suíte ficou vermelha antes do commit. Era exatamente o
+  guarda funcionando.
+- **Ainda ausente**: ligar em produção (decisão operacional) e o circuit breaker no worker.
