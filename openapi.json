@@ -355,6 +355,184 @@
         }
       }
     },
+    "/v1/credenciais-municipais": {
+      "get": {
+        "tags": [
+          "credenciais"
+        ],
+        "summary": "Listar",
+        "operationId": "listar_v1_credenciais_municipais_get",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Listar V1 Credenciais Municipais Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "credenciais"
+        ],
+        "summary": "Salvar",
+        "description": "Cria ou atualiza. Só aceita município que existe no cadastro.",
+        "operationId": "salvar_v1_credenciais_municipais_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CredencialIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Salvar V1 Credenciais Municipais Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/credenciais-municipais/{codigo_ibge}": {
+      "delete": {
+        "tags": [
+          "credenciais"
+        ],
+        "summary": "Desativar",
+        "description": "Desativa. Não apaga: a credencial continua ligada às notas já emitidas.",
+        "operationId": "desativar_v1_credenciais_municipais__codigo_ibge__delete",
+        "parameters": [
+          {
+            "name": "codigo_ibge",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Codigo Ibge"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Desativar V1 Credenciais Municipais  Codigo Ibge  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/fretes/oauth/iniciar": {
       "get": {
         "tags": [
@@ -4141,6 +4319,77 @@
           "observacao"
         ],
         "title": "CotacaoOut"
+      },
+      "CredencialIn": {
+        "properties": {
+          "codigo_ibge": {
+            "type": "string",
+            "maxLength": 7,
+            "minLength": 7,
+            "pattern": "^\\d{7}$",
+            "title": "Codigo Ibge"
+          },
+          "inscricao_municipal": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inscricao Municipal"
+          },
+          "usuario_ws": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usuario Ws"
+          },
+          "senha_ws": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Senha Ws"
+          },
+          "token_ws": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Ws"
+          },
+          "serie_rps_padrao": {
+            "type": "string",
+            "maxLength": 5,
+            "title": "Serie Rps Padrao",
+            "default": "1"
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo_ibge"
+        ],
+        "title": "CredencialIn",
+        "description": "Dados de entrada. Segredo só entra, nunca sai."
       },
       "DocumentoOut": {
         "properties": {

@@ -580,3 +580,21 @@ têm apenas representação impressa.
 - **Limitação declarada**: busca por `nome` é `ilike` sem normalização de acento;
   "goiania" não encontra "Goiânia". Documentado em vez de fingir busca fuzzy.
 - **Pendente**: rotas de credencial (exigem o cofre) e status de certificado.
+
+### 2g. Rotas de credencial municipal (Etapa D)
+
+- `app/api/v1/credenciais.py`: `GET /v1/credenciais-municipais`,
+  `POST /v1/credenciais-municipais`, `DELETE /v1/credenciais-municipais/{codigo_ibge}`.
+- **A resposta nunca traz o segredo nem o ciphertext**: só `tem_usuario`/`tem_senha`/
+  `tem_token`. Teste dedicado verifica que a senha enviada não aparece em `resposta.text`.
+- **Isolamento por tenant**: lista de um tenant não mostra credencial de outro; `DELETE`
+  de outro tenant responde 404 (não 403 — 403 revelaria que existe).
+- `DELETE` **desativa, não apaga**: a linha continua no banco, ligada às notas emitidas.
+  Testado com `SELECT` direto após o DELETE.
+- Só aceita município existente no cadastro; `404` com mensagem que aponta
+  `GET /v1/municipios`.
+- 10 testes em `tests/test_credenciais_rota.py`. Rotas: 51 → **53**.
+- **Bug pego na execução**: `app.certificates.vault` não existe — o módulo é
+  `app.core.vault`.
+- **Pendente**: `GET /v1/tenants/{id}/certificado/status` e o teste de conectividade
+  (`consultar_servico`) exigido pelo v10.0 ao cadastrar credencial.

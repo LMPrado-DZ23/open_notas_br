@@ -10,6 +10,7 @@ from app.api.v1 import (
     certificados,
     cnpj,
     consulta,
+    credenciais,
     emissoes,
     fretes,
     health,
@@ -25,6 +26,7 @@ router = APIRouter()
 router.include_router(health.router)
 router.include_router(consulta.router)
 router.include_router(municipios.router)
+router.include_router(credenciais.router)
 router.include_router(fretes.router)
 router.include_router(tenants.router)
 router.include_router(certificados.router)
