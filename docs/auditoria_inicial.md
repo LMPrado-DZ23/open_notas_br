@@ -1876,3 +1876,33 @@ todos, e o controle provou que era serviço inexistente, não sonda ruim.
 
 Regra que passa a valer neste projeto: **GET só serve para `?wsdl` de `.asmx`**; qualquer outro
 endpoint se mede com POST SOAP e leitura de `cStat`.
+
+### 37. Transmissão de CT-e e MDF-e: transporte pronto, sem emitir
+
+Extraí os parâmetros dos WSDL de recepção (HTTP 200 com mTLS) e implementei o transporte:
+
+| Documento | namespace | action | wrapper |
+|---|---|---|---|
+| CT-e | `.../cte/wsdl/CTeRecepcaoSincV4` | `.../cteRecepcao` | `cteDadosMsg` |
+| MDF-e | `.../mdfe/wsdl/MDFeRecepcaoSinc` | `.../mdfeRecepcao` | `mdfeDadosMsg` |
+
+Ambos SOAP 1.2. `app/cte/transmissao.py` e `app/mdfe/transmissao.py`, com 9 testes.
+
+**Deliberadamente não chamados contra a SEFAZ.** A autorização do dono cobre leitura
+(status, consulta); transmitir aqui é **emitir documento**. O transporte existe para o dia do
+credenciamento, e o limite está escrito no docstring do módulo — não escondido.
+
+Cada `enviar()` recusa documento sem `<Signature` antes de tocar a rede: a SEFAZ rejeitaria, e o
+erro local é mais claro que um `215` remoto.
+
+**Estado do ciclo de CT-e/MDF-e**:
+
+| Etapa | Situação |
+|---|---|
+| Geração | ✅ validada contra XSD |
+| Assinatura | ✅ XMLDSig, verificada |
+| Transporte | ✅ implementado e testado (não exercitado) |
+| Consulta/status | ✅ **107 real** |
+| Evento | ✅ envelope validado |
+| Inutilização | ❌ serviço não existe em 4.00 (§34) |
+| **Emissão real** | ⏸️ credenciamento |
