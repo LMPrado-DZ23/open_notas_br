@@ -27,7 +27,7 @@ class ErroSOAP(Exception):
     """Envelope malformado ou resposta sem corpo reconhecível."""
 
 
-def envelopar(xml_fiscal: bytes, *, versao: str = "4.00") -> bytes:
+def envelopar(xml_fiscal: bytes, *, versao: str = "4.00", ns_servico: str | None = None) -> bytes:
     """Embrulha o XML fiscal num envelope SOAP 1.2.
 
     O `versao` fica no documento fiscal, não no envelope: o envelope SOAP 1.2 não tem
@@ -40,7 +40,9 @@ def envelopar(xml_fiscal: bytes, *, versao: str = "4.00") -> bytes:
 
     envelope = etree.Element(f"{{{NS_SOAP12}}}Envelope", nsmap={"soap12": NS_SOAP12, "nfe": NS_NFE})
     corpo = etree.SubElement(envelope, f"{{{NS_SOAP12}}}Body")
-    dados_msg = etree.SubElement(corpo, f"{{{NS_NFE}}}{ELEMENTO_DADOS}")
+    # O wrapper vive no namespace **do serviço** (`.../wsdl/NFeStatusServico4`), não no fiscal.
+    # Medido: GO aceita o namespace fiscal, SVRS responde 242 "Mensagem SOAP inválida".
+    dados_msg = etree.SubElement(corpo, f"{{{ns_servico or NS_NFE}}}{ELEMENTO_DADOS}")
     dados_msg.append(dados)
 
     return b'<?xml version="1.0" encoding="UTF-8"?>' + etree.tostring(envelope)

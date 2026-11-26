@@ -1412,3 +1412,27 @@ endpoints são `.svc` (SOAP 1.2 sem action obrigatória).
 inventá-la violaria a regra de não fabricar referência fiscal. O caminho é obter os WSDLs de
 SVRS e SP (fontes oficiais), versioná-los e derivar a action de cada operação — como foi feito
 com os XSDs.
+
+#### Progressão medida no SVRS (cada camada destravada com fonte oficial)
+
+| Passo | Configuração | Resposta |
+|---|---|---|
+| 1 | `action=""`, wrapper no namespace fiscal | **HTTP 500** |
+| 2 | `action` do WSDL (`.../nfeStatusServicoNF`) | `cStat 242` — "Mensagem SOAP inválida" |
+| 3 | wrapper no `targetNamespace` do serviço | `cStat 215` — "Falha no schema XML" |
+| 4 | ? | envelope aceito; **XML fiscal recusado** |
+
+O `consStatServ` enviado **valida contra `consStatServ_v4.00.xsd`** localmente
+(`cUF 43`, `tpAmb 2`, `xServ STATUS`), então o 215 não é XML fiscal malformado no sentido do
+leiaute — é divergência entre o que o SVRS espera e o que enviamos, e só o **schema da mensagem
+do WSDL** diz qual.
+
+**Implementado e testado** (`tests/test_soap_por_servico.py`, 7 testes):
+`envelopar(..., ns_servico=)` e `TransporteHTTP(soap_action=)`, ambos com default que preserva o
+comportamento que GO aceita. Nada foi chutado: `action` e namespace vêm do WSDL baixado com o
+certificado (`https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx?wsdl`).
+
+**O que falta para fechar o SVRS**: obter e versionar o **WSDL + schema da mensagem** de cada
+serviço por autorizador, como foi feito com os XSDs, e derivar o shape exato do `nfeDadosMsg`.
+Sem isso, continuar tentando seria adivinhação — e adivinhação em serviço fiscal é como o
+projeto já se queimou antes.

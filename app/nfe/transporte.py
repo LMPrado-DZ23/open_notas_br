@@ -65,13 +65,18 @@ class ClienteSefaz:
         self._timeout = timeout_s
 
     async def chamar(
-        self, *, url: str, xml_fiscal: bytes, timeout_s: float | None = None
+        self,
+        *,
+        url: str,
+        xml_fiscal: bytes,
+        timeout_s: float | None = None,
+        ns_servico: str | None = None,
     ) -> RespostaSefaz:
         if not url.startswith("https://"):
             # R3: serviço fiscal em http é dado e credencial em texto claro.
             raise ValueError("URL de webservice precisa ser https")
 
-        envelope = envelopar(xml_fiscal)
+        envelope = envelopar(xml_fiscal, ns_servico=ns_servico)
 
         try:
             bruto = await self._transporte.enviar(
@@ -113,17 +118,22 @@ class TransporteHTTP:
         cert_pem: str | None = None,
         key_pem: str | None = None,
         cliente: Any = None,
+        soap_action: str = "",
     ) -> None:
         # `cliente` permite injetar um `httpx.AsyncClient` já configurado (teste).
         self._cert = (cert_pem, key_pem) if cert_pem and key_pem else None
         self._cliente = cliente
+        # Os endpoints `.asmx` do SVRS/SEFAZ-SP exigem a `action` do serviço; sem ela respondem
+        # HTTP 500 ao mesmo XML que GO aceita. O valor vem do WSDL oficial de cada serviço
+        # (`soap12:operation soapAction=...`), nunca de chute.
+        self._soap_action = soap_action
 
     async def enviar(self, *, url: str, corpo: bytes, timeout_s: float) -> bytes:
         import httpx
 
         cabecalhos = {
             # SOAP 1.2 usa `application/soap+xml`, não `text/xml` do SOAP 1.1.
-            "Content-Type": 'application/soap+xml; charset=utf-8; action=""',
+            "Content-Type": (f'application/soap+xml; charset=utf-8; action="{self._soap_action}"'),
             "Accept": "application/soap+xml",
         }
 
