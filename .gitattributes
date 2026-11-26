@@ -1,15 +1,5 @@
-# Normaliza fim de linha: o repositório guarda LF, o checkout do Windows converte.
-* text=auto eol=lf
-
-*.py   text eol=lf
-*.md   text eol=lf
-*.toml text eol=lf
-*.yml  text eol=lf
-*.yaml text eol=lf
-*.json text eol=lf
-
-# Binários e artefatos
-*.png  binary
-*.jpg  binary
-*.pdf  binary
-*.zip  binary
+# Fim de linha fixo: o manifesto SHA-256 de XSD compara BYTES. Com CRLF no Windows e LF
+# no Linux, o mesmo arquivo gera hash diferente e a verificacao falha no CI.
+* text=auto
+tests/fixtures/schemas/** text eol=lf
+data/xsd_manifest.json text eol=lf

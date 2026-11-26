@@ -10,20 +10,22 @@ from __future__ import annotations
 import base64
 
 import pytest
-from app.core.config import Settings
-from pydantic import ValidationError
+from app.core.config import Settings, validar_ambiente_de_execucao
 
 CHAVE = base64.b64encode(b"k" * 32).decode()
 
 
 class TestMockEmProducao:
     def test_recusa_mock_em_producao(self) -> None:
-        with pytest.raises(ValidationError, match="NFSE_ADAPTER=mock"):
-            Settings(
-                environment="production",
-                nfse_adapter="mock",
-                master_encryption_key=CHAVE,
-            )
+        # A checagem e de STARTUP, nao do construtor: ler Settings para inspecao nao pode
+        # explodir (era o que quebrava o CI, que define NFSE_ADAPTER=mock no ambiente).
+        conf = Settings(environment="production", nfse_adapter="mock", master_encryption_key=CHAVE)
+        with pytest.raises(ValueError, match="NFSE_ADAPTER=mock"):
+            validar_ambiente_de_execucao(conf)
+
+    def test_construir_settings_com_mock_em_producao_nao_explode(self) -> None:
+        conf = Settings(environment="production", nfse_adapter="mock", master_encryption_key=CHAVE)
+        assert conf.nfse_adapter == "mock"
 
     def test_producao_com_sefin_passa(self) -> None:
         conf = Settings(environment="production", nfse_adapter="sefin", master_encryption_key=CHAVE)

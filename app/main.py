@@ -28,7 +28,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.api.v1 import health
 from app.api.v1.router import router as v1_router
 from app.core.circuit import CircuitoAberto
-from app.core.config import get_settings
+from app.core.config import get_settings, validar_ambiente_de_execucao
 from app.core.errors import de_http_exception
 from app.core.logging import configurar_logging
 from app.core.redis import fechar_redis
@@ -135,6 +135,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 def criar_app() -> FastAPI:
     """Fábrica da aplicação (testável e reutilizável)."""
     settings = get_settings()
+
+    validar_ambiente_de_execucao(get_settings())
 
     app = FastAPI(
         title="open_notas_br",
