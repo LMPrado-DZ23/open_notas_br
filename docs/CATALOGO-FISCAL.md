@@ -291,7 +291,7 @@ autorizadores: SVRS (16 UFs), AM, BA, GO, SVAN, MG, MS, MT, PE, PR, RS, SP
 | Documento | Homologação | Produção |
 |---|---|---|
 | **NF-e (55)** | **27/27 (100%)** | **27/27** |
-| NFC-e (65) | 8/27 | 8/27 |
+| **NFC-e (65)** | **27/27 (100%)** | **27/27** |
 
 ### Duas armadilhas tratadas
 
@@ -301,8 +301,16 @@ autorizadores: SVRS (16 UFs), AM, BA, GO, SVAN, MG, MS, MT, PE, PR, RS, SP
    coexistem no arquivo. Comparando case-sensitive, 17 UFs apareciam "sem URL" — falso
    negativo que quase me fez desistir da fonte.
 
-### NFC-e segue em 8/27
+### NFC-e: 8/27 → 27/27
 
-O INI é de NF-e (modelo 55). As 19 UFs restantes de NFC-e exigem fonte própria — e **não**
-presumo que a URL de NF-e sirva para NFC-e: São Paulo já provou o contrário
-(`nfe.fazenda.sp` × `nfce.fazenda.sp`).
+O mesmo INI tem 58 seções `NFCe_<UF>_<P|H>`. Estendi o conversor para os dois prefixos e o
+resultado foi 540 linhas (270 por modelo):
+
+```
+linhas=540  válidas=540  erros=0  UFs=27/27
+autorizadores: SVRS (70 = 35 blocos x 2 modelos), AM, GO, MG, MS, MT...
+```
+
+**O modelo continua na chave** — São Paulo usa hosts diferentes para 55 e 65
+(`nfe.fazenda.sp` × `nfce.fazenda.sp`). Se `modelo` não existisse, a importação de NFC-e
+teria sobrescrito a de NF-e e a nota de SP iria para o host errado.

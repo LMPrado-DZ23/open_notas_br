@@ -85,32 +85,35 @@ def main() -> int:
     linhas: list[dict] = []
     usados: Counter = Counter()
 
-    for uf in UFS:
-        for sufixo, ambiente in (("P", "1"), ("H", "2")):
-            secao, bloco = resolver(secoes, f"NFe_{uf}_{sufixo}")
-            if not bloco:
-                continue
-            autorizador = secao.split("_")[1] if "_" in secao else uf
-            usados[autorizador] += 1
-            for chave, servico in MAPA.items():
-                url = bloco.get(chave)
-                if not url:
+    # O mesmo INI cobre NF-e (`NFe_`) e NFC-e (`NFCe_`). O modelo vai na linha porque os
+    # hosts divergem em algumas UFs (SP: nfe.fazenda.sp x nfce.fazenda.sp).
+    for prefixo, modelo in (("NFe", "55"), ("NFCe", "65")):
+        for uf in UFS:
+            for sufixo, ambiente in (("P", "1"), ("H", "2")):
+                secao, bloco = resolver(secoes, f"{prefixo}_{uf}_{sufixo}")
+                if not bloco:
                     continue
-                limpa = limpar(url)
-                if not limpa.startswith("https://"):
-                    continue
-                linhas.append(
-                    {
-                        "uf": uf,
-                        "modelo": "55",
-                        "ambiente": ambiente,
-                        "servico": servico,
-                        "url": limpa,
-                        "versao_soap": "1.2",
-                        "fonte_url": FONTE,
-                        "autorizador": autorizador,
-                    }
-                )
+                autorizador = secao.split("_")[1] if "_" in secao else uf
+                usados[autorizador] += 1
+                for chave, servico in MAPA.items():
+                    url = bloco.get(chave)
+                    if not url:
+                        continue
+                    limpa = limpar(url)
+                    if not limpa.startswith("https://"):
+                        continue
+                    linhas.append(
+                        {
+                            "uf": uf,
+                            "modelo": modelo,
+                            "ambiente": ambiente,
+                            "servico": servico,
+                            "url": limpa,
+                            "versao_soap": "1.2",
+                            "fonte_url": FONTE,
+                            "autorizador": autorizador,
+                        }
+                    )
 
     validas, erros = validar_lote(linhas)
     for erro in erros[:5]:
