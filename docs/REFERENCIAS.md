@@ -929,9 +929,21 @@ O portal distribui Pacotes de Liberação numerados (PL), e há indicativo de du
 linhas relevantes em 2026: **PL_009_V4** (amplamente usado) e **PL_010**, que
 acrescenta **IBS/CBS** da Reforma Tributária.
 
-**Não confirmei qual é o vigente** — consulta ao portal encontrou redirecionamento em
-excesso, e o que sei de PL_010 vem de fonte secundária. O gerador atual **não emite
-grupo IBS/CBS**.
+**Confirmado por fonte canônica** (lista de `schemes/` do `nfephp-org/sped-nfe`, a
+biblioteca PHP de referência do mercado): existem `PL_009_V4` e a linha **PL_010** em
+várias revisões — `PL_010_V1`, `PL_010_V1.21`, `PL_010_V1.30`, `PL_010g` e
+**`PL_010h`** (a mais recente no repositório). Ou seja: a linha vigente é **PL_010**,
+e o PL_009 é legado.
+
+Consulta ao Portal Nacional deu redirecionamento em excesso (não consegui baixar o ZIP
+oficial nesta sessão), então a versão exata publicada pelo governo **não foi
+verificada**. O gerador atual **não emite grupo IBS/CBS**.
+
+Referências canônicas para a próxima fatia:
+- [nfephp-org/sped-nfe](https://github.com/nfephp-org/sped-nfe) — schemas por PL e
+  implementação de referência em PHP
+- [Projeto ACBr](https://projetoacbr.com.br/) — implementação de referência em
+  Delphi/Lazarus, com os webservices por UF
 
 Antes de enviar qualquer NF-e em produção:
 1. baixar o PL vigente em Portal Nacional da NF-e → Documentos → Esquemas XML;
