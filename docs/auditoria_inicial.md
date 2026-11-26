@@ -1456,3 +1456,27 @@ artefatos (possivelmente validação interna do autorizador ou exigência não p
 **Próximo passo, se alguém retomar**: comparar com uma requisição que o SVRS aceite (ex.: capturar
 o tráfego de um cliente homologado, ou usar o validador oficial do Portal da NF-e) em vez de
 tentar variações. Adivinhar aqui já custou o suficiente.
+
+### 29. Verificação obrigatória das 7 lacunas — estado final
+
+Cada item foi conferido **no código executável**, não em nome de arquivo ou documentação.
+
+| # | Item | Estado | Evidência concreta |
+|---|---|---|---|
+| 1 | `app/nfse/drivers/` multi-prefeitura | **implementado e testado** | interface comum, driver nacional, `MOTOR_ABRASF` que **recusa** com motivo factual em vez de fingir suporte; testes com fixtures |
+| 2 | Modelos/migrações `municipios_nfse`, `credenciais_municipais`, `webservices_sefaz` | **implementado e testado** | chaves únicas `(uf, modelo, ambiente, servico)`; `credenciais_municipais` cifrada com AAD por tenant; `fonte_url` obrigatória e https; 11 migrations com round-trip |
+| 3 | SOAP por documento | **parcial, com bloqueio nomeado** | NFS-e e NF-e com envio/consulta no código; CT-e e MDF-e **sem** envio; ver §26 |
+| 4 | `CalculoAudit` | **implementado e testado** | `hash_entrada`/`hash_saida` (SHA-256, 64 chars), `versao_formato`, `regras`, `tabelas`, `entrada`, `saida`, `data_emissao`, `tenant_id`; gravado por `app/tax/auditoria_service.py:32`; índice `(tenant_id, data_emissao)` |
+| 5 | RFC 7807, circuit breaker, DLQ, rate limit | **implementado e testado** | problem+json nos handlers; breaker por endpoint; DLQ com replay único; rate limit por tenant (sliding window) — todos com teste |
+| 6 | Hash SHA-256 de XSD no boot | **implementado e testado** | 112 XSD no manifesto; `app.core.schemas.carregar_manifesto`/`verificar`; divergência vira erro explícito; 13 testes |
+| 7 | `Idempotency-Key` | **implementado e testado** | header em `emissoes.py` (`alias="Idempotency-Key"`), persistido por tenant, com teste de concorrência; campo do body mantido como fallback compatível |
+
+**Nenhum item ficou "parcial por preguiça"**: o único parcial (3) tem bloqueio externo nomeado —
+o ciclo de autorização de CT-e/MDF-e exige credenciamento e certificado para ser verificável.
+
+#### Correção de rota registrada
+
+Os itens 1, 2, 4, 5, 6 e 7 estavam implementados **antes** desta sessão; eu apenas os reconferi
+no código, porque a missão proíbe tratar documentação como prova. O item 3 foi o único que
+mudou de estado, e apenas na parte que não depende de terceiros (geração e assinatura passaram a
+existir para CT-e e MDF-e).
