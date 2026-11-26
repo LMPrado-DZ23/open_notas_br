@@ -1746,3 +1746,40 @@ existe nenhum.
 `git grep` no próprio repositório procurando o que eu havia colado nele. O defeito de CNPJ
 hardcoded na biblioteca (commit `bef763b`) foi o gatilho — e o mesmo tipo de descuido estava em
 quatro arquivos.
+
+### 33. Inutilização e consulta de protocolo de CT-e: as URLs do INI estão mortas
+
+O usuário autorizou pesquisar as fontes. Resultado — e uma correção do meu próprio trabalho.
+
+**O que o INI do ACBr traz** (seção `[CTe_SVRS_H]`):
+
+```
+CTeInutilizacao_3.00=https://cte-homologacao.svrs.rs.gov.br/ws/cteinutilizacao/cteinutilizacao.asmx
+CTeConsultaProtocolo_3.00=https://cte-homologacao.svrs.rs.gov.br/ws/cteconsulta/CTeConsulta.asmx
+```
+
+A [página oficial de endereços da SEFAZ-RS](https://www.sefaz.rs.gov.br/site/MontaDuvidas.aspx?al=l_rel_end_ws_cte) lista o mesmo
+endereço de inutilização. **As duas fontes concordam** — então importei as 108 linhas
+(27 UFs × 2 ambientes × 2 serviços).
+
+**Depois medi, e todas devolveram 404:**
+
+| Sondagem | Resultado |
+|---|---|
+| `cteinutilizacao/cteinutilizacao.asmx?wsdl` | HTTP **404** |
+| `cteinutilizacao/CteInutilizacao.asmx?wsdl` (caixa alta) | HTTP **404** |
+| `cteinutilizacao/cteinutilizacao.asmx` sem query | HTTP **404** |
+| `cteconsulta/CTeConsulta.asmx?wsdl` | HTTP **404** |
+
+Conclusão: são **endpoints da versão 3.00**, e no host 4.00 não existem. O INI do ACBr carrega
+histórico; nem toda linha dele é válida hoje.
+
+**Revertido**: enum, mapa e as 108 linhas. Catálogo de volta a **972** (55:270, 65:270, 57:216,
+58:216).
+
+**Lição — a mais importante deste episódio**: eu critiquei no §30 uma métrica de cobertura que
+escondia serviços faltando. Aqui eu ia cometer o erro espelhado: **inflar a métrica com endpoints
+que não respondem**. Duas fontes concordando não substituem uma chamada que mede.
+
+Estado real: inutilização e consulta de protocolo de CT-e **não têm endpoint vivo em fonte que eu
+tenha**. Continua bloqueado — mas agora com a sonda registrada, não com suposição.
