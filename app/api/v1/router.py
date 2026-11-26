@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    admin,
     apuracoes,
     auditoria,
     certificados,
@@ -29,6 +30,7 @@ router.include_router(consulta.router)
 router.include_router(municipios.router)
 router.include_router(credenciais.router)
 router.include_router(observabilidade.router)
+router.include_router(admin.router)
 router.include_router(fretes.router)
 router.include_router(tenants.router)
 router.include_router(certificados.router)

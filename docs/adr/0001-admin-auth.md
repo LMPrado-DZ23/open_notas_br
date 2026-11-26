@@ -1,6 +1,6 @@
 # ADR 0001 — Admin auth mínima para operações de plataforma
 
-- **Status**: proposta (não implementada)
+- **Status**: **aceita e implementada** (opção A)
 - **Data**: 2026-11-26
 - **Contexto**: item 5 do documento v10.0 pede `POST /v1/admin/dlq/{id}/replay`.
 - **Decisão pendente de**: proprietário do projeto.
@@ -51,11 +51,26 @@ O item 5 fica **fechado exceto o replay**. Não é dívida técnica: é escopo q
 decisão de quem opera o sistema. Registrar isso é mais honesto que inventar uma rota
 "admin" que não autentica admin.
 
-## Critério de aceite (para quando A for aprovada)
+## Critério de aceite — **todos verificados**
 
-- [ ] `admin_habilitado=True` + `admin_api_key` configurada → rota existe
-- [ ] `admin_habilitado=False` (padrão) → rota **não** registrada (404, não 403)
-- [ ] chave errada → 401, sem revelar se a rota existe
-- [ ] replay duplo → 409 (já garantido no serviço)
-- [ ] teste de que tenant comum **não** acessa
-- [ ] chave nunca aparece em log nem em resposta
+- [x] `admin_habilitado=True` + `admin_api_key` configurada → rota existe
+- [x] `admin_habilitado=False` (padrão) → rota **não** registrada (404, não 403)
+- [x] chave errada → 401, sem revelar se a rota existe
+- [x] replay duplo → 409 (já garantido no serviço)
+- [x] teste de que tenant comum **não** acessa
+- [x] chave nunca aparece em log nem em resposta
+
+## Registro de implementação
+
+- `app/api/v1/admin.py`: `exigir_admin` + `POST /v1/admin/dlq/{item_id}/replay`.
+- `admin_habilitado=False` e `admin_api_key=None` por padrão; documentados no `.env.example`.
+- `secrets.compare_digest` na comparação (evita vazar prefixo por tempo de resposta).
+- **404 quando desabilitado, não 403** — não revela existência da rota.
+- `tenant_id` explícito na query: operação de admin atravessa tenants por natureza;
+  deixar implícito esconderia qual tenant está sendo afetado.
+- 9 testes em `tests/test_admin_dlq.py`, incluindo: desabilitado → 404, sem chave → 401,
+  `X-API-Key` de tenant **não** serve, replay duplo → 409, tenant errado → 409, e a chave
+  nunca aparece na resposta.
+
+**Quando migrar para a opção B**: mais de um operador humano. Aí a chave compartilhada
+deixa de bastar porque não há como auditar *quem* reprocessou.

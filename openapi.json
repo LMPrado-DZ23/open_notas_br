@@ -557,6 +557,78 @@
         }
       }
     },
+    "/v1/admin/dlq/{item_id}/replay": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Reprocessar Dlq",
+        "description": "Marca o item para replay.\n\n`tenant_id` é **explícito** e obrigatório: operação de admin atravessa tenants por\nnatureza, e deixar implícito esconderia qual tenant está sendo afetado. O serviço\ncontinua exigindo o tenant certo, então o isolamento não é burlado — ele é declarado.\n\nNão executa a tarefa: quem reexecuta é o worker. Aqui se decide se o replay é\nlegítimo (o serviço recusa replay duplo e item descartado).",
+        "operationId": "reprocessar_dlq_v1_admin_dlq__item_id__replay_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
+          },
+          {
+            "name": "tenant_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tenant Id"
+            }
+          },
+          {
+            "name": "X-Admin-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Reprocessar Dlq V1 Admin Dlq  Item Id  Replay Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/fretes/oauth/iniciar": {
       "get": {
         "tags": [

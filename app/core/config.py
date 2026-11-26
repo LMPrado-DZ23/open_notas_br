@@ -85,6 +85,11 @@ class Settings(BaseSettings):
 
     #: Liga o rate limit por tenant. Padrão **falso** de propósito: ligar de uma vez
     #: mudaria o comportamento de todas as rotas existentes. Quem quer, liga.
+    #: Operações de plataforma (replay de DLQ). Desligadas por padrão: sem chave
+    #: configurada a rota responde 404, não 403. Ver docs/adr/0001-admin-auth.md.
+    admin_habilitado: bool = False
+    admin_api_key: str | None = None
+
     rate_limit_habilitado: bool = False
     rate_limit_por_minuto: int = 60
 
