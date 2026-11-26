@@ -840,3 +840,33 @@ Cada item com estado, prova, teste, risco e **decisão registrada**.
   `NotImplementedError` — o worker **aceitaria o job e sempre falharia para a DLQ**. Meia
   medida pior que ausência: enfileira trabalho que nunca executa. Arquivo removido e
   `main.py` revertido; `WorkerSettings.functions` segue com as 3 tarefas originais.
+
+### 16. HTML de gateway classificado como recusa fiscal — corrigido
+
+**Achado em execução real**, não em leitura de código. Ao rodar o demo end-to-end, a SEFIN
+respondeu:
+
+```
+403 - Forbidden: Access is denied.   (HTML do IIS/WAF)
+```
+
+E o cliente classificou como `AUTENTICACAO` com a mensagem "a SEFIN recusou a DPS",
+despejando o HTML inteiro no erro.
+
+**Duas consequências erradas**:
+1. O lojista concluiria "certificado recusado" e **pararia de tentar** — quando o problema
+   era infraestrutura na frente do serviço, que pode voltar.
+2. O HTML ia para a mensagem, escondendo a causa e poluindo resposta de API.
+
+**Correção** em `app/nfse/transport.py`: `_parece_html` detecta a marca real (doctype
+HTML ou elemento raiz `html`) — não basta olhar o primeiro caractere, porque HTML e XML
+começam com `<`. Resposta HTML com `401/403` vira `INDISPONIVEL`, com mensagem que diz que
+foi gateway/WAF e sem mensagens fiscais inventadas.
+
+**Não confundir com recusa fiscal real**: `403` com XML do leiaute continua `AUTENTICACAO`.
+7 testes em `tests/test_nfse_transport_classificacao.py`.
+
+**Risco residual declarado**: a SEFIN estava respondendo 403 HTML no momento da execução.
+Não sei se é WAF por volume, mudança de credenciamento ou indisponibilidade — **não
+verifiquei**. O que está verificado é que o erro agora é classificado corretamente e a
+mensagem não mente sobre a causa.

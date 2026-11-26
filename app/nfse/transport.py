@@ -174,12 +174,46 @@ def executar(
     return ResultadoHTTP(resposta.status_code, corpo, texto, duracao)
 
 
+def _parece_html(texto: str) -> bool:
+    """HTML de gateway/WAF, não resposta fiscal.
+
+    Não basta olhar o primeiro caractere: HTML e XML começam com `<`. Também não basta
+    dizer "não é XML", porque XML fiscal malformado continua sendo resposta da SEFIN.
+    A marca real é o elemento raiz ser `html` (ou o doctype HTML).
+    """
+    if not texto:
+        return False
+    amostra = texto[:512].lower()
+    if "<!doctype html" in amostra or "<html" in amostra:
+        return True
+    try:
+        from lxml import etree
+
+        raiz = etree.fromstring(texto.strip().encode("utf-8", errors="ignore"))
+    except Exception:
+        return False
+    return etree.QName(raiz).localname.lower() == "html"
+
+
 def erro_http(resultado: ResultadoHTTP, resumo: str, *, ambiente: str | None = None) -> ErroSefin:
     """Classifica uma resposta de erro e monta o `ErroSefin` correspondente."""
     status = resultado.status_code
     mensagens = extrair_mensagens(resultado.json) or extrair_mensagens(resultado.texto)
 
-    if status in _NAO_AUTENTICADO:
+    # Resposta que não é XML/JSON é HTML de gateway/WAF, não recusa fiscal. Tratar como
+    # `AUTENTICACAO` faria o cliente concluir "certificado recusado" e parar de tentar,
+    # quando na verdade é infraestrutura na frente da SEFIN — e ainda despejava o HTML
+    # inteiro na mensagem do erro.
+    corpo_nao_fiscal = _parece_html(resultado.texto)
+
+    if corpo_nao_fiscal and status in _NAO_AUTENTICADO:
+        tipo = TipoErroFiscal.INDISPONIVEL
+        resumo = (
+            f"a SEFIN respondeu {status} com HTML (gateway/WAF na frente do serviço), "
+            "não com resposta fiscal"
+        )
+        mensagens = []
+    elif status in _NAO_AUTENTICADO:
         tipo = TipoErroFiscal.AUTENTICACAO
     elif status in _SOBRECARGA or status >= 500:
         tipo = TipoErroFiscal.INDISPONIVEL
