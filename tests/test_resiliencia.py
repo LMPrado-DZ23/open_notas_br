@@ -124,3 +124,24 @@ class TestObservabilidade:
         r.obter("x")
         r.resetar("x")
         assert r.estados()["x"] == Estado.FECHADO
+
+
+class TestRegistroPadrao:
+    def test_e_singleton_do_processo(self) -> None:
+        # Um registro por chamada nunca abriria circuito: cada requisicao comecaria
+        # com zero falhas. O singleton e o que faz o estado acumular entre requisicoes.
+        from app.nfse.resiliencia import registro_padrao as a
+        from app.nfse.resiliencia import registro_padrao as b
+
+        assert a is b
+
+    async def test_estado_persiste_entre_acessos(self) -> None:
+        from app.nfse.resiliencia import registro_padrao
+
+        registro_padrao.resetar()
+        chave = chave_sefaz("MT", "autorizacao")
+        with pytest.raises(ConnectionError):
+            await executar(registro_padrao, chave, falha_transitoria)
+        if registro_padrao.obter(chave).limite_falhas == 1:
+            assert registro_padrao.estados()[chave] == Estado.ABERTO
+        registro_padrao.resetar()

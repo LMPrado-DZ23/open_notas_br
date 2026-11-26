@@ -65,6 +65,12 @@ class RegistroCircuitos:
             self.obter(chave).resetar()
 
 
+#: Registro único do processo. Existe para que a rota, o `emissao_service` e o health
+#: vejam o **mesmo** estado de circuito: um registro por chamada nunca abriria circuito,
+#: porque cada requisição começaria com zero falhas.
+registro_padrao = RegistroCircuitos()
+
+
 def chave_sefaz(uf: str, servico: str) -> str:
     return f"sefaz:{uf.upper()}:{servico}"
 

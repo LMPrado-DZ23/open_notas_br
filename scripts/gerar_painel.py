@@ -47,8 +47,7 @@ def medir_testes() -> int:
         )
         if not destino.is_file() or destino.stat().st_size == 0:
             raise ErroDeMedicao(
-                f"pytest não gerou relatório (rc={saida.returncode}); abortando "
-                "em vez de gravar 0"
+                f"pytest não gerou relatório (rc={saida.returncode}); abortando em vez de gravar 0"
             )
         raiz = ET.parse(destino).getroot()
         casos = raiz.findall(".//testcase")
