@@ -749,3 +749,20 @@ Cada item com estado, prova, teste, risco e **decisão registrada**.
   NÃO "deu certo"**. Documentado no docstring e testado.
 - **Ainda ausente**: transporte HTTP real (exige credenciamento), ciclo de autorização,
   consulta, cancelamento, inutilização, CC-e e contingência.
+
+### 3b. Cliente SOAP com transporte injetável (Etapa F, parte 2)
+
+- `app/nfe/transporte.py`: `ClienteSefaz`, `TransporteSOAP` (Protocol), `RespostaSefaz`,
+  `ErroTransporte` (transitório) e `ErroSefazDefinitivo` (não retentar). 9 testes.
+- **Transporte é interface, não `httpx` direto.** Sem isso não haveria como testar o
+  cliente; em produção o transporte HTTP real entra no mesmo lugar.
+- **Classificação que decide retry**: `TimeoutError`/`ConnectionError`/`OSError` →
+  `ErroTransporte` (retentar). SOAP Fault → `ErroSefazDefinitivo` (**não** retentar).
+  HTML de gateway → transitório, porque o serviço pode voltar.
+- **Guarda de URL**: `http://` é recusado **antes** de chegar ao transporte, e há teste
+  provando que o transporte não é chamado. R3 — serviço fiscal em texto claro é falha de
+  segurança, não detalhe.
+- **Resposta bruta preservada** em `RespostaSefaz.xml` para auditoria.
+- **Ainda ausente**: transporte HTTP real (`httpx` com mTLS), o ciclo de autorização do
+  lote, consulta/recibo, cancelamento, inutilização, CC-e e contingência. Todos dependem
+  de credenciamento para serem verificados.
