@@ -443,3 +443,15 @@ têm apenas representação impressa.
   `information_schema`: `id, tenant_id, invoice_id, trace_id, versao_formato,
   hash_entrada, hash_saida, hash_laudo, data_emissao, regras, tabelas, entrada,
   saida, created_at, updated_at` — `tenant_id`, hashes e JSONB todos `NOT NULL`.
+
+### 5c. Circuit breaker — núcleo implementado (Etapa H, parte 1)
+
+- `app/core/circuit.py`: `CircuitBreaker` com estados `FECHADO`/`ABERTO`/`MEIO_ABERTO`,
+  `limite_falhas`, `espera_s`, `retry_after_s`, `resetar`. Sem dependência nova —
+  `aiobreaker` exigiria ADR (R9) e não traz nada que 90 linhas não resolvam aqui.
+- 10 testes em `tests/test_circuit.py` com relógio injetado (sem `sleep`).
+- **Só falha transitória conta.** Rejeição fiscal definitiva não abre o circuito: o
+  serviço está no ar e respondendo; abrir por erro do nosso lado pararia de emitir.
+- Circuito **por UF**: queda em GO não pode parar SP. Testado.
+- **Ainda ausente**: ligação ao worker real, DLQ com replay autenticado e o endpoint
+  admin `POST /v1/admin/dlq/{id}/replay`.
