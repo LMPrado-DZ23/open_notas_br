@@ -1037,3 +1037,30 @@ separado — trabalho à parte, não ajuste de teste.
 **Risco residual**: se a corrida for real e não só do harness, duas requisições no mesmo
 milissegundo podem devolver 500 em vez de 200 na segunda. A constraint impede a **nota
 duplicada** (o dano fiscal), mas o cliente pode ver erro em vez de reaproveitamento.
+
+### 19. Catálogo fiscal: 27/27 nos quatro documentos (medido 2026-11-26)
+
+| Documento | Modelo | Endpoints | UFs |
+|---|---|---|---|
+| NF-e | 55 | 270 | 27/27 |
+| NFC-e | 65 | 270 | 27/27 |
+| CT-e | 57 | 54 | 27/27 |
+| MDF-e | 58 | 54 | 27/27 |
+
+Fonte de cada linha gravada em `fonte_url` (URL bruta do arquivo no SVN do ACBr),
+com SHA-256 e data em `data/fontes/MANIFESTO.json`.
+
+Municípios: 5571/5571 com provedor; 1279 com URL https; 4290 no padrão nacional.
+
+**O que isso NÃO é**: `homologados = 0`. Nenhuma chamada real a autorizador foi feita.
+CT-e e MDF-e não têm geração de XML nem assinatura — só o endpoint catalogado.
+
+### 20. Estado final desta execução
+
+- Testes: **1245**, 0 falhas, 0 erros (medido com `--junit-xml`).
+- Migrations: 10, todas com round-trip verificado.
+- Gate local (`scripts/check_ci.py`) roda antes de cada commit.
+- CI verde no último commit (`gh run` consultado, não presumido).
+
+**Bloqueios externos que permanecem**: certificado A1 + `MASTER_ENCRYPTION_KEY` fora deste
+ambiente; credenciamento SEFAZ-GO; OAuth do Melhor Envio; CSC por UF para NFC-e.
