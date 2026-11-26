@@ -5,6 +5,51 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — evolução para gateway fiscal (v10.0)
+
+Idempotência, contrato de erro, resiliência, auditoria de cálculo e a base de
+multi-prefeitura. Medido: **1156 testes**, 55 rotas, 15 tabelas, 7 migrations.
+
+- **`Idempotency-Key` por header**, com o campo do body mantido como fallback. O header
+  vence quando os dois divergem: header é contrato explícito, e escolher o body permitiria
+  que um proxy injetado mudasse a chave sem o cliente perceber. Nenhum dos dois → 422.
+- **Contrato de erro RFC 7807** ativo em todas as rotas (`application/problem+json`),
+  preservando `detail` e o status original — cliente que lia `detail` continua funcionando.
+- **Rate limit por tenant** no middleware, **desligado por padrão**: ligar mudaria o
+  comportamento de todas as rotas de uma vez. `/health` e `/ready` isentos.
+- **Circuit breaker por serviço/UF**, injetado em `POST /v1/emissoes`. Circuito aberto
+  responde **503 com `Retry-After`**, não 500 — 500 faria o cliente retentar na hora e
+  piorar a fila. Rejeição fiscal **não** abre o circuito: o serviço está no ar.
+- **DLQ** com replay autenticado (`X-Admin-Key`, 404 quando desabilitado) e
+  `executar_com_dlq`: só falha transitória é retentada; sucesso não deixa rastro.
+- **`CalculoAudit`**: hash determinístico de entrada/saída/laudo, vigência de tabela como
+  erro quando há sobreposição, persistência na **mesma transação** da fatura e endpoints de
+  consulta com integridade recalculável.
+- **Base multi-prefeitura**: `municipios_nfse`, `credenciais_municipais` (segredos selados
+  com AAD por tenant+município) e `webservices_sefaz`; seed idempotente com **5571
+  municípios reais** do IBGE em 27 UFs.
+- **Integridade de XSD** por manifesto SHA-256 (21 schemas), em modo `WARN` por padrão.
+- **NF-e até o fio**: envelope `enviNFe`, SOAP 1.2, cliente com classificação de erro,
+  transporte HTTP mTLS, leitura de retorno e ciclo de autorização — todos verificados com
+  transporte falso, **nenhuma chamada real**.
+
+### Corrigido
+
+- **HTML de gateway classificado como recusa fiscal**: `403` em HTML (borda/mTLS) virava
+  `AUTENTICACAO` com o HTML inteiro na mensagem. Agora classifica como borda, nomeia as
+  hipóteses e não embute HTML.
+- **`TABELAS` do truncate de teste** listava 9 das 14 tabelas: dado vazava entre testes e
+  um teste passava pela sobra do anterior. Derivado do metadata.
+- **Mock em produção recusado no boot** (`ENVIRONMENT=production` + `NFSE_ADAPTER=mock`).
+
+### Notas
+
+- **A emissão NFS-e real não foi re-testada** depois destas mudanças: o certificado está
+  selado no banco e `MASTER_ENCRYPTION_KEY` não estava disponível. As 1156 verificações são
+  locais. Re-testar é o primeiro passo antes de qualquer outra evolução.
+- NF-e, NFC-e, CT-e e MDF-e **não transmitem**. Bloqueio: credenciamento na SEFAZ.
+
+
 ### Validado em produção restrita
 
 - **Emissão de NFS-e autorizada pela SEFIN** (Produção Restrita) com certificado
