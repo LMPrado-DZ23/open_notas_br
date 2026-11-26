@@ -1848,3 +1848,31 @@ Sete serviços vivos por documento de transporte, todos com sonda registrada:
 **Lição**: cobertura não é quantidade — é quantidade de endpoints que respondem. O catálogo
 encolheu 11% e ficou mais correto. Um número menor com sonda vale mais que um número maior com
 404 dentro.
+
+### 36. Sonda de GET mente: 54/54 endpoints de status de NF-e estão vivos
+
+Estendi a auditoria por sonda ao lado NF-e/NFC-e — 54 endpoints de `NFE_STATUS` (27 UFs × 2
+modelos), homologação.
+
+| Sondagem GET | Resultado |
+|---|---|
+| 52 endpoints | respondem (200) |
+| **MT (55 e 65)** | **HTTP 500** |
+
+Parecia defeito em MT. **Não era**: `.svc`/endpoint sem extensão recusa GET e devolve 500. Testei
+com POST SOAP real:
+
+```
+MT SOAP 1.2: cStat=107 | Servico em Operacao
+MT SOAP 1.1: cStat=107 | Servico em Operacao
+```
+
+**54/54 vivos.** MT aceita as duas versões de SOAP — diferente do SVRS, que exige 1.1 no status de
+NF-e (§31).
+
+**Lição nova**: o método da sonda decide a conclusão. Com GET eu teria reportado 2 endpoints mortos
+que estão operacionais. Com POST de verdade, 107. Vale para o §33 também — lá o GET deu 404 em
+todos, e o controle provou que era serviço inexistente, não sonda ruim.
+
+Regra que passa a valer neste projeto: **GET só serve para `?wsdl` de `.asmx`**; qualquer outro
+endpoint se mede com POST SOAP e leitura de `cStat`.
