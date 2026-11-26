@@ -1271,3 +1271,35 @@ quebra se essa frase for removida.
 upload selar o certificado com uma chave e a assinatura abrir com outra. O erro aparece como
 `ErroDeCriptografia` — "chave errada, dados corrompidos" — que é enganoso: a chave está certa,
 o que muda é qual instância de configuração cada lado enxerga. Registrado na fixture.
+
+### 26. SOAP por documento — o que existe e o que não existe
+
+Resposta ao item 3 da verificação obrigatória, conferida por leitura de código. A distinção
+importa: **código de transmissão existe para NF-e e NFS-e; para CT-e e MDF-e não existe**.
+
+| Documento | Geração | Assinatura | Envio SOAP | Consulta | Eventos | Contingência |
+|---|---|---|---|---|---|---|
+| NFS-e | sim | sim | **sim** (`nfse/transporte.py`) | **sim** | **sim** (cancelamento) | não |
+| NF-e | sim | sim | **sim** (`nfe/autorizacao.py`) | **sim** (`consultar_recibo`, `nfe/consulta.py`) | não verificado | não |
+| CT-e | sim | sim | **não** | **não** | **não** | não |
+| MDF-e | sim | sim | **não** | **não** | **não** | não |
+| NFC-e | não | não | não | não | não | não |
+
+**Símbolos que comprovam o lado NF-e** (`app/nfe/autorizacao.py`):
+
+- `enviar_lote(cliente, url, xml_lote) -> ResultadoAutorizacao`
+- `consultar_recibo(...)`
+- `autorizar(...)` — envia e, se a SEFAZ responder `103`, consulta o recibo; `tentativas_recibo=1`
+  por padrão porque cada consulta consome cota regulada.
+
+**Por que CT-e e MDF-e não têm envio**: os geradores e as rotas entregam XML assinado. O ciclo de
+autorização deles exige leiaute de resposta próprio (`retCTe`, `procCTe`, `retEventoCTe`) que
+existe no schema versionado, mas escrever o transporte sem certificado e sem credenciamento
+produziria código não verificável — e o projeto já pagou esse preço duas vezes com o gerador.
+
+**O que NÃO foi feito em nenhum dos dois**: chamada real ao autorizador. Nem NF-e, nem NFS-e
+nesta sessão. `homologados = 0`.
+
+**Risco registrado**: o ciclo NF-e (`autorizar`) existe e é testável localmente, mas nunca foi
+exercitado contra SEFAZ. Um código de transporte não exercitado tem valor menor do que a
+contagem de funções sugere — não conto como "transmissão validada".
