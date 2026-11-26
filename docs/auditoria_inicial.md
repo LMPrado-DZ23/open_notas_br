@@ -241,7 +241,7 @@ Cada item conferido por comando. `AUSENTE` = a busca no código não achou arqui
 |---|---|---|---|
 | 1 | drivers NFS-e multi-prefeitura | PARCIAL | `app/nfse/drivers/` existe=False; `app/nfse/adapter.py` implementa só padrão nacional (`SefinNacionalClient`, `SefinMockAdapter`) |
 | 2 | modelos de município/credencial/webservice | AUSENTE | `Base.metadata` com `app.db.models` importado tem **10 tabelas** (batch_jobs, fiscal_documents, frete_credenciais, invoice_events, invoices, tax_assessments, tenant_certificates, tenant_fiscal_configs, tenants, webhook_deliveries); faltam exatamente ['municipios_nfse', 'credenciais_municipais', 'webservices_sefaz']. Correção de método: a primeira medição retornou 0 tabelas porque os modelos não estavam importados — evidência refeita. |
-| 3 | transporte SOAP DF-e | AUSENTE | ocorrências de soap/SOAPAction: 0; existem `app/nfe/gerador.py`, `assinatura.py`, `lote.py` (geração+assinatura+XSD, sem envio) |
+| 3 | transporte SOAP DF-e | **PARCIAL** | ocorrências de soap/SOAPAction: 0; existem `app/nfe/gerador.py`, `assinatura.py`, `lote.py` (geração+assinatura+XSD, sem envio) |
 | 4 | CalculoAudit | AUSENTE | `CalculoAudit` no código=False; `app/tax/rtc.py` calcula sem auditar |
 | 5 | RFC 7807 / circuit breaker / DLQ / rate limit | PARCIAL (RFC 7807 agora ativo) | errors.py=True (módulo testado, handler NÃO registrado); circuit=False; DLQ=False; rate limit=True |
 | 6 | hash SHA-256 de XSD no boot | **IMPLEMENTADO (modo WARN)** | verificação de hash de schema=False; schemas versionados sem hash em `tests/fixtures/schemas/` |
@@ -734,3 +734,18 @@ Cada item com estado, prova, teste, risco e **decisão registrada**.
 | Parcial | 1, 5 |
 | Ausente | 3 |
 | Bloqueado externamente | 3 (credenciamento), parte do 5 (admin auth) |
+
+### 3a. Envelope SOAP 1.2 (Etapa F, parte 1)
+
+- `app/nfe/soap.py`: `envelopar`, `desenvelopar`, `extrair_falha`, `ErroSOAP`.
+  11 testes em `tests/test_nfe_soap.py`.
+- **Sem URL no módulo, de propósito**: endpoint vem da tabela `webservices_sefaz` (R3).
+- Formato `nfeDadosMsg`: o XML fiscal vai **dentro** do `Body`, sem assinatura adicional
+  no envelope — a assinatura já está no documento, e assinar o envelope seria assinatura
+  dupla que a SEFAZ recusa.
+- **`desenvelopar` falha alto** com HTML de gateway (proxy no caminho devolve 502 em HTML)
+  e com `Body` vazio. Sem isso o erro apareceria como "XML inválido" três camadas adiante.
+- **`extrair_falha` devolve `None` para resposta normal — e isso significa "não é Fault",
+  NÃO "deu certo"**. Documentado no docstring e testado.
+- **Ainda ausente**: transporte HTTP real (exige credenciamento), ciclo de autorização,
+  consulta, cancelamento, inutilização, CC-e e contingência.
