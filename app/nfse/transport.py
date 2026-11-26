@@ -207,10 +207,15 @@ def erro_http(resultado: ResultadoHTTP, resumo: str, *, ambiente: str | None = N
     corpo_nao_fiscal = _parece_html(resultado.texto)
 
     if corpo_nao_fiscal and status in _NAO_AUTENTICADO:
-        tipo = TipoErroFiscal.INDISPONIVEL
+        # 401/403 em HTML vem da borda (WAF ou mTLS recusado no handshake), não do
+        # leiaute. A causa mais provável é certificado não aceito, e retentar não
+        # resolve — por isso AUTENTICACAO, não INDISPONIVEL. Mas a mensagem diz
+        # honestamente que há duas hipóteses e não embute o HTML.
+        tipo = TipoErroFiscal.AUTENTICACAO
         resumo = (
-            f"a SEFIN respondeu {status} com HTML (gateway/WAF na frente do serviço), "
-            "não com resposta fiscal"
+            f"a borda da SEFIN recusou a conexão ({status}, resposta HTML). "
+            "Hipóteses: certificado não aceito (ex.: autoassinado ou vencido) "
+            "ou bloqueio de rede/WAF. Não é recusa de leiaute."
         )
         mensagens = []
     elif status in _NAO_AUTENTICADO:

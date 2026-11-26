@@ -866,7 +866,23 @@ foi gateway/WAF e sem mensagens fiscais inventadas.
 **Não confundir com recusa fiscal real**: `403` com XML do leiaute continua `AUTENTICACAO`.
 7 testes em `tests/test_nfse_transport_classificacao.py`.
 
-**Risco residual declarado**: a SEFIN estava respondendo 403 HTML no momento da execução.
-Não sei se é WAF por volume, mudança de credenciamento ou indisponibilidade — **não
-verifiquei**. O que está verificado é que o erro agora é classificado corretamente e a
-mensagem não mente sobre a causa.
+**DIAGNÓSTICO CORRIGIDO (e uma correção minha errada)**. Na primeira análise eu classifiquei
+o 403 HTML como `INDISPONIVEL` e escrevi "gateway/WAF". Errado: investigando, a causa real é
+outra.
+
+Evidência coletada:
+- `HEAD https://sefin.producaorestrita.nfse.gov.br/SefinNacional/` sem certificado → **403**
+- host inteiro (`/`, `/SefinNacional/`, `/SefinNacional/nfse`) → **403**
+- `https://www.nfse.gov.br/` → **200**
+
+Ou seja: a recusa é da **borda**, por TLS/mTLS — não do leiaute. E o demo roda com
+`gerar_pfx_autoassinado()`, um certificado **autoassinado**; com o container em
+`NFSE_ADAPTER=sefin` (o demo documenta `mock`, mas a variável do meu shell não alcança o
+container), a SEFIN recusou o certificado — comportamento **correto** dela.
+
+Classificação final: `AUTENTICACAO`, porque retentar não resolve. A mensagem nomeia as duas
+hipóteses (certificado não aceito ou bloqueio de rede/WAF) e **não embute o HTML**.
+
+**Lição**: eu classifiquei como indisponível um erro que era de autenticação, com base em
+"é HTML, logo é gateway". A investigação por caminho/host derrubou a hipótese em dois
+comandos.

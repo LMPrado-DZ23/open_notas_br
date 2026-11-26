@@ -23,13 +23,15 @@ def resultado(status: int, texto: str, json=None) -> ResultadoHTTP:
 
 
 class TestHtmlDeGateway:
-    def test_403_html_e_indisponivel_nao_autenticacao(self) -> None:
+    def test_403_html_e_autenticacao_nao_rejeicao(self) -> None:
+        # Borda recusando conexão: certificado não aceito é a causa mais provável, e
+        # retentar não resolve. NÃO é recusa de leiaute.
         erro = erro_http(resultado(403, HTML_403), "a SEFIN recusou a DPS")
-        assert erro.tipo is TipoErroFiscal.INDISPONIVEL
+        assert erro.tipo is TipoErroFiscal.AUTENTICACAO
 
     def test_mensagem_explica_que_e_gateway(self) -> None:
         erro = erro_http(resultado(403, HTML_403), "a SEFIN recusou a DPS")
-        assert "gateway" in erro.resumo or "WAF" in erro.resumo
+        assert "WAF" in erro.resumo or "certificado" in erro.resumo
 
     def test_html_nao_vira_mensagem_fiscal(self) -> None:
         erro = erro_http(resultado(403, HTML_403), "recusou")
