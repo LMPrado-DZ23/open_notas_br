@@ -455,3 +455,19 @@ têm apenas representação impressa.
 - Circuito **por UF**: queda em GO não pode parar SP. Testado.
 - **Ainda ausente**: ligação ao worker real, DLQ com replay autenticado e o endpoint
   admin `POST /v1/admin/dlq/{id}/replay`.
+
+### 2a. `municipios_nfse` — tabela criada e verificada (Etapa D)
+
+- `app/db/models/municipio.py`: `MunicipioNFSe` + enums `ProvedorNFSe` (17 valores) e
+  `EncodingXML`. 19 colunas.
+- `alembic/versions/0004_municipios_nfse.py`: upgrade/downgrade **executados** no
+  Postgres (0004 → 0003 → 0004, `current` em `0004 head`).
+- **Constraints testadas por INSERT real**, não só escritas:
+  - `codigo_ibge='520025'` (6 dígitos) → `ERROR ... ck_municipios_nfse_ibge_7_digitos`
+  - `fonte_url='http://...'` → `ERROR ... ck_municipios_nfse_fonte_https`
+  - linha válida → insere normalmente
+- `fonte_url` NOT NULL e `https://` obrigatório: R3 exige origem rastreável, e URL fiscal
+  em texto claro é falha de segurança.
+- `homologado` nasce **falso**: nada é "homologado" só por estar cadastrado.
+- **Pendente**: `credenciais_municipais`, `webservices_sefaz`, seed IBGE e as rotas de
+  gestão.
