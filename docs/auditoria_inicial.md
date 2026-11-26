@@ -1962,3 +1962,32 @@ Terceira ocorrência do mesmo padrão hoje:
 
 **Regra que passa a valer**: antes de registrar ausência, provar que a sonda acha algo que
 **sabidamente existe**. Um negativo de ferramenta mal usada não é evidência de ausência.
+
+### 40. Item 6 da lista obrigatória (hash SHA-256 dos XSD no boot): implementado
+
+| Exigência | Evidência |
+|---|---|
+| Hash conferido no carregamento | `app/core/schemas.py` — manifesto `data/xsd_manifest.json` |
+| Arquivos versionados com fonte oficial | 112 XSD, `ORIGEM.md` por pasta |
+| Comportamento em divergência | modo `WARN` (padrão, registra) e `STRICT` (levanta `ErroDeIntegridade`) |
+| Não bloquear por schema sem origem confirmada | decisão documentada no docstring do módulo |
+| Testes | `tests/` cobrindo manifesto e divergência |
+
+A escolha de não abortar o boot **segue a própria missão**, que manda não bloquear o sistema por
+schemas cuja origem ainda não esteja confirmada. O modo `STRICT` existe para quando todos tiverem
+procedência verificada.
+
+### Fechamento da varredura dos 7 itens
+
+| # | Item | Estado | Onde |
+|---|---|---|---|
+| 1 | Drivers NFS-e | implementado | §9–§12 |
+| 2 | Modelos e migrações | implementado, `alembic check` limpo | §24 |
+| 3 | Transporte SOAP por documento | CT-e/MDF-e implementados (NF-e pendente de credenciamento) | §26 §31 §37 |
+| 4 | `CalculoAudit` | implementado | §15 |
+| 5 | RFC 7807 / rate limit / CB / DLQ | implementado e testado | **§39** |
+| 6 | Hash dos XSD no boot | implementado | **§40** |
+| 7 | `Idempotency-Key` | implementado, 11 testes | **§38** |
+
+Nenhum item ficou como "roadmap" sem justificativa. O único estado que permanece **bloqueado
+externamente** é a emissão autorizada — que depende de credenciamento, não de código.
