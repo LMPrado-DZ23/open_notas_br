@@ -23,6 +23,7 @@ from app.db.models.municipio import MunicipioNFSe
 from app.db.models.ops import BatchJob, TaxAssessment, WebhookDelivery
 from app.db.models.tax import CalculoAudit
 from app.db.models.tenant import Tenant, TenantCertificate, TenantFiscalConfig
+from app.db.models.webservice_sefaz import WebserviceSefaz
 
 __all__ = [
     "AmbienteFiscal",
@@ -47,4 +48,5 @@ __all__ = [
     "TenantFiscalConfig",
     "TipoDocumento",
     "WebhookDelivery",
+    "WebserviceSefaz",
 ]

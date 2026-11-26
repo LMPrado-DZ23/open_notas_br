@@ -471,3 +471,21 @@ têm apenas representação impressa.
 - `homologado` nasce **falso**: nada é "homologado" só por estar cadastrado.
 - **Pendente**: `credenciais_municipais`, `webservices_sefaz`, seed IBGE e as rotas de
   gestão.
+
+### 2b. `webservices_sefaz` — tabela criada e verificada (Etapa D)
+
+- `app/db/models/webservice_sefaz.py` + migration `0005`. 13 colunas.
+- Migration **executada**: 0005 → 0004 → 0005, `current` em `0005 head`.
+- **Constraints testadas por INSERT real**:
+  - `url='http://x'` → `ERROR ... ck_webservices_sefaz_url_https`
+  - segundo registro com mesma `(uf, ambiente, servico)` →
+    `ERROR ... uq_webservices_sefaz_endpoint`
+- Enum `ServicoSefaz` com 10 serviços (autorização, retorno, status, distribuição,
+  evento, inutilização para NF-e; recepção/evento para CT-e e MDF-e).
+- `fonte_url` NOT NULL e `https://`: P2/R3 — endpoint por UF só é confiável se der para
+  mostrar de onde veio.
+- **Bug pego na execução**: `Enum(... length=4)` para `VersaoSOAP` estourava
+  `ValueError: 4 < 7` (o nome `SOAP_11` tem 7 caracteres). Corrigido para `length=8`.
+- **Pendente**: `credenciais_municipais`, seed IBGE e o seed de endpoints das 27 UFs
+  (nenhum endpoint foi inserido — a tabela está vazia de propósito, porque popular URL
+  sem fonte verificada violaria P2).
