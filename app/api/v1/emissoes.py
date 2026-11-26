@@ -9,7 +9,15 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    Header,
+    HTTPException,
+    Query,
+    Response,
+    status,
+)
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -110,11 +118,39 @@ async def _documento_da_fatura(db: AsyncSession, invoice: Invoice) -> FiscalDocu
 )
 async def emitir(
     dados: EmissaoIn,
+    idempotency_key: str | None = Header(
+        default=None,
+        alias="Idempotency-Key",
+        description="Chave idempotente por tenant. Precede o campo do body.",
+    ),
     tenant: Tenant = Depends(tenant_atual),
     db: AsyncSession = Depends(get_session),
     settings: Settings = Depends(get_settings),
 ) -> EmissaoOut:
-    existente = await _buscar_por_idempotencia(db, tenant.id, dados.idempotency_key)
+    """Emite a NFS-e de forma idempotente.
+
+    A chave aceita dois lugares por compatibilidade: o header `Idempotency-Key`
+    (contrato novo, recomendado) e o campo `idempotency_key` do body (clientes
+    existentes). Se os dois vierem e divergirem, **o header vence** — header é o
+    contrato explícito, e escolher o body permitiria que um cliente com proxy que
+    injeta header mudasse a chave sem perceber. Se nenhum vier, 422: sem chave não
+    há como garantir que um reenvio não duplique a nota.
+    """
+    chave = idempotency_key or dados.idempotency_key
+    if not chave:
+        raise HTTPException(
+            status_code=HTTP_422,
+            detail=(
+                "informe a chave de idempotência no header `Idempotency-Key` "
+                "(recomendado) ou no campo `idempotency_key` do body"
+            ),
+        )
+    if len(chave) < 8 or len(chave) > 128:
+        raise HTTPException(
+            status_code=HTTP_422,
+            detail="a chave de idempotência deve ter de 8 a 128 caracteres",
+        )
+    existente = await _buscar_por_idempotencia(db, tenant.id, chave)
     if existente is not None:
         documento = await _documento_da_fatura(db, existente)
         if existente.status is StatusFatura.AUTORIZADA and documento is not None:
@@ -128,7 +164,7 @@ async def emitir(
 
     invoice = Invoice(
         tenant_id=tenant.id,
-        idempotency_key=dados.idempotency_key,
+        idempotency_key=chave,
         status=StatusFatura.PENDENTE,
         tipo_documento=TipoDocumento.NFSE,
         origem=dados.origem,
@@ -149,7 +185,7 @@ async def emitir(
         await db.flush()
     except IntegrityError:
         await db.rollback()
-        existente = await _buscar_por_idempotencia(db, tenant.id, dados.idempotency_key)
+        existente = await _buscar_por_idempotencia(db, tenant.id, chave)
         if existente is None:
             raise HTTPException(
                 status_code=HTTP_409, detail="conflito de idempotência ao criar a fatura"

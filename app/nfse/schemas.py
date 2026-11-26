@@ -27,11 +27,15 @@ class EmissaoIn(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    idempotency_key: str = Field(
-        ...,
+    idempotency_key: str | None = Field(
+        default=None,
         min_length=8,
         max_length=128,
-        description="Chave única por tenant. Reenvio com a mesma chave devolve a emissão existente.",
+        description=(
+            "Chave única por tenant. Pode vir no body (compatibilidade) ou no header "
+            "`Idempotency-Key`; o header tem precedência. Reenvio com a mesma chave "
+            "devolve a emissão existente."
+        ),
         examples=["dz23-venda-8842"],
     )
     valor: Decimal = Field(..., gt=0, max_digits=15, decimal_places=2)

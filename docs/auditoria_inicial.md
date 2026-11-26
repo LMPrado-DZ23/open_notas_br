@@ -245,7 +245,7 @@ Cada item conferido por comando. `AUSENTE` = a busca no código não achou arqui
 | 4 | CalculoAudit | AUSENTE | `CalculoAudit` no código=False; `app/tax/rtc.py` calcula sem auditar |
 | 5 | RFC 7807 / circuit breaker / DLQ / rate limit | PARCIAL | errors.py=True (módulo testado, handler NÃO registrado); circuit=False; DLQ=False; rate limit=True |
 | 6 | hash SHA-256 de XSD no boot | AUSENTE | verificação de hash de schema=False; schemas versionados sem hash em `tests/fixtures/schemas/` |
-| 7 | `Idempotency-Key` por header | PARCIAL | `idempotency_key` existe no body (`app/nfse/schemas.py`); header presente=False |
+| 7 | `Idempotency-Key` por header | **IMPLEMENTADO E TESTADO** | `idempotency_key` existe no body (`app/nfse/schemas.py`); header presente=False |
 
 **Conclusão**: nenhuma das 7 está completa. O item 5 é o único com código novo
 (módulo RFC 7807, testado isolado, sem efeito em rotas). Os outros exigem

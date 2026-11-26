@@ -1127,8 +1127,27 @@
           "emissao"
         ],
         "summary": "Emite a NFS-e de um serviço (idempotente por idempotency_key)",
+        "description": "Emite a NFS-e de forma idempotente.\n\nA chave aceita dois lugares por compatibilidade: o header `Idempotency-Key`\n(contrato novo, recomendado) e o campo `idempotency_key` do body (clientes\nexistentes). Se os dois vierem e divergirem, **o header vence** — header é o\ncontrato explícito, e escolher o body permitiria que um cliente com proxy que\ninjeta header mudasse a chave sem perceber. Se nenhum vier, 422: sem chave não\nhá como garantir que um reenvio não duplique a nota.",
         "operationId": "emitir_v1_emissoes_post",
         "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Chave idempotente por tenant. Precede o campo do body.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Chave idempotente por tenant. Precede o campo do body."
+          },
           {
             "name": "X-API-Key",
             "in": "header",
@@ -3892,11 +3911,18 @@
       "EmissaoIn": {
         "properties": {
           "idempotency_key": {
-            "type": "string",
-            "maxLength": 128,
-            "minLength": 8,
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 128,
+                "minLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Idempotency Key",
-            "description": "Chave única por tenant. Reenvio com a mesma chave devolve a emissão existente.",
+            "description": "Chave única por tenant. Pode vir no body (compatibilidade) ou no header `Idempotency-Key`; o header tem precedência. Reenvio com a mesma chave devolve a emissão existente.",
             "examples": [
               "dz23-venda-8842"
             ]
@@ -4006,7 +4032,6 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "idempotency_key",
           "valor",
           "descricao"
         ],
