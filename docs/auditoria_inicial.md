@@ -1206,3 +1206,43 @@ e o banco foi alinhado ao índice único.
 
 **Consequência**: `alembic upgrade head` a partir do zero agora reproduz os modelos. O CI não
 roda `alembic check`; por isso o defeito sobreviveu até aqui — ver §25.
+
+### 25. Geradores de CT-e e MDF-e existem **na biblioteca**, não na API
+
+**Correção de classificação anterior.** Eu vinha marcando "geração ✅" para CT-e e MDF-e. A
+medição abaixo mostra que o critério de conclusão da missão não está satisfeito para eles.
+
+Evidência (busca por importadores fora dos próprios módulos):
+
+```
+Get-ChildItem -Recurse -Include *.py -Path app,tests,src |
+  Select-String "from app\.(cte|mdfe)|import app\.(cte|mdfe)"
+```
+
+Resultado: **apenas arquivos de teste**. Nenhuma rota em `app/api/v1` importa
+`app.cte.gerador` ou `app.mdfe.gerador`.
+
+| Documento | Biblioteca | Exposto na API |
+|---|---|---|
+| NFS-e | sim | **sim** (rota de emissão) |
+| NF-e | sim | sim (rota existente) |
+| CT-e | sim (`gerar`, `gerar_assinado`) | **não** |
+| MDF-e | sim (`gerar`, `gerar_assinado`) | **não** |
+| NFC-e | não | não |
+
+**Consequência**: um tenant **não consegue** pedir um CT-e ou MDF-e pela API. O código gera e
+valida localmente, mas não há contrato HTTP. Pelo critério "o contrato da API está atualizado",
+CT-e e MDF-e ficam como **parcial**, não concluídos.
+
+**O que faltaria para expor na API** (fatia ainda não feita):
+
+1. Schemas Pydantic de entrada para CT-e e MDF-e (o modelo de domínio já existe em dataclasses).
+2. Rota `POST /v1/cte` e `POST /v1/mdfe` com autenticação por API key e `tenant_id` derivado da
+   credencial — **nunca** do corpo.
+3. Serviço que carrega o certificado do cofre, chama `gerar_assinado` e persiste o XML com hash.
+4. Testes de isolamento entre tenants e de recusa sem certificado.
+5. Documentação do contrato e atualização do OpenAPI congelado.
+
+**Por que não fiz agora**: contexto de sessão insuficiente para entregar rota + schema +
+serviço + testes + OpenAPI com verificação. Entregar rota sem teste de isolamento de tenant
+violaria o item 6 das regras principais.
