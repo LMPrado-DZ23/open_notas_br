@@ -62,3 +62,45 @@ reavaliar os campos novos.
 - `POST /v1/emissoes` → `201 authorized`, chave `52002582264339333000122000000000000226110763527690`
 - `POST .../cancelamento` → `200 cancelled`
 - `pytest` → 853 passed · CI verde · 46 rotas
+
+---
+
+## Reconciliação 2026-11-26 — estado real vs. plano
+
+Este bloco existe porque plano e código divergiram durante a evolução para o documento
+v10.0. **O plano continua sendo a fonte de verdade da intenção; este bloco é a
+reconciliação com o que foi executado.** Detalhe por item em `docs/auditoria_inicial.md`
+§15.
+
+### O que o plano previa e não mudou
+
+- F9.0 (plano canônico) — ✅ concluído.
+- F9.1 (cotação Melhor Envio real) — ⚠️ continua bloqueada: exige OAuth do proprietário no
+  navegador. O código responde 409 dizendo o próximo passo; não finge funcionar.
+- F9.2 (NF-e XML + XSD + assinatura) — ✅ concluído, **e o XSD virou PL_010h**.
+
+### O que o plano previa e mudou de escopo
+
+- **F9.3–F9.6 (SOAP SEFAZ-GO)**: o envelope, o cliente, o transporte HTTP e o ciclo de
+  autorização estão construídos e testados com transporte falso. A **chamada real**
+  continua bloqueada por credenciamento em GO. Não foi possível cumprir o DoD original
+  ("ciclo completo em homolog real"), e ele segue pendente.
+
+### O que o plano não previa e entrou
+
+O documento v10.0 trouxe sete lacunas que não estavam neste plano. Cinco foram fechadas:
+`CalculoAudit` (item 4), gestão de municípios e credenciais (item 2), hash de XSD (item
+6), `Idempotency-Key` por header (item 7) e o conjunto RFC 7807 + rate limit + circuit
+breaker + DLQ (item 5).
+
+### O que continua aberto, e por quê
+
+| Item | Bloqueio | Natureza |
+|---|---|---|
+| F9.3–F9.6 / item 3 (SOAP) | credenciamento NF-e em GO | acesso externo |
+| F9.1 (Melhor Envio) | OAuth do proprietário | acesso externo |
+| Item 1 (drivers multi-prefeitura) | URL e leiaute oficial por provedor | fonte de dados |
+| `pip-audit` no CI | instalar dependência de auditoria | exige ADR (R9) |
+
+**Nenhum desses avança com código.** Registrado para que a próxima sessão não os trate
+como esquecimento.
