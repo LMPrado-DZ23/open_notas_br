@@ -276,3 +276,61 @@ implementação nova, não correção.
   Decisão corrigida para incrementar sempre e comparar com o limite.
 - **Segundo bug**: `custo > 1` não era aplicado (eu passava `janela*custo` como TTL
   em vez de incrementar N vezes). Pego pelo teste, não em produção.
+
+## 12. Estado fiscal por documento (capacidade × evidência)
+
+Separado por etapa porque "tem DANFE" não significa "emite NF-e". Cada célula cita o
+arquivo/símbolo que comprova.
+
+### NFS-e (padrão nacional)
+
+| Etapa | Estado | Evidência |
+|---|---|---|
+| Geração (DPS) | ✅ | `app/nfse/dps.py`; valida no `DPS_v1.01.xsd` |
+| Assinatura XMLDSig | ✅ | `app/nfse/signer.py` (exclusive C14N + SHA-256, KeyInfo só folha) |
+| Transmissão | ✅ **real** | `POST /v1/emissoes` → `201 authorized`, chave `5200258…7690` na Produção Restrita, 25/11/2026 |
+| Consulta | ✅ **real** | `GET /v1/emissoes/{id}` → `authorized`; contrato `GET /dps/{id}` e `GET /nfse/{chave}` confirmados com A1 real |
+| Cancelamento/eventos | ✅ **real** | `POST .../cancelamento` → `200 cancelled`; 16 tipos de evento validados no XSD |
+| PDF (DANFSe) | ✅ | `app/danfse/` → 4.014 bytes no teste real |
+
+### NF-e (modelo 55)
+
+| Etapa | Estado | Evidência |
+|---|---|---|
+| Geração | ✅ | `app/nfe/gerador.py`, chave de 44 posições com DV módulo 11 |
+| Assinatura | ✅ | `app/nfe/assinatura.py` (RSA-SHA1 + C14N inclusiva, exigidos pelo XSD) |
+| Validação XSD | ✅ | `nfe_v4.00.xsd` do PL_010h; 20 testes |
+| Envelope de lote | ✅ (estrutural) | `app/nfe/lote.py` → `enviNFe` valida no schema |
+| **Transmissão SOAP** | ❌ | **não existe**; zero ocorrências de soap/SOAPAction |
+| Consulta / eventos / inutilização / CC-e | ❌ | não existem |
+| Contingência | ❌ | não existe |
+| PDF (DANFE) | ✅ | `app/danfe/a4.py`, `danfe_simplificado`, `etiquetas` |
+
+### NFC-e (modelo 65)
+
+| Etapa | Estado | Evidência |
+|---|---|---|
+| Geração do XML | ❌ | não existe gerador próprio |
+| QR Code / CSC | 🌗 | QR local em `app/danfe/nfce.py` (representação); **CSC não implementado** |
+| Transmissão | ❌ | não existe |
+| PDF (cupom) | ✅ | `app/danfe/nfce.py`, 80 mm |
+
+### CT-e (57/67)
+
+| Etapa | Estado | Evidência |
+|---|---|---|
+| Geração do XML | ❌ | não existe |
+| Transmissão / eventos | ❌ | não existe |
+| PDF (DACTE) | ✅ | `app/danfe/cte.py` |
+
+### MDF-e (58)
+
+| Etapa | Estado | Evidência |
+|---|---|---|
+| Geração do XML | ❌ | não existe |
+| Transmissão / encerramento | ❌ | não existe |
+| PDF (DAMDFE) | ✅ | `app/danfe/mdfe.py`, com aviso `[A VALIDAR]` no rodapé |
+
+**Leitura**: só a NFS-e tem ciclo completo validado contra serviço real. NF-e tem
+geração, assinatura e validação de schema, **sem transmissão**. NFC-e, CT-e e MDF-e
+têm apenas representação impressa.
