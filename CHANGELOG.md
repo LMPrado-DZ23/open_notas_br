@@ -5,6 +5,19 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido — `GET /v1/transportes/status` respondia 500 com certificado ativo
+
+- A rota lia `certificado.cert_pem` / `certificado.key_pem`, atributos que o cofre **não** expõe
+  (`CertificadoA1` os mantém privados de propósito). Resultado: `AttributeError` → 500 em toda
+  chamada em que houvesse A1 ativo **e** endpoint no catálogo, isto é, exatamente no caminho
+  para o qual a rota existe.
+- Correção: `TransporteHTTP` passou a aceitar `ssl_context`, repassado ao `httpx` como
+  `verify=<contexto>`; a rota usa `CertificadoA1.ssl_context()`. O caminho antigo (PEM por
+  caminho de arquivo) continua válido — nada foi removido.
+- Causa de ter passado: a rota nunca foi exercitada com certificado. Agora há 6 testes de rota
+  (200 CT-e, 200 MDF-e, 503, 422, 504 ×2) e 1 teste de regressão do repasse ao `httpx`.
+- Medido: **1386 testes**, 58 rotas, gate 6/6, `alembic check` sem drift.
+
 ### Adicionado — catálogo nacional, CT-e/MDF-e e primeira chamada real à SEFAZ
 
 Medido nesta sessão: **~1356 testes**, 57 rotas, 15 tabelas, 11 migrations, gate 6/6, CI verde.

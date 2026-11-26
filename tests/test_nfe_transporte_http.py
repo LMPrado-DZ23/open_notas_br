@@ -70,6 +70,39 @@ class TestStatus:
             await transporte_contra(handler).enviar(url=URL, corpo=b"<x/>", timeout_s=10)
 
 
+class TestMutualTLS:
+    async def test_ssl_context_vai_para_verify(self, monkeypatch) -> None:
+        """Com contexto mTLS pronto, o `httpx` recebe `verify=<contexto>`, não PEM por caminho.
+
+        Regressão real (auditoria §41): a rota de status lia `certificado.cert_pem`, atributo
+        que o cofre **não** expõe (é `_cert_pem`, privado de propósito), e estourava
+        `AttributeError` — 500 em toda chamada com certificado presente.
+        """
+        visto: dict[str, object] = {}
+
+        class FakeClient:
+            def __init__(self, **kwargs) -> None:
+                visto.update(kwargs)
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *exc) -> bool:
+                return False
+
+            async def post(self, url, content=None, headers=None) -> httpx.Response:
+                return httpx.Response(200, content=RESPOSTA_OK)
+
+        monkeypatch.setattr(httpx, "AsyncClient", FakeClient)
+
+        contexto = object()
+        transporte = TransporteHTTP(ssl_context=contexto, soap_action="acao", soap_versao="1.2")
+        await transporte.enviar(url=URL, corpo=b"<x/>", timeout_s=10)
+
+        assert visto["verify"] is contexto
+        assert visto["cert"] is None
+
+
 class TestIntegracaoComCliente:
     async def test_cliente_usa_o_transporte_http(self) -> None:
         async def handler(request: httpx.Request) -> httpx.Response:

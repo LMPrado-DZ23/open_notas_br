@@ -130,9 +130,15 @@ class TransporteHTTP:
         cliente: Any = None,
         soap_action: str = "",
         soap_versao: str = "1.2",
+        ssl_context: Any = None,
     ) -> None:
         # `cliente` permite injetar um `httpx.AsyncClient` já configurado (teste).
+        # `cert_pem`/`key_pem` são **caminhos** de arquivo PEM temporários: o `httpx` recebe
+        # `cert=(certfile, keyfile)`. `ssl_context` é a alternativa já montada (o cofre de
+        # certificados expõe `CertificadoA1.ssl_context()`), e evita que a camada de API
+        # escreva PEM em disco por conta própria.
         self._cert = (cert_pem, key_pem) if cert_pem and key_pem else None
+        self._ssl_context = ssl_context
         self._cliente = cliente
         # Os endpoints `.asmx` do SVRS/SEFAZ-SP exigem a `action` do serviço; sem ela respondem
         # HTTP 500 ao mesmo XML que GO aceita. O valor vem do WSDL oficial de cada serviço
@@ -165,8 +171,11 @@ class TransporteHTTP:
         if self._cliente is not None:
             resposta = await self._cliente.post(url, content=corpo, headers=cabecalhos)
         else:
+            # Com `ssl_context` pronto, o próprio contexto já carrega o certificado de cliente
+            # (mTLS) e as raízes de confiança: `verify` recebe o contexto, não o default.
+            verificar = self._ssl_context if self._ssl_context is not None else True
             async with httpx.AsyncClient(
-                timeout=timeout_s, cert=self._cert, verify=True
+                timeout=timeout_s, cert=self._cert, verify=verificar
             ) as cliente:
                 resposta = await cliente.post(url, content=corpo, headers=cabecalhos)
 

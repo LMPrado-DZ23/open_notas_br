@@ -90,8 +90,9 @@ async def consultar_status_transporte(
 
     modulo = cte_consulta if documento == "cte" else mdfe_consulta
     transporte = TransporteHTTP(
-        cert_pem=certificado.cert_pem,
-        key_pem=certificado.key_pem,
+        # `ssl_context()` já carrega o certificado de cliente e as raízes de confiança.
+        # Não usar os PEM privados do cofre: a superfície pública existe para isto.
+        ssl_context=certificado.ssl_context(),
         soap_action=modulo.ACAO,
         soap_versao=modulo.SOAP_VERSAO,
     )

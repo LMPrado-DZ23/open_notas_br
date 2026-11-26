@@ -1991,3 +1991,73 @@ procedência verificada.
 
 Nenhum item ficou como "roadmap" sem justificativa. O único estado que permanece **bloqueado
 externamente** é a emissão autorizada — que depende de credenciamento, não de código.
+
+---
+
+## 41. `GET /v1/transportes/status` — defeito real encontrado e corrigido
+
+**Data:** 2026-11-26. **Gatilho:** escrever o teste do caminho feliz que estava pendente desde §25.
+
+### O defeito
+
+`app/api/v1/transportes_status.py:93` montava o transporte assim:
+
+```python
+transport = TransporteHTTP(
+    cert_pem=certificado.cert_pem,   # <- atributo inexistente
+    key_pem=certificado.key_pem,     # <- atributo inexistente
+    ...
+)
+```
+
+`CertificadoA1` (app/certificates/cofre.py:93-102) guarda `_cert_pem` e `_key_pem` como
+campos **privados** (`field(repr=False)`, justamente para não vazar material de chave em log).
+Não existe propriedade pública `cert_pem`/`key_pem`.
+
+**Efeito:** `AttributeError` → HTTP 500 em **toda** chamada da rota em que houvesse
+certificado ativo **e** endpoint no catálogo. Isto é, a rota funcionava apenas nos caminhos de
+erro (401/503/422) e quebrava exatamente no caminho para o qual existe.
+
+**Por que passou:** a rota nunca foi exercitada com certificado. `tests/test_transporte_status_rota.py`
+cobria só auth, presença no OpenAPI e `_cuf`. O próprio docstring do arquivo dizia que o caminho
+feliz "não é fingido aqui" — a lacuna estava declarada, mas não medida. Documentar não é testar.
+
+### A correção
+
+1. `app/certificates/cofre.py` já expõe `ssl_context()` (mTLS, com certificado e cadeia
+   carregados em contexto temporário e removido em seguida). Não foi preciso expor PEM.
+2. `app/nfe/transporte.py`: `TransporteHTTP` ganhou o parâmetro opcional `ssl_context`, que é
+   repassado ao `httpx` como `verify=<contexto>`. O caminho antigo (`cert`/`key` por caminho de
+   arquivo) continua funcionando — nada foi removido.
+3. `app/api/v1/transportes_status.py`: passa `ssl_context=certificado.ssl_context()`.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_transporte_status_rota.py` | **11 passed** |
+| `pytest tests/test_nfe_transporte_http.py` | **10 passed** (1 novo) |
+| `pytest -q` (suíte completa) | **100%, 0 failed** |
+| `ruff check app tests scripts` | All checks passed |
+| `ruff format --check` | 283 files already formatted |
+
+Testes novos:
+
+| Teste | O que prova |
+|---|---|
+| `test_cte_devolve_cstat_e_motivo` | 200 com `cStat`/`xMotivo`, URL vinda do catálogo e `cUF` derivado da UF |
+| `test_mdfe_nao_envia_cuf` | o ramo MDF-e chama sem `cUF` (o leiaute não tem o campo) |
+| `test_sem_endpoint_no_catalogo_vira_503` | catálogo incompleto é 503, não erro do cliente |
+| `test_tenant_sem_certificado_vira_422` | ausência de A1 ativo é 422 com instrução de upload |
+| `test_rejeicao_definitiva_vira_504` / `test_autorizador_inacessivel_vira_504` | as duas famílias de erro de transporte |
+| `test_ssl_context_vai_para_verify` | regressão: o contexto mTLS chega ao `httpx` como `verify`, com `cert=None` |
+
+O duplo de SEFAZ nesses testes substitui **apenas** o cliente SOAP. Catálogo, certificado,
+descriptografia do PFX e montagem do transporte rodam de verdade.
+
+### O que continua não medido
+
+Chamada real da **rota** contra a SEFAZ (tenant + A1 no banco + rede). A chamada real do
+**serviço** já foi medida (§31): CT-e status `107`, MDF-e status `107` pelo SVRS. Falta só o
+envelope HTTP da rota sobre ela, que exige subir a API com um tenant configurado — não é
+credencial faltando, é execução de ambiente.
