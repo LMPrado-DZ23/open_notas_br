@@ -3664,6 +3664,106 @@
           }
         }
       }
+    },
+    "/v1/transportes/cte": {
+      "post": {
+        "tags": [
+          "transporte"
+        ],
+        "summary": "Gera e assina um CT-e (não transmite)",
+        "operationId": "gerar_cte_assinado_v1_transportes_cte_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CTeIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "XML do CT-e assinado e validado",
+            "content": {
+              "application/xml": {}
+            }
+          },
+          "422": {
+            "description": "Dados inválidos, certificado ausente ou XML recusado pelo schema"
+          }
+        }
+      }
+    },
+    "/v1/transportes/mdfe": {
+      "post": {
+        "tags": [
+          "transporte"
+        ],
+        "summary": "Gera e assina um MDF-e (não transmite)",
+        "operationId": "gerar_mdfe_assinado_v1_transportes_mdfe_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MDFeIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "XML do MDF-e assinado e validado",
+            "content": {
+              "application/xml": {}
+            }
+          },
+          "422": {
+            "description": "Dados inválidos, certificado ausente ou XML recusado pelo schema"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4048,6 +4148,104 @@
           "arquivo"
         ],
         "title": "Body_gerar_representacao_v1_representacoes_post"
+      },
+      "CTeIn": {
+        "properties": {
+          "numero": {
+            "type": "integer",
+            "maximum": 999999999.0,
+            "minimum": 1.0,
+            "title": "Numero"
+          },
+          "serie": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Serie"
+          },
+          "chave": {
+            "type": "string",
+            "maxLength": 44,
+            "minLength": 44,
+            "pattern": "^\\d{44}$",
+            "title": "Chave"
+          },
+          "emitente": {
+            "$ref": "#/components/schemas/ParteIn"
+          },
+          "destinatario": {
+            "$ref": "#/components/schemas/ParteIn"
+          },
+          "papel_tomador": {
+            "$ref": "#/components/schemas/PapelTomador"
+          },
+          "valor_total": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Valor Total"
+          },
+          "peso": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Peso"
+          },
+          "produto": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Produto"
+          },
+          "data_emissao": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Data Emissao"
+          },
+          "rntrc": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 8,
+            "pattern": "^\\d{8}$",
+            "title": "Rntrc"
+          },
+          "chaves_documentos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Chaves Documentos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "numero",
+          "serie",
+          "chave",
+          "emitente",
+          "destinatario",
+          "papel_tomador",
+          "valor_total",
+          "peso",
+          "produto",
+          "data_emissao",
+          "rntrc",
+          "chaves_documentos"
+        ],
+        "title": "CTeIn"
       },
       "CancelamentoIn": {
         "properties": {
@@ -4487,6 +4685,38 @@
         "title": "CredencialIn",
         "description": "Dados de entrada. Segredo só entra, nunca sai."
       },
+      "DescargaIn": {
+        "properties": {
+          "codigo_ibge": {
+            "type": "string",
+            "maxLength": 7,
+            "minLength": 7,
+            "pattern": "^\\d{7}$",
+            "title": "Codigo Ibge"
+          },
+          "nome": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Nome"
+          },
+          "chaves_nfe": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Chaves Nfe"
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo_ibge",
+          "nome",
+          "chaves_nfe"
+        ],
+        "title": "DescargaIn"
+      },
       "DocumentoOut": {
         "properties": {
           "id": {
@@ -4814,6 +5044,75 @@
         ],
         "title": "EmissaoOut",
         "description": "Resultado de uma emissão."
+      },
+      "EmitenteIn": {
+        "properties": {
+          "cnpj": {
+            "type": "string",
+            "maxLength": 14,
+            "minLength": 14,
+            "title": "Cnpj"
+          },
+          "nome": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Nome"
+          },
+          "ie": {
+            "type": "string",
+            "maxLength": 14,
+            "minLength": 2,
+            "title": "Ie"
+          },
+          "municipio_ibge": {
+            "type": "string",
+            "maxLength": 7,
+            "minLength": 7,
+            "pattern": "^\\d{7}$",
+            "title": "Municipio Ibge"
+          },
+          "municipio": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Municipio"
+          },
+          "uf": {
+            "type": "string",
+            "maxLength": 2,
+            "minLength": 2,
+            "title": "Uf"
+          },
+          "logradouro": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Logradouro",
+            "default": "RUA A"
+          },
+          "numero": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Numero",
+            "default": "S/N"
+          },
+          "bairro": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Bairro",
+            "default": "CENTRO"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cnpj",
+          "nome",
+          "ie",
+          "municipio_ibge",
+          "municipio",
+          "uf"
+        ],
+        "title": "EmitenteIn"
       },
       "EnderecoOut": {
         "properties": {
@@ -5384,6 +5683,127 @@
         ],
         "title": "LoteOut"
       },
+      "MDFeIn": {
+        "properties": {
+          "numero": {
+            "type": "integer",
+            "maximum": 999999999.0,
+            "minimum": 1.0,
+            "title": "Numero"
+          },
+          "serie": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 0.0,
+            "title": "Serie"
+          },
+          "chave": {
+            "type": "string",
+            "maxLength": 44,
+            "minLength": 44,
+            "pattern": "^\\d{44}$",
+            "title": "Chave"
+          },
+          "emitente": {
+            "$ref": "#/components/schemas/EmitenteIn"
+          },
+          "uf_inicio": {
+            "type": "string",
+            "maxLength": 2,
+            "minLength": 2,
+            "title": "Uf Inicio"
+          },
+          "uf_fim": {
+            "type": "string",
+            "maxLength": 2,
+            "minLength": 2,
+            "title": "Uf Fim"
+          },
+          "municipios_carregamento": {
+            "items": {
+              "$ref": "#/components/schemas/MunicipioCarregamentoIn"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Municipios Carregamento"
+          },
+          "valor_carga": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Valor Carga"
+          },
+          "peso": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Peso"
+          },
+          "data_emissao": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Data Emissao"
+          },
+          "descargas": {
+            "items": {
+              "$ref": "#/components/schemas/DescargaIn"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Descargas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "numero",
+          "serie",
+          "chave",
+          "emitente",
+          "uf_inicio",
+          "uf_fim",
+          "municipios_carregamento",
+          "valor_carga",
+          "peso",
+          "data_emissao",
+          "descargas"
+        ],
+        "title": "MDFeIn"
+      },
+      "MunicipioCarregamentoIn": {
+        "properties": {
+          "codigo_ibge": {
+            "type": "string",
+            "maxLength": 7,
+            "minLength": 7,
+            "pattern": "^\\d{7}$",
+            "title": "Codigo Ibge"
+          },
+          "nome": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Nome"
+          }
+        },
+        "type": "object",
+        "required": [
+          "codigo_ibge",
+          "nome"
+        ],
+        "title": "MunicipioCarregamentoIn"
+      },
       "OpcaoOut": {
         "properties": {
           "servico_id": {
@@ -5465,6 +5885,112 @@
         "title": "PaginaTenants",
         "description": "Página de tenants."
       },
+      "PapelTomador": {
+        "type": "string",
+        "enum": [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "title": "PapelTomador",
+        "description": "Código `toma` do leiaute: quem é o tomador do serviço.\n\nExiste para que o gerador **não escolha** o grupo de tomador por conta própria. Escolher\n`toma3` por omissão produz XML válido contra o schema e fiscalmente incorreto — o tomador\naparece como destinatário quando não é.\n\nOs valores são os do leiaute, não invenção nossa."
+      },
+      "ParteIn": {
+        "properties": {
+          "nome": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Nome"
+          },
+          "cnpj": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 14,
+                "minLength": 14
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cnpj"
+          },
+          "cpf": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 11,
+                "minLength": 11
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cpf"
+          },
+          "ie": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 14,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ie"
+          },
+          "municipio_ibge": {
+            "type": "string",
+            "maxLength": 7,
+            "minLength": 7,
+            "pattern": "^\\d{7}$",
+            "title": "Municipio Ibge"
+          },
+          "municipio": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Municipio"
+          },
+          "uf": {
+            "type": "string",
+            "maxLength": 2,
+            "minLength": 2,
+            "title": "Uf"
+          },
+          "logradouro": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Logradouro",
+            "default": "RUA A"
+          },
+          "numero": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Numero",
+            "default": "S/N"
+          },
+          "bairro": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Bairro",
+            "default": "CENTRO"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nome",
+          "municipio_ibge",
+          "municipio",
+          "uf"
+        ],
+        "title": "ParteIn"
+      },
       "ProvedorFiscal": {
         "type": "string",
         "enum": [
@@ -5503,7 +6029,39 @@
           "dsf",
           "proddata",
           "centri",
-          "fisco_simplex"
+          "fisco_simplex",
+          "conam",
+          "coplan",
+          "digifred",
+          "el",
+          "elotech",
+          "fiorilli",
+          "futurize",
+          "giss",
+          "govdigital",
+          "ipm",
+          "issintel",
+          "megasoft",
+          "pronim",
+          "saatri",
+          "sh3",
+          "sigcorp",
+          "sigissweb",
+          "sintese",
+          "tinus",
+          "actcon",
+          "agili",
+          "citta",
+          "geisweb",
+          "gestaoiss",
+          "infisc",
+          "publica",
+          "rlz",
+          "siltecnologia",
+          "speedgov",
+          "tiplan",
+          "versatecnologia",
+          "xtrtecnologia"
         ],
         "title": "ProvedorNFSe",
         "description": "Provedor/layout que responde pelo município."
