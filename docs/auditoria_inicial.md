@@ -965,3 +965,20 @@ primeira coisa a fazer antes de qualquer outra evolução.
   Afrouxar o `except` para "passar" seria esconder bug — removi o teste.
 - **Ainda ausente**: nenhum provedor real foi contatado; o que está provado é que a
   assinatura é gerada, referencia o `Id` certo e sai dentro do envelope.
+
+### 1d. Fábrica de drivers: do cadastro ao motor (Etapa E, parte 4)
+
+- `app/nfse/drivers_factory.py`: `criar_driver`, `MunicipioParaDriver`. 10 testes.
+- **A configuração vem do registro**, não do código: URL, namespace, versão de SOAP,
+  encoding e quais assinaturas o provedor exige.
+- **URL sem `fonte_url` é recusada.** Sem fonte registrada a URL é chute, e R8 proíbe
+  inventar endereço fiscal. Recusa com mensagem que diz o que cadastrar.
+- **`http://` recusado** na fábrica, antes de qualquer chamada.
+- **Mudança de semântica necessária e registrada**: `provedor_suportado` antes respondia
+  `False` para os 16 provedores ABRASF, porque não havia motor. Agora há, então passou a
+  responder `True` — e `capacidade()` continua `False` em emissão, porque motor sem
+  configuração de município não emite. **Duas perguntas diferentes, duas respostas
+  diferentes**: "existe motor?" e "este município pode emitir hoje?".
+- **Ainda ausente**: carregar `MunicipioParaDriver` da linha real de `municipios_nfse`
+  (o mapeamento é trivial, mas exige sessão; a fábrica foi mantida sem ORM de propósito) e
+  `testar_conectividade` contra URL real, que exige acesso ao provedor.

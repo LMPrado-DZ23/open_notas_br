@@ -73,8 +73,10 @@ class BaseNFSeDriver(Protocol):
 
 #: Provedores com contrato definido mas **sem** implementação verificável.
 #: O motivo é factual: falta fonte oficial de URL e leiaute por provedor.
+#: Provedores **sem** motor. Hoje vazio: todos os 17 do cadastro têm motor. Mantido para
+#: que um provedor novo entre como pendente explícito, e não como surpresa em runtime.
 _ENGINE = "motor SOAP pronto em app/nfse/drivers_abrasf.py; falta confirmar "
-PENDENTES: dict[str, str] = {
+PENDENTES_LEGADO: dict[str, str] = {
     "abrasf_1_0": _ENGINE + "endpoint e XSD da versão 1.0 do município",
     "abrasf_2_01": _ENGINE + "endpoint e XSD da versão 2.01",
     "abrasf_2_02": _ENGINE + "endpoint e XSD da versão 2.02",
@@ -94,22 +96,62 @@ PENDENTES: dict[str, str] = {
 }
 
 
+#: Provedores com **motor** implementado. Não significa "pronto para emitir": o motor ainda
+#: precisa da configuração do município (URL, namespace, encoding) vinda do cadastro.
+MOTOR_ABRASF = frozenset(
+    {
+        "abrasf_1_0",
+        "abrasf_2_01",
+        "abrasf_2_02",
+        "abrasf_2_03",
+        "abrasf_2_04",
+        "abrasf_2_06",
+        "ginfes",
+        "issnet",
+        "betha",
+        "webiss",
+        "simpliss",
+        "dsf",
+        "proddata",
+        "centri",
+        "fisco_simplex",
+        "goiania",
+    }
+)
+
+#: Provedores do cadastro que têm motor utilizável (com configuração).
+COM_MOTOR = MOTOR_ABRASF | {"nacional_rest"}
+
+
 def provedor_suportado(provedor: str) -> bool:
-    """Só o padrão nacional tem implementação hoje."""
-    return provedor == "nacional_rest"
+    """Existe motor para este provedor?
+
+    Ser `True` **não** significa que emite: o motor ABRASF exige configuração do município
+    (URL com fonte, namespace, encoding). Quem verifica isso é
+    `app.nfse.drivers_factory.criar_driver`.
+    """
+    return provedor in COM_MOTOR
 
 
 def exigir_implementacao(provedor: str) -> None:
     """Levanta com motivo factual quando o provedor não tem driver utilizável."""
     if provedor_suportado(provedor):
         return
-    motivo = PENDENTES.get(provedor, "provedor desconhecido; nenhuma fonte oficial registrada")
+    motivo = PENDENTES_LEGADO.get(
+        provedor,
+        "provedor desconhecido; nenhum motor implementado e nenhuma fonte registrada",
+    )
     raise ErroDeDriver(provedor, motivo)
 
 
 def capacidade(provedor: str) -> dict[str, bool]:
-    """Matriz provedor x capacidade, para `docs/nfse/drivers.md` e para a API."""
-    suportado = provedor_suportado(provedor)
+    """Matriz provedor x capacidade.
+
+    `nacional_rest` está pronto ponta a ponta. Os demais têm motor mas dependem da
+    configuração do município — por isso aparecem como `False` em emissão: prometer `True`
+    aqui faria a API dizer "posso emitir" para um município sem URL cadastrada.
+    """
+    suportado = provedor == "nacional_rest"
     return {
         "emitir": suportado,
         "consultar_lote": suportado,
