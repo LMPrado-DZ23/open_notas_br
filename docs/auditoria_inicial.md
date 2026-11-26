@@ -632,3 +632,20 @@ têm apenas representação impressa.
   estavam no `.env.example` e a suíte ficou vermelha antes do commit. Era exatamente o
   guarda funcionando.
 - **Ainda ausente**: ligar em produção (decisão operacional) e o circuit breaker no worker.
+
+### 5f. Registro de circuitos por serviço/UF (Etapa H, parte 4)
+
+- `app/nfse/resiliencia.py`: `RegistroCircuitos`, `executar`, `chave_sefaz`,
+  `chave_municipio`, `estados()`. **12 testes** em `tests/test_resiliencia.py`.
+- **Um circuito por chave** (`sefaz:52:autorizacao`, `municipio:5200258:emitir`).
+  Circuito global seria errado: a SEFAZ de GO cair não pode parar a emissão municipal de
+  SP. Testado nos dois eixos (UF e município).
+- **Circuito aberto não chama o serviço.** Teste com flag confirma que a ação não é
+  executada — é o ponto de existir circuito.
+- **Rejeição fiscal não abre.** `ValueError` de rejeição não conta como falha transitória:
+  o serviço está no ar e respondendo. Três rejeições seguidas e o circuito continua
+  fechado (testado).
+- Timeout, `ConnectionError` e `OSError` são transitórios e abrem.
+- `estados()` expõe o mapa para métrica/health.
+- **Ainda ausente**: injetar o registro no `emissao_service` e no worker, e ligar a
+  métrica `sefaz_circuit_state`.
