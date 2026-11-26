@@ -1015,9 +1015,24 @@ primeira coisa a fazer antes de qualquer outra evolução.
 (`pool_pre_ping`), não no código de emissão. Não sei ainda se é artefato do harness de teste
 (engine recriado por teste) ou uma corrida real na criação do engine.
 
+**Hipóteses testadas e ELIMINADAS com experimento** (cada uma custou um comando):
+
+1. *Engine criado em loop de eventos anterior.* Recriei o engine no próprio loop do teste
+   (`dispose_engine()` + `reset_engine()` antes do `gather`). **Falhou igual.** Não é isso.
+2. *`pool_pre_ping` quebra com checkouts concorrentes.* Teste isolado fora da API: duas
+   corrotinas pegando conexão do mesmo engine, com `pre_ping` ligado e desligado.
+   **Ambos passaram** (`[1, 1]` nos dois casos). Não é o `pre_ping` sozinho.
+3. *Corrida na criação preguiçosa do engine.* `obter_engine()` é síncrona, sem `await`
+   interno: entre testar `_engine is None` e atribuir não há ponto de suspensão. Não há
+   corrida ali.
+
+O `MissingGreenlet` aparece em `do_ping` **só no caminho da API com duas requisições
+simultâneas**; fora da API, checkouts concorrentes funcionam. A diferença está no
+`ASGITransport`/dependência de sessão, não no engine nem na emissão.
+
 **Decisão**: não commitei um teste que não entendo, nem marquei "concorrência OK" sem
-entender. A lacuna fica registrada aqui e no roadmap. Verificar exige um harness com dois
-event loops/processos e banco próprio — trabalho à parte, não um ajuste de teste.
+entender. A lacuna fica registrada aqui e no roadmap. Verificar exige harness com processo
+separado — trabalho à parte, não ajuste de teste.
 
 **Risco residual**: se a corrida for real e não só do harness, duas requisições no mesmo
 milissegundo podem devolver 500 em vez de 200 na segunda. A constraint impede a **nota
