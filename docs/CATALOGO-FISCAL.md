@@ -160,3 +160,49 @@ importador recusa sigla que não seja UF de propósito: guardar `uf="SVRS"` cria
 que nenhum tenant usa. A ligação "UF X é atendida pelo autorizador Y" precisa da tabela
 oficial do Portal Nacional — **não foi obtida nesta execução**, e não será deduzida por
 semelhança de nome.
+
+---
+
+## Importação feita (2026-11-26)
+
+`modelo` entrou na tabela e na chave (migration `0009`, round-trip verificado), e os dois
+arquivos foram convertidos e importados:
+
+```
+python -m scripts.converter_wsurls           -> total=180 válidas=180 erros=0
+python -m scripts.importar_catalogo data/endpoints_sefaz.json --aplicar
+                                             -> gravado: 180 novo(s)
+```
+
+### Cobertura medida depois da importação
+
+| Documento | Homologação | Produção |
+|---|---|---|
+| NF-e (55) | **10/27** (37,0%) | 10/27 |
+| NFC-e (65) | **8/27** (29,6%) | 8/27 |
+
+UFs sem cadastro em NF-e: AC AL AP CE DF ES MA PA PB PI RJ RN RO RR SC SE TO.
+
+**Por que não são 27:** essas 17 UFs são atendidas por autorizador virtual (SVRS ou SVAN).
+Os arquivos trazem o bloco do autorizador, não a linha de cada UF atendida. A ligação
+"UF X → autorizador Y" está na tabela oficial do Portal Nacional e **não foi obtida**.
+Não deduzi por semelhança de nome.
+
+### Defeito encontrado ao importar
+
+`ServicoSefaz` não tinha `NFeConsultaProtocolo`: 36 linhas (20% do arquivo) eram rejeitadas.
+O serviço de consulta de protocolo é operação central — estava ausente do enum, não do
+leiaute. Adicionado; o importador passou a aceitar 180/180.
+
+### Registro de medição: o banco guarda o NOME do enum
+
+`Filtering` por `servico='NFeAutorizacao'` em SQL cru devolve zero; o valor gravado é
+`NFE_AUTORIZACAO`. Isso quase me fez reportar cobertura 0/27 depois de importar 180 linhas.
+Query de conferência precisa do nome, não do valor.
+
+### Pendência registrada, não corrigida
+
+`alembic check` acusa drift **pré-existente** em `calculo_audit` (defaults), `dlq.payload` e
+`frete_credenciais` (índice único). Não tem relação com o catálogo e não quebra o CI, que não
+roda `alembic check`. Fica registrado para uma rodada própria — corrigir migration alheia às
+pressas, no meio de outra mudança, é como se cria drift novo.

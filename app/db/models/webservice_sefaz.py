@@ -22,6 +22,7 @@ class ServicoSefaz(enum.StrEnum):
 
     NFE_AUTORIZACAO = "NFeAutorizacao"
     NFE_RET_AUTORIZACAO = "NFeRetAutorizacao"
+    NFE_CONSULTA_PROTOCOLO = "NFeConsultaProtocolo"
     NFE_STATUS = "NFeStatusServico"
     NFE_DISTRIBUICAO = "NFeDistribuicaoDFe"
     NFE_RECEPCAO_EVENTO = "NFeRecepcaoEvento"
@@ -65,9 +66,18 @@ class WebserviceSefaz(Base, MixinTimestamps):
     #: Autorizador que responde de fato (ex.: "SVRS", "SP", "MG"). Útil na operação.
     autorizador: Mapped[str | None] = mapped_column(String(32))
 
+    #: Modelo do documento: "55" (NF-e) ou "65" (NFC-e). Entra na chave porque o mesmo
+    #: serviço (`NFeAutorizacao`) tem hosts **diferentes** em algumas UFs: em SP, NF-e usa
+    #: `nfe.fazenda.sp.gov.br` e NFC-e usa `nfce.fazenda.sp.gov.br`. Sem esta coluna,
+    #: cadastrar NFC-e sobrescreveria o endpoint de NF-e e a nota iria para o host errado.
+    modelo: Mapped[str] = mapped_column(String(2), nullable=False, server_default="55")
+
     __table_args__ = (
-        UniqueConstraint("uf", "ambiente", "servico", name="uq_webservices_sefaz_endpoint"),
+        UniqueConstraint(
+            "uf", "modelo", "ambiente", "servico", name="uq_webservices_sefaz_endpoint"
+        ),
         CheckConstraint("ambiente IN ('1','2')", name="ck_webservices_sefaz_ambiente"),
+        CheckConstraint("modelo IN ('55','65')", name="ck_webservices_sefaz_modelo"),
         CheckConstraint("url LIKE 'https://%'", name="ck_webservices_sefaz_url_https"),
         CheckConstraint("fonte_url LIKE 'https://%'", name="ck_webservices_sefaz_fonte_https"),
     )

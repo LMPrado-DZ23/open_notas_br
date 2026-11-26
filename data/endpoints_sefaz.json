@@ -1,0 +1,1802 @@
+[
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homnfe.sefaz.am.gov.br/services2/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homnfe.sefaz.am.gov.br/services2/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homnfe.sefaz.am.gov.br/services2/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homnfe.sefaz.am.gov.br/services2/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homnfe.sefaz.am.gov.br/services2/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.am.gov.br/services2/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.am.gov.br/services2/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.am.gov.br/services2/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.am.gov.br/services2/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.am.gov.br/services2/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://hnfe.sefaz.ba.gov.br/webservices/NFeStatusServico4/NFeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://hnfe.sefaz.ba.gov.br/webservices/NFeAutorizacao4/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://hnfe.sefaz.ba.gov.br/webservices/NFeConsultaProtocolo4/NFeConsultaProtocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://hnfe.sefaz.ba.gov.br/webservices/NFeInutilizacao4/NFeInutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://hnfe.sefaz.ba.gov.br/webservices/NFeRetAutorizacao4/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.ba.gov.br/webservices/NFeStatusServico4/NFeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.ba.gov.br/webservices/NFeAutorizacao4/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.ba.gov.br/webservices/NFeConsultaProtocolo4/NFeConsultaProtocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.ba.gov.br/webservices/NFeInutilizacao4/NFeInutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.ba.gov.br/webservices/NFeRetAutorizacao4/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://hnfe.fazenda.mg.gov.br/nfe2/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://hnfe.fazenda.mg.gov.br/nfe2/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://hnfe.fazenda.mg.gov.br/nfe2/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://hnfe.fazenda.mg.gov.br/nfe2/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://hnfe.fazenda.mg.gov.br/nfe2/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.fazenda.mg.gov.br/nfe2/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.fazenda.mg.gov.br/nfe2/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.fazenda.mg.gov.br/nfe2/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.fazenda.mg.gov.br/nfe2/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.fazenda.mg.gov.br/nfe2/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://hom.nfe.sefaz.ms.gov.br/ws/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://hom.nfe.sefaz.ms.gov.br/ws/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://hom.nfe.sefaz.ms.gov.br/ws/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://hom.nfe.sefaz.ms.gov.br/ws/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://hom.nfe.sefaz.ms.gov.br/ws/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.ms.gov.br/ws/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.ms.gov.br/ws/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.ms.gov.br/ws/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.ms.gov.br/ws/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.ms.gov.br/ws/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfews/v2/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfews/v2/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfews/v2/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfews/v2/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfews/v2/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.mt.gov.br/nfews/v2/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.mt.gov.br/nfews/v2/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.mt.gov.br/nfews/v2/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.mt.gov.br/nfews/v2/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.mt.gov.br/nfews/v2/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfehomolog.sefaz.pe.gov.br/nfe-service/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfehomolog.sefaz.pe.gov.br/nfe-service/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfehomolog.sefaz.pe.gov.br/nfe-service/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfehomolog.sefaz.pe.gov.br/nfe-service/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfehomolog.sefaz.pe.gov.br/nfe-service/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.pe.gov.br/nfe-service/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.pe.gov.br/nfe-service/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.pe.gov.br/nfe-service/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.pe.gov.br/nfe-service/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.pe.gov.br/nfe-service/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homologacao.nfe.sefa.pr.gov.br/nfe/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homologacao.nfe.sefa.pr.gov.br/nfe/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homologacao.nfe.sefa.pr.gov.br/nfe/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homologacao.nfe.sefa.pr.gov.br/nfe/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homologacao.nfe.sefa.pr.gov.br/nfe/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefa.pr.gov.br/nfe/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefa.pr.gov.br/nfe/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefa.pr.gov.br/nfe/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefa.pr.gov.br/nfe/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefa.pr.gov.br/nfe/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.sefazrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.sefazrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.sefazrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.sefazrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.sefazrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefazrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefazrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefazrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefazrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefazrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/ws/nfestatusservico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/ws/nfeautorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/ws/nfeconsultaprotocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/ws/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/ws/nferetautorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.fazenda.sp.gov.br/ws/nfestatusservico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.fazenda.sp.gov.br/ws/nfeautorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.fazenda.sp.gov.br/ws/nfeconsultaprotocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.fazenda.sp.gov.br/ws/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.fazenda.sp.gov.br/ws/nferetautorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "AM",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homnfce.sefaz.am.gov.br/nfce-services/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homnfce.sefaz.am.gov.br/nfce-services/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homnfce.sefaz.am.gov.br/nfce-services/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homnfce.sefaz.am.gov.br/nfce-services/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homnfce.sefaz.am.gov.br/nfce-services/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfce.sefaz.am.gov.br/nfce-services/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfce.sefaz.am.gov.br/nfce-services/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfce.sefaz.am.gov.br/nfce-services/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfce.sefaz.am.gov.br/nfce-services/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfce.sefaz.am.gov.br/nfce-services/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "GO",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "MG",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://hnfce.fazenda.mg.gov.br/nfce/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://hnfce.fazenda.mg.gov.br/nfce/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://hnfce.fazenda.mg.gov.br/nfce/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://hnfce.fazenda.mg.gov.br/nfce/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://hnfce.fazenda.mg.gov.br/nfce/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfce.fazenda.mg.gov.br/nfce/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfce.fazenda.mg.gov.br/nfce/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfce.fazenda.mg.gov.br/nfce/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfce.fazenda.mg.gov.br/nfce/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfce.fazenda.mg.gov.br/nfce/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MT",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfcews/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfcews/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfcews/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfcews/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfcews/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfce.sefaz.mt.gov.br/nfcews/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfce.sefaz.mt.gov.br/nfcews/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfce.sefaz.mt.gov.br/nfcews/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfce.sefaz.mt.gov.br/nfcews/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfce.sefaz.mt.gov.br/nfcews/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MS",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://hom.nfce.sefaz.ms.gov.br/ws/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://hom.nfce.sefaz.ms.gov.br/ws/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://hom.nfce.sefaz.ms.gov.br/ws/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://hom.nfce.sefaz.ms.gov.br/ws/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://hom.nfce.sefaz.ms.gov.br/ws/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfce.sefaz.ms.gov.br/ws/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfce.sefaz.ms.gov.br/ws/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfce.sefaz.ms.gov.br/ws/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfce.sefaz.ms.gov.br/ws/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfce.sefaz.ms.gov.br/ws/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "PR",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homologacao.nfce.sefa.pr.gov.br/nfce/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homologacao.nfce.sefa.pr.gov.br/nfce/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homologacao.nfce.sefa.pr.gov.br/nfce/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homologacao.nfce.sefa.pr.gov.br/nfce/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homologacao.nfce.sefa.pr.gov.br/nfce/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfce.sefa.pr.gov.br/nfce/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfce.sefa.pr.gov.br/nfce/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfce.sefa.pr.gov.br/nfce/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfce.sefa.pr.gov.br/nfce/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfce.sefa.pr.gov.br/nfce/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "RS",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfce-homologacao.sefazrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfce-homologacao.sefazrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfce-homologacao.sefazrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfce-homologacao.sefazrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfce-homologacao.sefazrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfce.sefazrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfce.sefazrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfce.sefazrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfce.sefazrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfce.sefazrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "SP",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homologacao.nfce.fazenda.sp.gov.br/ws/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homologacao.nfce.fazenda.sp.gov.br/ws/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homologacao.nfce.fazenda.sp.gov.br/ws/NFeInutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homologacao.nfce.fazenda.sp.gov.br/ws/NFeConsultaProtocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "65",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homologacao.nfce.fazenda.sp.gov.br/ws/NFeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfce.fazenda.sp.gov.br/ws/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfce.fazenda.sp.gov.br/ws/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfce.fazenda.sp.gov.br/ws/NFeInutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfce.fazenda.sp.gov.br/ws/NFeConsultaProtocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "65",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfce.fazenda.sp.gov.br/ws/NFeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "autorizador": "SP"
+  }
+]

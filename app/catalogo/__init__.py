@@ -64,6 +64,7 @@ class LinhaEndpoints:
     url: str
     versao_soap: str
     fonte_url: str
+    modelo: str = "55"
     autorizador: str | None = None
     versao_layout: str | None = None
 
@@ -108,6 +109,12 @@ def validar_linha(bruta: dict[str, Any], *, linha: int) -> LinhaEndpoints:
             f"linha {linha}: ambiente precisa ser '1' (produção) ou '2' (homologação), "
             f"recebido {ambiente!r}"
         )
+    modelo = str(bruta.get("modelo", "55")).strip()
+    if modelo not in ("55", "65"):
+        raise ErroDeImportacao(
+            f"linha {linha}: modelo precisa ser '55' (NF-e) ou '65' (NFC-e), recebido {modelo!r}"
+        )
+
     if versao_soap not in ("1.1", "1.2"):
         raise ErroDeImportacao(f"linha {linha}: versao_soap inválida: {versao_soap!r}")
 
@@ -124,6 +131,7 @@ def validar_linha(bruta: dict[str, Any], *, linha: int) -> LinhaEndpoints:
 
     return LinhaEndpoints(
         uf=uf,
+        modelo=modelo,
         ambiente=ambiente,
         servico=servico,
         url=url,
@@ -147,11 +155,12 @@ def validar_lote(brutas: Iterable[dict[str, Any]]) -> tuple[list[LinhaEndpoints]
             erros.append(str(exc))
             continue
 
-        chave = (linha.uf, linha.ambiente, linha.servico)
+        chave = (linha.uf, linha.modelo, linha.ambiente, linha.servico)
         if chave in vistos:
             # Duplicata no mesmo arquivo: qual vence? Nenhuma — o arquivo está ambíguo.
             erros.append(
-                f"linha {indice}: (uf={linha.uf}, ambiente={linha.ambiente}, "
+                f"linha {indice}: (uf={linha.uf}, modelo={linha.modelo}, "
+                f"ambiente={linha.ambiente}, "
                 f"servico={linha.servico}) repetido (já na linha {vistos[chave]})"
             )
             continue
@@ -171,6 +180,7 @@ async def planejar_endpoints_sefaz(sessao: AsyncSession, linhas: list[LinhaEndpo
             await sessao.execute(
                 select(WebserviceSefaz).where(
                     WebserviceSefaz.uf == linha.uf,
+                    WebserviceSefaz.modelo == linha.modelo,
                     WebserviceSefaz.ambiente == linha.ambiente,
                     WebserviceSefaz.servico == linha.servico,
                 )
@@ -203,6 +213,7 @@ async def aplicar_endpoints_sefaz(
         sessao.add(
             WebserviceSefaz(
                 uf=linha.uf,
+                modelo=linha.modelo,
                 ambiente=linha.ambiente,
                 servico=ServicoSefaz(linha.servico),
                 url=linha.url,
@@ -239,13 +250,20 @@ class Cobertura:
         return 100.0 * len(self.ufs_com_autorizacao) / total
 
 
-async def medir_cobertura(sessao: AsyncSession, *, ambiente: str = "2") -> Cobertura:
-    """Quais UFs têm serviço de autorização cadastrado para o ambiente."""
+async def medir_cobertura(
+    sessao: AsyncSession, *, ambiente: str = "2", modelo: str = "55"
+) -> Cobertura:
+    """Quais UFs têm serviço de autorização cadastrado para (ambiente, modelo).
+
+    `modelo` é obrigatório na prática: 55 e 65 têm conjuntos diferentes de UFs, e somar os
+    dois produziria um número que não existe em nenhum dos dois.
+    """
     from app.db.models.webservice_sefaz import ServicoSefaz, WebserviceSefaz
 
     resultado = await sessao.execute(
         select(WebserviceSefaz.uf).where(
             WebserviceSefaz.ambiente == ambiente,
+            WebserviceSefaz.modelo == modelo,
             WebserviceSefaz.servico == ServicoSefaz("NFeAutorizacao"),
         )
     )

@@ -46,16 +46,17 @@ async def executar() -> int:
         print(f"com fonte registrada   : {com_fonte}")
         print(f"homologados (testados) : {homologados}")
 
-        for ambiente, rotulo in (("2", "homologação"), ("1", "produção")):
-            cobertura = await medir_cobertura(sessao, ambiente=ambiente)
-            print(f"\n== SEFAZ ({rotulo}) ==")
-            print(
-                f"UFs com autorização cadastrada: "
-                f"{len(cobertura.ufs_com_autorizacao)}/{len(UFS)} "
-                f"({cobertura.percentual:.1f}%)"
-            )
-            if cobertura.ufs_sem_autorizacao:
-                print(f"sem cadastro: {' '.join(cobertura.ufs_sem_autorizacao)}")
+        for modelo, nome_modelo in (("55", "NF-e"), ("65", "NFC-e")):
+            for ambiente, rotulo in (("2", "homologação"), ("1", "produção")):
+                cobertura = await medir_cobertura(sessao, ambiente=ambiente, modelo=modelo)
+                print(f"\n== SEFAZ {nome_modelo} ({rotulo}) ==")
+                print(
+                    f"UFs com autorização cadastrada: "
+                    f"{len(cobertura.ufs_com_autorizacao)}/{len(UFS)} "
+                    f"({cobertura.percentual:.1f}%)"
+                )
+                if cobertura.ufs_sem_autorizacao:
+                    print(f"sem cadastro: {' '.join(cobertura.ufs_sem_autorizacao)}")
 
         print(
             "\nEste número é o que existe. Zero significa que nenhum endpoint de SEFAZ "
