@@ -1,29 +1,29 @@
-# Painel (vista derivada de `PLANO.md` e `docs/auditoria_inicial.md`)
+# Painel (vista derivada)
 
-> Gerado por comando em 2026-11-26. **Não editar à mão**: é vista derivada.
-> Fonte de verdade da intenção: `PLANO.md`. Fonte de verdade do estado: código + testes.
+> Gerado por `python -m scripts.gerar_painel` em 2026-11-26. **Não editar à mão.**
+> Fonte de verdade da intenção: `PLANO.md`. Do estado: código + testes medidos agora.
 
-## Baseline medida agora
+## Baseline medida
 
 | Métrica | Valor |
 |---|---|
 | Rotas | 53 |
 | Tabelas ORM | 15 |
 | Migrations | 7 (head `0007`) |
-| Postgres de teste | porta 55434, db `notasbr` |
-| Testes aprovados (última execução) | 1068 |
+| Testes aprovados | 1068 |
 | Municípios no seed | 5571 (IBGE, 27 UFs) |
+| Postgres de teste | porta 55434, db `notasbr` |
 
-## Lacunas do v10.0
+## Lacunas do documento v10.0
 
 | # | Lacuna | Estado | O que falta |
 |---|---|---|---|
 | 1 | Drivers NFS-e multi-prefeitura | 🌗 PARCIAL | só padrão nacional; falta URL/leiaute oficial por provedor |
-| 2 | Modelos município/credencial/webservice + rotas | ✅ | (conectividade no cadastro: sem endpoint real) |
+| 2 | Modelos município/credencial/webservice + rotas | ✅ | conectividade no cadastro (sem endpoint real por município) |
 | 3 | Transporte SOAP DF-e | ❌ AUSENTE | credenciamento NF-e em GO |
 | 4 | `CalculoAudit` | ✅ | — |
 | 5 | RFC 7807 / circuit / DLQ / rate limit | 🌗 PARCIAL | injetar circuit no fluxo, admin auth, métrica |
-| 6 | Hash SHA-256 de XSD | ✅ | substituir pelo ZIP oficial do Portal |
+| 6 | Hash SHA-256 de XSD | ✅ | substituir pelo ZIP oficial do Portal Nacional |
 | 7 | `Idempotency-Key` por header | ✅ | — |
 
 ## Fatias do plano original (F9)
