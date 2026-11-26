@@ -1783,3 +1783,33 @@ que não respondem**. Duas fontes concordando não substituem uma chamada que me
 
 Estado real: inutilização e consulta de protocolo de CT-e **não têm endpoint vivo em fonte que eu
 tenha**. Continua bloqueado — mas agora com a sonda registrada, não com suposição.
+
+### 34. Sondagem com controle: inutilização de CT-e não existe em 4.00, e o catálogo está certo
+
+Pesquisei as fontes oficiais (autorizado pelo dono do projeto) e sondei com **controles
+conhecidos**, porque sem controle um 404 não prova nada.
+
+| Sondagem | HTTP | Leitura |
+|---|---|---|
+| `CTeStatusServicoV4/CTeStatusServicoV4.asmx?wsdl` | **200** | controle: a técnica funciona |
+| `CTeConsultaV4/CTeConsultaV4.asmx?wsdl` | **200** | controle |
+| `CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx?wsdl` | **200** | **é a URL do catálogo** |
+| `cteinutilizacao/cteinutilizacao.asmx?wsdl` (página SEFAZ-RS) | 404 | 3.00, aposentado |
+| `CTeInutilizacaoV4/CTeInutilizacaoV4.asmx?wsdl` | 404 | não existe |
+| `cteinutilizacao/CteInutilizacao.asmx?wsdl` | 404 | não existe |
+| `MDFeRecepcaoSinc/MDFeRecepcaoSinc.asmx?wsdl` | **200** | é a URL do catálogo |
+
+**Duas conclusões:**
+
+1. **Inutilização de CT-e 4.00 não tem endpoint vivo.** A URL que a SEFAZ-RS publica e que o INI
+   do ACBr traz é da 3.00 e responde 404. Não é falta de código: é serviço inexistente na versão
+   vigente. Bloqueio real, agora com controle.
+
+2. **O catálogo está correto.** Eu quase reportei um bug grave ("a URL de emissão está morta"):
+   meu primeiro "controle" usou o caminho do **INI** (`CTeRecepcaoSinc/CTeRecepcaosinc.asmx`), não
+   o do **catálogo** (`CTeRecepcaoSincV4/CTeRecepcaoSincV4.asmx`). O do catálogo responde 200.
+   Zero defeito — e o quase-erro só apareceu porque comparei com o dado real antes de escrever.
+
+**Consulta de protocolo**: em CT-e 4.00 o `CTeConsultaV4` já devolve o protocolo completo, então não
+há serviço separado — o `consulta_situacao` implementado (§31) cobre o caso. O
+`CTE_CONSULTA_PROTOCOLO` que eu havia adicionado era conceito de 3.00; foi revertido.
