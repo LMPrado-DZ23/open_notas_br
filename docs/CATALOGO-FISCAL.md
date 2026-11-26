@@ -263,3 +263,46 @@ recusando quem não está em `MOTOR_ABRASF`, com motivo factual.
 
 Nenhum município foi **homologado**: `homologados = 0`. Ter a URL certa não é ter a emissão
 validada — falta a chamada real de status com certificado.
+
+---
+
+## NF-e: 27/27 UFs (2026-11-26)
+
+O `ACBrNFeServicos.ini` (baixado de `data/fontes/`) tem uma indireção explícita que resolve
+o que faltava:
+
+```
+[NFe_AC_P]
+Usar=NFe_SVRS_P
+URL-QRCode=http://www.sefaznet.ac.gov.br/nfce/qrcode
+```
+
+Acre não tem bloco próprio de serviços: ela **declara** que usa o bloco do SVRS. Seguir a
+cadeia `Usar=` é ler o dado da fonte — diferente de deduzir "AC fica com SVRS" por semelhança
+de nome.
+
+### Resultado
+
+```
+linhas=270  válidas=270  erros=0  UFs=27/27
+autorizadores: SVRS (16 UFs), AM, BA, GO, SVAN, MG, MS, MT, PE, PR, RS, SP
+```
+
+| Documento | Homologação | Produção |
+|---|---|---|
+| **NF-e (55)** | **27/27 (100%)** | **27/27** |
+| NFC-e (65) | 8/27 | 8/27 |
+
+### Duas armadilhas tratadas
+
+1. **`?wsdl` não é endpoint.** Muitas linhas do INI trazem a URL do WSDL; enviar SOAP para o
+   WSDL devolve erro de contrato. O sufixo é removido na conversão.
+2. **Chave case-insensitive na prática.** `NFeAutorizacao_4.00` e `NfeAutorizacao_4.00`
+   coexistem no arquivo. Comparando case-sensitive, 17 UFs apareciam "sem URL" — falso
+   negativo que quase me fez desistir da fonte.
+
+### NFC-e segue em 8/27
+
+O INI é de NF-e (modelo 55). As 19 UFs restantes de NFC-e exigem fonte própria — e **não**
+presumo que a URL de NF-e sirva para NFC-e: São Paulo já provou o contrário
+(`nfe.fazenda.sp` × `nfce.fazenda.sp`).

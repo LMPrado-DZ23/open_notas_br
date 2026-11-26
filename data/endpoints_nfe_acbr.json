@@ -1,0 +1,2702 @@
+[
+  {
+    "uf": "AC",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AC",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AL",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.am.gov.br/services2/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.am.gov.br/services2/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.am.gov.br/services2/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.am.gov.br/services2/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.am.gov.br/services2/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homnfe.sefaz.am.gov.br/services2/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homnfe.sefaz.am.gov.br/services2/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homnfe.sefaz.am.gov.br/services2/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homnfe.sefaz.am.gov.br/services2/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AM",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homnfe.sefaz.am.gov.br/services2/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "AM"
+  },
+  {
+    "uf": "AP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "AP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.ba.gov.br/webservices/NFeAutorizacao4/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.ba.gov.br/webservices/NFeRetAutorizacao4/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.ba.gov.br/webservices/NFeStatusServico4/NFeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.ba.gov.br/webservices/NFeConsultaProtocolo4/NFeConsultaProtocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.ba.gov.br/webservices/NFeInutilizacao4/NFeInutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://hnfe.sefaz.ba.gov.br/webservices/NFeAutorizacao4/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://hnfe.sefaz.ba.gov.br/webservices/NFeRetAutorizacao4/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://hnfe.sefaz.ba.gov.br/webservices/NFeStatusServico4/NFeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://hnfe.sefaz.ba.gov.br/webservices/NFeConsultaProtocolo4/NFeConsultaProtocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "BA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://hnfe.sefaz.ba.gov.br/webservices/NFeInutilizacao4/NFeInutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "BA"
+  },
+  {
+    "uf": "CE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "CE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "DF",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "ES",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.go.gov.br/nfe/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "GO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homolog.sefaz.go.gov.br/nfe/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "GO"
+  },
+  {
+    "uf": "MA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://www.sefazvirtual.fazenda.gov.br/NFeAutorizacao4/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVAN"
+  },
+  {
+    "uf": "MA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://www.sefazvirtual.fazenda.gov.br/NFeRetAutorizacao4/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVAN"
+  },
+  {
+    "uf": "MA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://www.sefazvirtual.fazenda.gov.br/NFeStatusServico4/NFeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVAN"
+  },
+  {
+    "uf": "MA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://www.sefazvirtual.fazenda.gov.br/NFeConsultaProtocolo4/NFeConsultaProtocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVAN"
+  },
+  {
+    "uf": "MA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://www.sefazvirtual.fazenda.gov.br/NFeInutilizacao4/NFeInutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVAN"
+  },
+  {
+    "uf": "MA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://hom.sefazvirtual.fazenda.gov.br/NFeAutorizacao4/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVAN"
+  },
+  {
+    "uf": "MA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://hom.sefazvirtual.fazenda.gov.br/NFeRetAutorizacao4/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVAN"
+  },
+  {
+    "uf": "MA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://hom.sefazvirtual.fazenda.gov.br/NFeStatusServico4/NFeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVAN"
+  },
+  {
+    "uf": "MA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://hom.sefazvirtual.fazenda.gov.br/NFeConsultaProtocolo4/NFeConsultaProtocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVAN"
+  },
+  {
+    "uf": "MA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://hom.sefazvirtual.fazenda.gov.br/NFeInutilizacao4/NFeInutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVAN"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.fazenda.mg.gov.br/nfe2/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.fazenda.mg.gov.br/nfe2/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.fazenda.mg.gov.br/nfe2/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.fazenda.mg.gov.br/nfe2/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.fazenda.mg.gov.br/nfe2/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://hnfe.fazenda.mg.gov.br/nfe2/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://hnfe.fazenda.mg.gov.br/nfe2/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://hnfe.fazenda.mg.gov.br/nfe2/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://hnfe.fazenda.mg.gov.br/nfe2/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MG",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://hnfe.fazenda.mg.gov.br/nfe2/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MG"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.ms.gov.br/ws/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.ms.gov.br/ws/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.ms.gov.br/ws/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.ms.gov.br/ws/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.ms.gov.br/ws/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://hom.nfe.sefaz.ms.gov.br/ws/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://hom.nfe.sefaz.ms.gov.br/ws/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://hom.nfe.sefaz.ms.gov.br/ws/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://hom.nfe.sefaz.ms.gov.br/ws/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://hom.nfe.sefaz.ms.gov.br/ws/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MS"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.mt.gov.br/nfews/v2/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.mt.gov.br/nfews/v2/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.mt.gov.br/nfews/v2/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.mt.gov.br/nfews/v2/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.mt.gov.br/nfews/v2/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfews/v2/services/NfeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfews/v2/services/NfeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfews/v2/services/NfeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfews/v2/services/NfeConsulta4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "MT",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homologacao.sefaz.mt.gov.br/nfews/v2/services/NfeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "MT"
+  },
+  {
+    "uf": "PA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PA",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PB",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefaz.pe.gov.br/nfe-service/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefaz.pe.gov.br/nfe-service/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefaz.pe.gov.br/nfe-service/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefaz.pe.gov.br/nfe-service/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefaz.pe.gov.br/nfe-service/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfehomolog.sefaz.pe.gov.br/nfe-service/services/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfehomolog.sefaz.pe.gov.br/nfe-service/services/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfehomolog.sefaz.pe.gov.br/nfe-service/services/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfehomolog.sefaz.pe.gov.br/nfe-service/services/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfehomolog.sefaz.pe.gov.br/nfe-service/services/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PE"
+  },
+  {
+    "uf": "PI",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PI",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefa.pr.gov.br/nfe/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefa.pr.gov.br/nfe/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefa.pr.gov.br/nfe/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefa.pr.gov.br/nfe/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefa.pr.gov.br/nfe/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homologacao.nfe.sefa.pr.gov.br/nfe/NFeAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homologacao.nfe.sefa.pr.gov.br/nfe/NFeRetAutorizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homologacao.nfe.sefa.pr.gov.br/nfe/NFeStatusServico4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homologacao.nfe.sefa.pr.gov.br/nfe/NFeConsultaProtocolo4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "PR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homologacao.nfe.sefa.pr.gov.br/nfe/NFeInutilizacao4",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "PR"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RJ",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RN",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RR",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.sefazrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.sefazrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.sefazrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.sefazrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.sefazrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.sefazrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.sefazrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.sefazrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.sefazrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "RS",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.sefazrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "RS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SC",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SE",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.fazenda.sp.gov.br/ws/nfeautorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.fazenda.sp.gov.br/ws/nferetautorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.fazenda.sp.gov.br/ws/nfestatusservico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.fazenda.sp.gov.br/ws/nfeconsultaprotocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.fazenda.sp.gov.br/ws/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/ws/nfeautorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/ws/nferetautorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/ws/nfestatusservico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/ws/nfeconsultaprotocolo4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "SP",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://homologacao.nfe.fazenda.sp.gov.br/ws/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SP"
+  },
+  {
+    "uf": "TO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "55",
+    "ambiente": "1",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeAutorizacao/NFeAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeRetAutorizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeRetAutorizacao/NFeRetAutorizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeStatusServico",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStatusServico4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeConsultaProtocolo",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/NfeConsulta/NfeConsulta4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  },
+  {
+    "uf": "TO",
+    "modelo": "55",
+    "ambiente": "2",
+    "servico": "NFeInutilizacao",
+    "url": "https://nfe-homologacao.svrs.rs.gov.br/ws/nfeinutilizacao/nfeinutilizacao4.asmx",
+    "versao_soap": "1.2",
+    "fonte_url": "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrNFeServicos.ini",
+    "autorizador": "SVRS"
+  }
+]
