@@ -1593,3 +1593,38 @@ exigiriam os WSDLs/MOC oficiais de cada autorizador — mesma disciplina dos 112
 **Lição registrada**: a lacuna durou porque eu olhei a métrica ("27 UFs") e não a fonte. Duas
 consultas ao INI e ao catálogo do banco resolveram o que três rounds de documentação não
 resolveram.
+
+### 31. Primeiro contato real com CT-e — SOAP 1.2, mas o XML é recusado
+
+Com o endpoint de status de CT-e finalmente no catálogo (§30), tentei a primeira chamada real.
+
+**O que funcionou**:
+
+| Item | Resultado |
+|---|---|
+| URL do catálogo | `https://cte-homologacao.svrs.rs.gov.br/ws/CTeStatusServicoV4/CTeStatusServicoV4.asmx` |
+| WSDL (com mTLS) | HTTP 200, 2618 bytes — action e `targetNamespace` extraídos da fonte |
+| `consStatServCTe` montado do XSD | **valida contra `consStatServCTe_v4.00.xsd`** |
+| Versão do SOAP | **1.2** (com 1.1 o servidor devolve HTTP 500) |
+
+**O que falhou**: a SEFAZ responde `cStat 243 — Rejeição: XML Mal Formado`.
+
+Testado e **descartado**:
+
+1. `cUF` obrigatório no `consStatServCTe` (o XSD acusou; adicionado).
+2. SOAP 1.1 → HTTP 500 (portanto 1.2 é o correto para CT-e, ao contrário do status de NF-e
+   no mesmo SVRS, que exige 1.1).
+3. **Assinatura** do `consStatServCTe` → assinado com o A1 real (3917 bytes, `Signature`
+   presente), e o 243 permanece.
+
+**Estado**: o envelope está correto (a SEFAZ responde com código fiscal, não erro de
+transporte), o XML valida no XSD oficial, e ainda assim é recusado. Falta o **schema da
+mensagem do WSDL** ou o MOC do CT-e para saber o shape exato — mesma situação do 215 do SVRS
+antes de eu descobrir SOAP 1.1.
+
+**Diferença entre documentos, medida**: status de **NF-e** no SVRS exige SOAP **1.1**; status de
+**CT-e** no mesmo SVRS exige SOAP **1.2**. Não é regra por autorizador — é por serviço. O
+`TransporteHTTP` já suporta as duas, mas quem chama precisa saber qual usar, e isso só o WSDL
+de cada serviço informa.
+
+**Não houve emissão**: status é leitura; nenhum CT-e foi transmitido.
