@@ -109,3 +109,54 @@ A coluna `versao_soap` nasceu `VARCHAR(4)` na migration 0005, mas o SQLAlchemy g
 **nome** do membro do enum (`SOAP_11`, 7 caracteres). Resultado: **nenhum** endpoint de
 SEFAZ podia ser cadastrado — a preparação para todos os estados era impossível por largura
 de coluna. Corrigido na migration 0008, com round-trip verificado.
+
+---
+
+## Fontes obtidas (2026-11-26)
+
+Baixadas por `python -m scripts.baixar_fontes`, com SHA-256 e data em
+`data/fontes/MANIFESTO.json`:
+
+| Arquivo | Origem | Cobertura |
+|---|---|---|
+| `wsnfe_4.00_mod55.xml` | repositório oficial NFePHP (sped-nfe) | 15 autorizadores: AM AN BA GO MG MS MT PE PR RS SP SVAN SVRS SVCAN SVCRS |
+| `wsnfe_4.00_mod65.xml` | idem | **28 entradas: as 27 UFs + SVRS** |
+
+## BLOQUEIO ENCONTRADO: falta `modelo` na chave
+
+`webservices_sefaz` tem chave única `(uf, ambiente, servico)` e **não tem coluna `modelo`**.
+NF-e (55) e NFC-e (65) usam o mesmo nome de serviço (`NFeAutorizacao`) mas, em algumas UFs,
+hosts diferentes. Medido nos arquivos baixados:
+
+```
+GO  homologacao: 55 = homolog.sefaz.go.gov.br/nfe/services/NFeAutorizacao4
+                 65 = homolog.sefaz.go.gov.br/nfe/services/NFeAutorizacao4   (iguais)
+SP  homologacao: 55 = homologacao.nfe.fazenda.sp.gov.br/ws/nfeautorizacao4.asmx
+                 65 = homologacao.nfce.fazenda.sp.gov.br/ws/NFeAutorizacao4.asmx  (DIFERENTES)
+```
+
+**Consequência se importar agora**: cadastrar NFC-e depois de NF-e sobrescreveria o endpoint
+de São Paulo, e a NF-e de SP passaria a ser enviada ao host da NFC-e. Falha silenciosa, com
+recusa só no autorizador.
+
+**Decisão**: não importar antes da migration que adiciona `modelo` (55/65) e recompõe a chave
+única para `(uf, modelo, ambiente, servico)`. O importador e a cobertura passam a exigir
+`modelo`, e a contagem de cobertura vira por modelo.
+
+## Próximo passo, na ordem
+
+1. Migration `0009`: `modelo` (55/65) em `webservices_sefaz`, com nova chave única.
+2. Parser dos dois XML para o formato do importador, gravando `modelo`, `autorizador` e
+   `fonte_url` = URL bruta do arquivo no GitHub + hash do manifesto.
+3. Importar em homologação, rodar `cobertura_fiscal` e **testar `NFeStatusServico`** em uma
+   UF antes de qualquer autorização.
+4. NFS-e: endpoint único nacional (`sefin.nfse.gov.br`) cobre quem migrou; para provedores
+   próprios, `ACBrNFSeXServicos.ini` do ACBr, com a mesma regra de procedência.
+
+## Autorizadores virtuais não são UFs
+
+`SVAN`, `SVRS`, `SVCAN`, `SVCRS` e `AN` aparecem nos arquivos como autorizadores. O
+importador recusa sigla que não seja UF de propósito: guardar `uf="SVRS"` criaria uma linha
+que nenhum tenant usa. A ligação "UF X é atendida pelo autorizador Y" precisa da tabela
+oficial do Portal Nacional — **não foi obtida nesta execução**, e não será deduzida por
+semelhança de nome.

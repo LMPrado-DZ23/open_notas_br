@@ -1,0 +1,14 @@
+{
+  "wsnfe_4.00_mod55.xml": {
+    "url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod55.xml",
+    "sha256": "d9663a588febd320e4d4ac8059fd69845f9e19589f63fe585476eb90b441826f",
+    "bytes": "41049",
+    "baixado_em": "2026-11-26T14:25:29+00:00"
+  },
+  "wsnfe_4.00_mod65.xml": {
+    "url": "https://raw.githubusercontent.com/nfephp-org/sped-nfe/master/storage/wsnfe_4.00_mod65.xml",
+    "sha256": "c0c07b2bdc4824f636a9cd72e6f9052e9b38f412037132c5beaad9b6c20e71b6",
+    "bytes": "31770",
+    "baixado_em": "2026-11-26T14:25:29+00:00"
+  }
+}
