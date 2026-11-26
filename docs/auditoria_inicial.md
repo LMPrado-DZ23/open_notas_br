@@ -1303,3 +1303,48 @@ nesta sessão. `homologados = 0`.
 **Risco registrado**: o ciclo NF-e (`autorizar`) existe e é testável localmente, mas nunca foi
 exercitado contra SEFAZ. Um código de transporte não exercitado tem valor menor do que a
 contagem de funções sugere — não conto como "transmissão validada".
+
+### 27. PRIMEIRA CHAMADA REAL À SEFAZ — e o bug que ela revelou
+
+**Data**: 2026-11-26. **Serviço**: `NFeStatusServico4`, ambiente de **homologação** de GO.
+**URL**: `https://homolog.sefaz.go.gov.br/nfe/services/NFeStatusServico4`
+**Autenticação**: mTLS com o certificado A1 real da empresa (CNPJ 64339333000122, ICP-Brasil,
+válido até 2027-01-08).
+
+Resposta literal, preservada em
+`tests/fixtures/evidencias/sefaz_go_status_homolog_2026-11-26.xml`:
+
+```
+cStat   : 107
+xMotivo : Serviço em operação
+cUF     : 52 (GO)
+verAplic: GO4.0
+tpAmb   : 2 (homologação)
+dhRecbto: 2026-11-26T16:12:08-03:00
+```
+
+**Nenhuma nota foi emitida.** É consulta de status: informa se o serviço está no ar, não
+autoriza documento.
+
+#### O bug que só a resposta real expôs
+
+`desenvelopar` devolvia o primeiro filho do `Body` SOAP — que na NF-e é o **embrulho**
+`nfeResultMsg`, não o elemento fiscal. `ler()` então recusava com
+`elemento não é retorno da SEFAZ: nfeResultMsg`, e `autorizacao.autorizar()` quebraria contra a
+SEFAZ de verdade.
+
+Os fixtures feitos em casa não tinham o embrulho porque foram escritos a partir do leiaute, sem
+o WSDL. **O bug era invisível em 1303 testes e apareceu na primeira chamada real.**
+
+Correção: `desenvelopar` salta wrappers cujo nome termina em `ResultMsg`. Teste novo
+`tests/test_retorno_real_sefaz.py` roda `desenvelopar` → `ler` contra a resposta real gravada.
+
+#### O que isso muda no placar
+
+| Antes | Agora |
+|---|---|
+| nenhuma chamada real a autorizador | **`NFeStatusServico` de GO homologação respondido com 107** |
+| ciclo NF-e nunca exercitado | ciclo exercitado até a resposta da SEFAZ e o parse dela |
+
+**Continua sem emissão**: nada foi transmitido no `NFeAutorizacao4`. O que existe agora é prova
+de que o transporte mTLS, o envelope SOAP 1.2 e o parser funcionam contra o autorizador real.

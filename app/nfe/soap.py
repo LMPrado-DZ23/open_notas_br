@@ -62,7 +62,17 @@ def desenvelopar(resposta: bytes) -> etree._Element:
     if corpo is None or len(corpo) == 0:
         # Também acontece quando a SEFAZ devolve SOAP 1.1 ou um HTML de erro de gateway.
         raise ErroSOAP("resposta sem Body SOAP 1.2 com conteúdo")
-    return corpo[0]
+
+    elemento = corpo[0]
+
+    # Os WSDLs da NF-e embrulham o retorno em `nfeResultMsg`; o leiaute começa no filho.
+    # Descoberto com resposta REAL da SEFAZ-GO: sem este salto, `ler()` recusava com
+    # "elemento não é retorno da SEFAZ: nfeResultMsg" e o ciclo de autorização quebrava contra
+    # o autorizador de verdade — os fixtures feitos em casa não tinham o embrulho.
+    if etree.QName(elemento).localname.endswith("ResultMsg") and len(elemento) > 0:
+        elemento = elemento[0]
+
+    return elemento
 
 
 def extrair_falha(resposta: bytes) -> dict[str, str] | None:
