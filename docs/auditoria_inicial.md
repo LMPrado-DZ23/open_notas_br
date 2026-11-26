@@ -367,3 +367,19 @@ têm apenas representação impressa.
   `sefin`.
 - Verificado: a suíte inteira (954 testes) usa mock em ambiente `test` e continua
   passando.
+
+### 4a. Auditoria de cálculo — fatia 1 (Etapa C)
+
+- `app/tax/auditoria.py`: `hash_de`, `LaudoCalculo` (hash de entrada, de saída e do
+  laudo completo), `TabelaConsultada` com vigência, `tabela_vigente`.
+- 18 testes em `tests/test_tax_auditoria.py`.
+- Determinismo verificado: mesma entrada → mesmo hash; ordem de chaves irrelevante;
+  `Decimal("10.0")` e `Decimal("10.00")` normalizam igual (senão o teste falharia por
+  formatação, não por cálculo).
+- **Sobreposição de vigência levanta erro em vez de escolher**: duas versões vigentes
+  ao mesmo tempo é defeito de cadastro, e escolher uma em silêncio calcularia com a
+  tabela errada — exatamente o que a auditoria deve impedir.
+- **Pendente (fatia 2)**: tabela `CalculoAudit` com persistência, retenção de 5 anos,
+  `tenant_id`, `data_emissao`, consulta por `trace_id` e endpoint admin. O laudo já
+  serializa tudo que a tabela precisa; falta o armazenamento e a ligação ao fluxo de
+  emissão.
