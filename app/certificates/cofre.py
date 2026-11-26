@@ -47,6 +47,41 @@ class ErroCertificado(Exception):
     """Falha ao abrir ou usar o certificado A1."""
 
 
+def _carregar_raizes_do_sistema(contexto: ssl.SSLContext) -> int:
+    """Acrescenta as raízes do repositório do sistema ao contexto TLS.
+
+    Motivo medido (auditoria §28): `ssl.create_default_context()` no Windows confia apenas no
+    bundle do Python/OpenSSL, **não** no repositório do Windows. As cadeias do SVRS (que serve
+    ~18 UFs) e da SEFAZ-SP sobem para raízes **ICP-Brasil**, ausentes desse bundle — o handshake
+    falhava com `CERTIFICATE_VERIFY_FAILED` e parecia problema de credencial.
+
+    Em plataformas sem `ssl.enum_certificates` (Linux), o `create_default_context` já usa a loja
+    do sistema e esta função é inerte.
+
+    Devolve quantas raízes foram carregadas, para log de diagnóstico.
+    """
+    if not hasattr(ssl, "enum_certificates"):
+        return 0
+
+    try:
+        raizes = ssl.enum_certificates("ROOT")
+    except OSError:
+        return 0
+
+    carregadas = 0
+    for der, encoding, _trust in raizes:
+        if encoding != "x509_asn":
+            continue
+        try:
+            contexto.load_verify_locations(cadata=der)
+            carregadas += 1
+        except ssl.SSLError:
+            # Certificado que o OpenSSL não aceita (algoritmo antigo, malformado): pular é
+            # melhor que derrubar a emissão inteira por causa de uma raiz qualquer do sistema.
+            continue
+    return carregadas
+
+
 @dataclass(frozen=True)
 class CertificadoA1:
     """Certificado A1 desbloqueado em memória.

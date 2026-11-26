@@ -1382,3 +1382,33 @@ regressão multi-autorizador — e não havia contexto de sessão para verificar
 
 **Risco**: chamadas para SVRS/SVAN falham com erro de TLS obscuro. Quem integrar precisa saber
 que o problema não é credencial nem leiaute.
+
+#### Correção aplicada (TLS) — 2026-11-26
+
+`app/certificates/cofre.py` ganhou `_carregar_raizes_do_sistema(contexto)`, chamada por
+`ssl_context()`. Em Windows ela importa as raízes do repositório do SO (`ssl.enum_certificates`
+→ `load_verify_locations`); em Linux é inerte, porque `create_default_context` já usa a loja do
+sistema.
+
+Medição após a correção, mesmo certificado:
+
+| UF | Antes | Depois |
+|---|---|---|
+| RS (SVRS) | `CERTIFICATE_VERIFY_FAILED` | **handshake OK**, HTTP 500 |
+| SP | `CERTIFICATE_VERIFY_FAILED` | **handshake OK**, HTTP 500 |
+| GO | 107 | **107** (sem regressão) |
+
+`tests/test_tls_raizes_sistema.py` cobre: função inerte sem loja, `ssl_context` mantém
+TLS≥1.2, e (só no Windows) as raízes são carregadas de fato.
+
+#### Segundo achado, agora exposto pela correção
+
+Com o TLS resolvido, SVRS e SEFAZ-SP respondem **HTTP 500** ao mesmo `consStatServ` que GO
+aceita. O `TransporteHTTP` envia `Content-Type: application/soap+xml` com `action=""`; os
+endpoints `.asmx` de SVRS/SP costumam exigir **SOAPAction por serviço**. GO responde porque seus
+endpoints são `.svc` (SOAP 1.2 sem action obrigatória).
+
+**Não corrigi**: a `action` correta de cada serviço está nos WSDLs de cada autorizador, e
+inventá-la violaria a regra de não fabricar referência fiscal. O caminho é obter os WSDLs de
+SVRS e SP (fontes oficiais), versioná-los e derivar a action de cada operação — como foi feito
+com os XSDs.
