@@ -766,3 +766,19 @@ Cada item com estado, prova, teste, risco e **decisão registrada**.
 - **Ainda ausente**: transporte HTTP real (`httpx` com mTLS), o ciclo de autorização do
   lote, consulta/recibo, cancelamento, inutilização, CC-e e contingência. Todos dependem
   de credenciamento para serem verificados.
+
+### 3c. Transporte HTTP com mTLS (Etapa F, parte 3)
+
+- `TransporteHTTP` em `app/nfe/transporte.py`. 9 testes em
+  `tests/test_nfe_transporte_http.py`, contra `httpx.MockTransport` — **sem rede e sem
+  certificado real**, mas exercitando o `httpx` de verdade.
+- **`application/soap+xml`, não `text/xml`**: SOAP 1.2 exige o primeiro; o segundo é
+  SOAP 1.1. Testado no header do pedido real.
+- **5xx sempre transitório** (parametrizado em 500/502/503/504) — o serviço pode voltar.
+- Corpo chega intacto e a resposta bruta é preservada.
+- **Certificado injetado como PEM**, não PFX: este módulo não lê PFX nem conhece senha
+  (R4). A conversão fica a cargo de quem tem o cofre.
+- **O que este teste NÃO prova**: que a SEFAZ aceita o certificado, que a URL está certa e
+  que o leiaute da resposta é o esperado em produção. Isso exige credenciamento.
+- **Ainda ausente no item 3**: ciclo de autorização do lote, consulta/recibo, cancelamento,
+  inutilização, CC-e e contingência.

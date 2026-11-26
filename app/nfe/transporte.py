@@ -10,7 +10,7 @@ devolve respostas reais do leiaute; em produção, o transporte HTTP real entra 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol
 
 from lxml import etree
 
@@ -84,3 +84,50 @@ class ClienteSefaz:
             raise ErroTransporte(f"resposta inesperada: {exc}") from exc
 
         return RespostaSefaz(xml=bruto, elemento=elemento)
+
+
+class TransporteHTTP:
+    """Transporte HTTP com mTLS, para produção.
+
+    Testado contra servidor ASGI local (sem rede, sem certificado real): o que se verifica
+    aqui é o **contrato do pedido** — método, `Content-Type`, `SOAPAction` e corpo — e a
+    tradução de status para erro transitório.
+
+    O certificado é injetado como caminho de arquivo PKCS#12 convertido em PEM temporário
+    pelo chamador; este módulo não lê PFX nem conhece senha (R4).
+    """
+
+    def __init__(
+        self,
+        *,
+        cert_pem: str | None = None,
+        key_pem: str | None = None,
+        cliente: Any = None,
+    ) -> None:
+        # `cliente` permite injetar um `httpx.AsyncClient` já configurado (teste).
+        self._cert = (cert_pem, key_pem) if cert_pem and key_pem else None
+        self._cliente = cliente
+
+    async def enviar(self, *, url: str, corpo: bytes, timeout_s: float) -> bytes:
+        import httpx
+
+        cabecalhos = {
+            # SOAP 1.2 usa `application/soap+xml`, não `text/xml` do SOAP 1.1.
+            "Content-Type": 'application/soap+xml; charset=utf-8; action=""',
+            "Accept": "application/soap+xml",
+        }
+
+        if self._cliente is not None:
+            resposta = await self._cliente.post(url, content=corpo, headers=cabecalhos)
+        else:
+            async with httpx.AsyncClient(
+                timeout=timeout_s, cert=self._cert, verify=True
+            ) as cliente:
+                resposta = await cliente.post(url, content=corpo, headers=cabecalhos)
+
+        if resposta.status_code >= 500:
+            # 5xx é transitório: o serviço pode voltar. 4xx de gateway também, mas 4xx de
+            # contrato é erro nosso — devolvemos o corpo para o erro ficar diagnosticável.
+            raise ErroTransporte(f"HTTP {resposta.status_code}")
+
+        return resposta.content
