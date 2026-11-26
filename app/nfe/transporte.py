@@ -46,6 +46,16 @@ class RespostaSefaz:
     def cstat(self) -> str | None:
         return self.texto("cStat")
 
+    @property
+    def xml_fiscal(self) -> bytes:
+        """O elemento fiscal serializado, sem o envelope SOAP.
+
+        `xml` é a resposta bruta (para auditoria); `xml_fiscal` é o que os leitores de
+        leiaute esperam. Confundir os dois fazia `ler()` recusar a resposta com
+        "elemento não é retorno da SEFAZ: Envelope".
+        """
+        return etree.tostring(self.elemento)
+
 
 class ClienteSefaz:
     """Envia o XML fiscal e devolve a resposta desenvelopada."""

@@ -798,3 +798,19 @@ Cada item com estado, prova, teste, risco e **decisão registrada**.
   semântica inventada.
 - **Ainda ausente**: ciclo completo (enviar → receber recibo → consultar recibo →
   autorizada), cancelamento, inutilização, CC-e e contingência.
+
+### 3e. Ciclo de autorização composto (Etapa F, parte 5)
+
+- `app/nfe/autorizacao.py`: `enviar_lote`, `consultar_recibo`, `autorizar`,
+  `ResultadoAutorizacao`. 8 testes com transporte em sequência.
+- **Sequência do leiaute, não escolha nossa**: `protNFe` → acabou; `cStat 103` → tem
+  `nRecibo`, consultar depois; qualquer outra coisa → rejeição, **não insistir**.
+- **`tentativas_recibo=1` por padrão**: cada consulta consome cota da SEFAZ e há
+  intervalo mínimo regulado. Laço aqui seria abuso; quem precisa esperar, espera fora.
+- Recibo que devolve `103` de novo **para** em vez de insistir.
+- SOAP Fault vira `ErroDeAutorizacao` — não há recibo a consultar depois de Fault.
+- **Bug pego pelos testes**: `ler()` recebia a resposta SOAP bruta e recusava com
+  "elemento não é retorno da SEFAZ: Envelope". Corrigido com `RespostaSefaz.xml_fiscal`
+  (elemento serializado) separado de `.xml` (bruto, para auditoria).
+- **Ainda ausente**: cancelamento, inutilização, CC-e e contingência. E a chamada real,
+  que exige credenciamento.
