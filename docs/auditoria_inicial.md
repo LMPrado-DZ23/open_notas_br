@@ -1665,3 +1665,32 @@ Nenhum dos três está no XSD do leiaute — todos vêm do WSDL do serviço. É 
 ter insistido em versionar WSDL, não só XSD.
 
 **Continua sem emissão**: status é leitura. Nenhum CT-e foi autorizado.
+
+#### MDF-e: mesmo tratamento, resultado igual (`cStat 107`)
+
+Aplicado o mesmo método ao MDF-e, com os valores tirados do **WSDL do serviço**:
+
+| Item | MDF-e | (CT-e, para comparação) |
+|---|---|---|
+| SOAP | **1.2** | 1.2 |
+| wrapper | `mdfeDadosMsg` | `cteDadosMsg` |
+| action | `.../MDFeStatusServico/mdfeStatusServicoMDF` | `.../CTeStatusServicoV4/cteStatusServicoCT` |
+| `cUF` no pedido | **não** | sim |
+| versão do leiaute | **3.00** | 4.00 |
+
+Medido: `consStatServMDFe` valida no XSD e o SVRS responde **`107 — Serviço em Operação`**.
+
+**Implementado**: `app/mdfe/consulta.py` (`montar_cons_stat_serv_mdfe`, `consultar_status`) com 8
+testes, incluindo um que garante **ausência de `cUF`** — o erro que o CT-e cometeria se fosse
+copiado sem olhar o XSD.
+
+#### Placar de contato real com autorizador
+
+| Documento | Serviço | Autorizador | Resultado |
+|---|---|---|---|
+| NF-e | NFeStatusServico4 | GO (SOAP 1.2) | 107 |
+| NF-e | NFeStatusServico4 | SVRS — ES, SC, TO (SOAP 1.1) | 107 |
+| CT-e | CTeStatusServicoV4 | SVRS — ES (SOAP 1.2) | 107 |
+| **MDF-e** | **MDFeStatusServico** | **SVRS — ES (SOAP 1.2)** | **107** |
+
+**Nenhuma nota emitida.** Status é leitura; autorização continua bloqueada por credenciamento.
