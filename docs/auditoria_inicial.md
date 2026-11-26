@@ -598,3 +598,20 @@ têm apenas representação impressa.
   `app.core.vault`.
 - **Pendente**: `GET /v1/tenants/{id}/certificado/status` e o teste de conectividade
   (`consultar_servico`) exigido pelo v10.0 ao cadastrar credencial.
+
+### 5d. DLQ — tabela, serviço e replay (Etapa H, parte 2)
+
+- `app/db/models/dlq.py` + migration `0007` (executada: 0007 → 0006 → 0007, `current` em
+  `0007 head`). 13 colunas, índices por `tenant_id`, `fila`, `status`, `trace_id` e o
+  composto `tenant_id+status`.
+- `app/worker/dlq.py`: `enfileirar`, `listar`, `por_id`, `preparar_replay`,
+  `marcar_replay_falhou`, `descartar`. **11 testes** em `tests/test_dlq.py`.
+- **Replay duplo é recusado.** Replay reenviaria a mesma nota — a falha mais cara
+  possível neste sistema, e a razão de o item carregar `status`.
+- **Falha de replay volta para `pendente`.** Sem isso, o item ficaria marcado como
+  sucesso e o trabalho se perderia em silêncio.
+- Guarda o **payload original**: sem ele, replay seria adivinhação, e o cliente não tem
+  mais o estado daquele momento.
+- Isolamento por tenant verificado: listar e reprocessar item de outro tenant falham.
+- **Ainda ausente**: endpoint `POST /v1/admin/dlq/{id}/replay` (exige auth de admin, que
+  o projeto não tem hoje — só auth de tenant) e a ligação com o worker ARQ real.

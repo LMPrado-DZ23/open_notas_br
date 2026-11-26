@@ -6,6 +6,7 @@ autogenerate nem para o `create_all` de teste, e o erro aparece só em runtime.
 """
 
 from app.db.models.credencial_municipal import CredencialMunicipalTenant
+from app.db.models.dlq import ItemDLQ
 from app.db.models.enums import (
     AmbienteFiscal,
     OrigemFatura,
@@ -35,6 +36,7 @@ __all__ = [
     "FreteCredencial",
     "Invoice",
     "InvoiceEvent",
+    "ItemDLQ",
     "MunicipioNFSe",
     "OrigemFatura",
     "ProvedorFiscal",
