@@ -17,6 +17,7 @@ from app.api.v1 import (
     integracoes,
     lotes,
     municipios,
+    observabilidade,
     representacoes,
     tax,
     tenants,
@@ -27,6 +28,7 @@ router.include_router(health.router)
 router.include_router(consulta.router)
 router.include_router(municipios.router)
 router.include_router(credenciais.router)
+router.include_router(observabilidade.router)
 router.include_router(fretes.router)
 router.include_router(tenants.router)
 router.include_router(certificados.router)

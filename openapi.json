@@ -533,6 +533,30 @@
         }
       }
     },
+    "/v1/health/circuitos": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Circuitos",
+        "description": "Estado atual de cada circuito.\n\nLista vazia significa \"nada foi chamado ainda\", **não** \"tudo saudável\" — um circuito\nsó existe depois do primeiro uso. Deixar isso explícito evita a leitura errada de que\nausência de dados é ausência de problema.",
+        "operationId": "circuitos_v1_health_circuitos_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Circuitos V1 Health Circuitos Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/fretes/oauth/iniciar": {
       "get": {
         "tags": [
