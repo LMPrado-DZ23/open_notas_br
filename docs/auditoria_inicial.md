@@ -563,3 +563,20 @@ têm apenas representação impressa.
   Goiânia (5208707) e Águas Lindas de Goiás (5200258) presentes, todos com
   `provedor = NACIONAL_REST`.
 - **Pendente**: rotas de gestão (`GET /v1/municipios`, credenciais, status de certificado).
+
+### 2f. Rotas de municípios (Etapa D)
+
+- `app/api/v1/municipios.py`: `GET /v1/municipios` (filtros `uf`, `nome`, `provedor`,
+  `homologado` + paginação) e `GET /v1/municipios/{codigo_ibge}`.
+- **Rotas públicas de propósito**: quem integra precisa saber o que cada município exige
+  antes de ter conta, e nada aqui é dado de tenant.
+- **Sem rota de escrita**: município vem do seed do IBGE, não do cliente. Deixar um tenant
+  inventar município permitiria emissão contra código inexistente.
+- 10 testes em `tests/test_municipios_rota.py`: filtros, paginação preservando `total`,
+  `404`, `422` para código curto e não numérico, lista vazia.
+- `fonte_url` exposta no payload: R3 — o cliente pode conferir de onde veio a configuração
+  que vai emitir a nota dele.
+- Rotas: 49 → **51**. OpenAPI regenerado.
+- **Limitação declarada**: busca por `nome` é `ilike` sem normalização de acento;
+  "goiania" não encontra "Goiânia". Documentado em vez de fingir busca fuzzy.
+- **Pendente**: rotas de credencial (exigem o cofre) e status de certificado.

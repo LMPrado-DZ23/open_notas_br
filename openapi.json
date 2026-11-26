@@ -183,6 +183,178 @@
         }
       }
     },
+    "/v1/municipios": {
+      "get": {
+        "tags": [
+          "municipios"
+        ],
+        "summary": "Listar",
+        "description": "Lista paginada com filtros. `total` é o total do filtro, não da página.",
+        "operationId": "listar_v1_municipios_get",
+        "parameters": [
+          {
+            "name": "uf",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 2
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Uf"
+            }
+          },
+          {
+            "name": "nome",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 60
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Nome"
+            }
+          },
+          {
+            "name": "provedor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ProvedorNFSe"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Provedor"
+            }
+          },
+          {
+            "name": "homologado",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Homologado"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "deslocamento",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Deslocamento"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Listar V1 Municipios Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/municipios/{codigo_ibge}": {
+      "get": {
+        "tags": [
+          "municipios"
+        ],
+        "summary": "Obter",
+        "description": "Requisitos de emissão do município, para o cliente se preparar.",
+        "operationId": "obter_v1_municipios__codigo_ibge__get",
+        "parameters": [
+          {
+            "name": "codigo_ibge",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Codigo Ibge"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Obter V1 Municipios  Codigo Ibge  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/fretes/oauth/iniciar": {
       "get": {
         "tags": [
@@ -4966,6 +5138,30 @@
         ],
         "title": "ProvedorGuia",
         "description": "Provedores de guia de arrecadação.\n\nNão existe \"DART nacional unificado\". O que existe é o MAN (que gera DNA) para\nISS do regime geral, o DAS (regime geral via MAN até 31/12/2032) e a guia\nmunicipal, quando o município não adere ao padrão nacional."
+      },
+      "ProvedorNFSe": {
+        "type": "string",
+        "enum": [
+          "nacional_rest",
+          "abrasf_1_0",
+          "abrasf_2_01",
+          "abrasf_2_02",
+          "abrasf_2_03",
+          "abrasf_2_04",
+          "abrasf_2_06",
+          "goiania",
+          "ginfes",
+          "issnet",
+          "betha",
+          "webiss",
+          "simpliss",
+          "dsf",
+          "proddata",
+          "centri",
+          "fisco_simplex"
+        ],
+        "title": "ProvedorNFSe",
+        "description": "Provedor/layout que responde pelo município."
       },
       "SaudeCertificadoOut": {
         "properties": {

@@ -15,6 +15,7 @@ from app.api.v1 import (
     health,
     integracoes,
     lotes,
+    municipios,
     representacoes,
     tax,
     tenants,
@@ -23,6 +24,7 @@ from app.api.v1 import (
 router = APIRouter()
 router.include_router(health.router)
 router.include_router(consulta.router)
+router.include_router(municipios.router)
 router.include_router(fretes.router)
 router.include_router(tenants.router)
 router.include_router(certificados.router)
