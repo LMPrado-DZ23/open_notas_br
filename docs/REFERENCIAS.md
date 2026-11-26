@@ -924,7 +924,20 @@ Consequências:
 
 ### 16.3 Risco aberto: procedência e versão do Pacote de Liberação
 
-Os XSD usados vieram de um repositório de referência, **não do Portal Nacional**.
+### ✅ Migrado para PL_010h (fatia F9.2b, parte 1)
+
+Os schemas em `tests/fixtures/schemas/nfe-4.00/` agora são do **PL_010h**, baixados de
+`raw.githubusercontent.com/nfephp-org/sped-nfe/master/schemes/PL_010h` (referência
+canônica): `nfe_v4.00.xsd`, `leiauteNFe_v4.00.xsd`, `DFeTiposBasicos_v1.00.xsd`,
+`tiposBasico_v4.00.xsd`, `xmldsig-core-schema_v1.01.xsd`, `enviNFe_v4.00.xsd`,
+`procNFe_v4.00.xsd`, `consStatServ`/`retConsStatServ`, `consReciNFe`/`retConsReciNFe`.
+
+**Verificado por validação**: a NF-e gerada e assinada **valida no PL_010h sem os
+grupos IBS/CBS** — eles são opcionais no schema. Emitir IBS/CBS passa a ser requisito
+de regra de negócio a partir da vigência da Reforma Tributária, não de estrutura.
+
+Leitura anterior (mantida como histórico): os XSD usados vinham de um repositório de
+referência, **não do Portal Nacional**.
 O portal distribui Pacotes de Liberação numerados (PL), e há indicativo de duas
 linhas relevantes em 2026: **PL_009_V4** (amplamente usado) e **PL_010**, que
 acrescenta **IBS/CBS** da Reforma Tributária.
