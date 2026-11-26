@@ -23,6 +23,7 @@ from app.api.v1 import (
     tax,
     tenants,
     transportes,
+    transportes_status,
 )
 
 router = APIRouter()
@@ -46,3 +47,4 @@ router.include_router(representacoes.router)
 
 __all__ = ["router"]
 router.include_router(transportes.router)
+router.include_router(transportes_status.router)

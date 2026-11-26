@@ -3764,6 +3764,111 @@
           }
         }
       }
+    },
+    "/v1/transportes/status": {
+      "get": {
+        "tags": [
+          "transporte"
+        ],
+        "summary": "Consulta o status do serviço de CT-e ou MDF-e (não emite)",
+        "operationId": "consultar_status_transporte_v1_transportes_status_get",
+        "parameters": [
+          {
+            "name": "documento",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "cte",
+                "mdfe"
+              ],
+              "type": "string",
+              "description": "Documento",
+              "title": "Documento"
+            },
+            "description": "Documento"
+          },
+          {
+            "name": "uf",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2,
+              "description": "UF do autorizador",
+              "title": "Uf"
+            },
+            "description": "UF do autorizador"
+          },
+          {
+            "name": "ambiente",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "1",
+                "2"
+              ],
+              "type": "string",
+              "description": "1 produção, 2 homologação",
+              "default": "2",
+              "title": "Ambiente"
+            },
+            "description": "1 produção, 2 homologação"
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Retorno do autorizador, com cStat e motivo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "title": "Response Consultar Status Transporte V1 Transportes Status Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Certificado ausente ou parâmetro inválido"
+          },
+          "503": {
+            "description": "Sem endpoint de status no catálogo para a UF"
+          },
+          "504": {
+            "description": "Autorizador inacessível ou recusou de forma definitiva"
+          }
+        }
+      }
     }
   },
   "components": {
