@@ -397,5 +397,15 @@ têm apenas representação impressa.
   cálculo existiu.
 - **Pendente**: `service` de registro/consulta por `trace_id`, endpoint admin e a
   ligação ao fluxo de emissão. Testes de persistência real ainda não escritos.
-- **Não verificado**: `alembic upgrade`/`downgrade` não foi executado neste ambiente
-  (sem Postgres ativo nesta sessão). A migration foi escrita e revisada, não rodada.
+- **VERIFICADO no Postgres** (containers `open-notas-br-postgres-1`, porta 55434):
+
+  ```
+  alembic upgrade head    -> 0001->0002, 0002->0003
+  alembic downgrade -1    -> 0003->0002 (current: 0002)
+  alembic upgrade head    -> 0002->0003 (current: 0003 head)
+  ```
+
+  Round-trip completo, sem erro. Tabela confirmada com **15 colunas** por
+  `information_schema`: `id, tenant_id, invoice_id, trace_id, versao_formato,
+  hash_entrada, hash_saida, hash_laudo, data_emissao, regras, tabelas, entrada,
+  saida, created_at, updated_at` — `tenant_id`, hashes e JSONB todos `NOT NULL`.
