@@ -1694,3 +1694,27 @@ copiado sem olhar o XSD.
 | **MDF-e** | **MDFeStatusServico** | **SVRS — ES (SOAP 1.2)** | **107** |
 
 **Nenhuma nota emitida.** Status é leitura; autorização continua bloqueada por credenciamento.
+
+#### CORREÇÃO DE UM BLOQUEIO QUE EU MESMO DECLAREI — consulta de CT-e é possível
+
+Eu havia registrado que consulta/inutilização de CT-e exigiriam "WSDL/MOC oficiais indisponíveis".
+**Estava errado**: o WSDL do `CTeConsultaV4` responde HTTP 200 com mTLS, exatamente como o do
+status.
+
+| Item | Valor medido |
+|---|---|
+| WSDL | `https://cte-homologacao.svrs.rs.gov.br/ws/CTeConsultaV4/CTeConsultaV4.asmx?wsdl` — HTTP 200 |
+| targetNamespace | `http://www.portalfiscal.inf.br/cte/wsdl/CTeConsultaV4` |
+| action | `.../CTeConsultaV4/cteConsultaCT` |
+| wrapper | `cteDadosMsg` |
+
+O `consSitCTe` montado **valida contra `consSitCTe_v4.00.xsd`**, e a chamada real ao SVRS
+devolveu `236 — Chave de Acesso inválida`: rejeição **fiscal**, o que prova que a mensagem foi
+aceita, desenvelopada e validada. Sem uma nota real, esse é o resultado possível — e é o que
+distingue "o formato está errado" de "a chave é fictícia".
+
+Implementado: `app/cte/consulta_situacao.py` (`montar_cons_sit_cte`, `consultar_situacao`) com 8
+testes, incluindo um que garante **ausência de `cUF`** — a consulta difere do status nisso.
+
+**Lição**: dos cinco bloqueios que declarei, este era falso. Sobram quatro, e a diferença entre
+"sem acesso" e "não feito" é justamente o que eu não devia confundir.
