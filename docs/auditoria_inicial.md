@@ -1149,7 +1149,7 @@ O caminho correto, quando houver CSC: parametrizar `mod`, montar `infNFeSupl` co
 (v2 ou v3 conforme a UF) e validar contra `enviNFe_v4.00.xsd`. A UF define a versão do QR Code —
 não é decisão do sistema.
 
-### 24. Drift de migrations: 8 operações em 3 tabelas (medido, não corrigido)
+### 24. Drift de migrations: 8 operações em 3 tabelas — **CORRIGIDO** (migration 0011)
 
 `python -m alembic check` **falha** (exit 1). Medido nesta data, contra o banco local:
 
@@ -1162,7 +1162,10 @@ não é decisão do sistema.
 **Consequência real**: um `alembic upgrade head` do zero não reproduz os modelos exatamente.
 Quem criar um banco novo e comparar verá diferença.
 
-**Por que não corrigi nesta sessão**: uma migration de correção precisa de round-trip verificado
+**Correção aplicada** (migration `0011`). Abaixo o registro original do diagnóstico, mantido
+para rastreabilidade; o plano abaixo foi **executado e verificado**.
+
+**Por que não corrigi à primeira**: uma migration de correção precisa de round-trip verificado
 (`upgrade` → `check` limpo → `downgrade` → `upgrade`). O contexto era insuficiente para fazer
 isso com verificação, e migration sem round-trip é exatamente o tipo de meia-medida que já
 reverti três vezes neste projeto.
@@ -1180,3 +1183,26 @@ reverti três vezes neste projeto.
 
 **Risco se ficar como está**: baixo para o banco atual (o schema funciona, os testes passam),
 alto para reprodutibilidade — um ambiente novo divergiria do que os modelos descrevem.
+
+---
+
+## Fechamento da correção do drift (migration 0011)
+
+Executado e verificado:
+
+```
+alembic upgrade head   -> aplicou 0011
+alembic check          -> "No new upgrade operations detected"
+alembic downgrade -1   -> voltou para 0010
+alembic upgrade head   -> reaplicou
+alembic check          -> limpo de novo
+pytest --junit-xml     -> testes=1278 falhas=0 erros=0
+```
+
+**Decisão registrada**: a **fonte de verdade é o modelo**. Os `server_default` do banco foram
+removidos porque `tax.py` e `dlq.py` declaram apenas `default=` (Python). O valor continua
+aplicado pelo ORM na inserção. Em `frete_credenciais` o modelo declara `unique=True, index=True`
+e o banco foi alinhado ao índice único.
+
+**Consequência**: `alembic upgrade head` a partir do zero agora reproduz os modelos. O CI não
+roda `alembic check`; por isso o defeito sobreviveu até aqui — ver §25.
