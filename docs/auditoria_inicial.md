@@ -422,9 +422,15 @@ têm apenas representação impressa.
 - A entrada guarda **só o que influencia o tributo**, não o payload inteiro: campo
   irrelevante polui a auditoria e aumenta a superfície de dado pessoal.
 - Valor ilegível vira `None` em vez de explodir — não inventar número.
-- **Pendente (última etapa do item 4)**: chamar `da_emissao` + `svc.registrar` dentro de
-  `POST /v1/emissoes`, na mesma transação. As duas peças existem e estão testadas; falta
-  a linha de ligação na rota.
+- ✅ **ligado ao fluxo**: `POST /v1/emissoes` chama `da_emissao` + `auditoria_service.registrar`
+  logo após a fatura existir, na mesma transação.
+- ✅ **gravação provada por teste** (`tests/test_tax_laudo_na_emissao.py`, banco real):
+  a emissão cria exatamente 1 laudo, com `entrada["base_calculo"] == "10.00"`,
+  `data_emissao`, `trace_id` e integridade recalculada OK; reenvio idempotente
+  (201 depois 200) **não** cria segundo laudo.
+- Item 4 **COMPLETO**: persistência auditável, versão das regras/tabelas, hash de
+  entrada e saída, tenant, data de emissão, consulta e ligação ao fluxo — tudo verificado
+  por execução.
 - **VERIFICADO no Postgres** (containers `open-notas-br-postgres-1`, porta 55434):
 
   ```

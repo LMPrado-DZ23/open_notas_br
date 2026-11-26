@@ -8,6 +8,7 @@ para lote; a semântica de idempotência é a mesma e já está implementada.
 from __future__ import annotations
 
 import uuid
+from datetime import date
 
 from fastapi import (
     APIRouter,
@@ -48,6 +49,7 @@ from app.nfse.servico import (
     ConfiguracaoFiscalAusente,
     ErroDeEmissao,
 )
+from app.tax import auditoria_service, integracao_emissao
 
 HTTP_409 = 409
 HTTP_422 = 422
@@ -191,6 +193,24 @@ async def emitir(
                 status_code=HTTP_409, detail="conflito de idempotência ao criar a fatura"
             ) from None
         return _emissao_out(existente, await _documento_da_fatura(db, existente), ja_existia=True)
+
+    # Laudo do cálculo na MESMA transação da fatura. Commitado à parte, uma emissão
+    # que falhasse depois deixaria laudo de um cálculo que nunca virou nota — prova
+    # de algo que não existiu. `getattr` porque o laudo não pode depender de campo
+    # opcional do schema: campo ausente vira None, não AttributeError.
+    laudo = integracao_emissao.da_emissao(
+        emitente={"uf": getattr(dados, "uf", None)},
+        tomador=({"documento": dados.tomador_documento} if dados.tomador_documento else None),
+        servico={
+            "valor": dados.valor,
+            "municipio_ibge": getattr(dados, "municipio_ibge", None),
+            "codigo_tributacao_nacional": getattr(dados, "codigo_tributacao_nacional", None),
+        },
+        resultado={},
+        data_emissao=date.today(),
+        trace_id=invoice.id,
+    )
+    await auditoria_service.registrar(db, tenant_id=tenant.id, laudo=laudo, invoice_id=invoice.id)
 
     adaptador = SefinMockAdapter(dados.ambiente) if settings.nfse_adapter == "mock" else None
 
