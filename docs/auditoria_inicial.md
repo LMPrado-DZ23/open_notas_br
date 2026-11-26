@@ -1122,3 +1122,29 @@ descarga, sem chave, sem município de carregamento, chave curta — nada é ass
 | CT-e | sim | sim | sim | não |
 | MDF-e | sim | sim | sim | não |
 | NFC-e | não (exige CSC) | — | — | não |
+
+### 23. NFC-e: o que falta, confirmado no código
+
+**Estado: parcial — geração ausente, com bloqueio duplo.**
+
+Verificado por leitura do código:
+
+- `app/nfe/gerador.py:58` fixa `_sub(ide, "mod", "55")`. Não há parâmetro de modelo.
+- O leiaute da NF-e é o mesmo para o modelo 65 (`enviNFe`), mas o modelo 65 exige o grupo
+  `infNFeSupl` com o **QR Code**, e o QR Code depende do **CSC** (token do contribuinte por
+  UF) mais a URL de consulta da UF.
+
+Portanto a NFC-e tem **dois** bloqueios distintos:
+
+| Bloqueio | Natureza |
+|---|---|
+| `mod` fixo em 55 | código — pequeno, resolvível |
+| QR Code / `infNFeSupl` | **dado externo**: CSC por UF, que só o contribuinte possui |
+
+**Decisão: não alterar o gerador de NF-e agora.** Tornar `mod` parametrizável sem o QR Code
+produziria um XML modelo 65 **inválido** para o schema — repetiria o erro do CT-e, que eu
+reverti duas vezes. A NFC-e entra quando houver CSC real de uma UF.
+
+O caminho correto, quando houver CSC: parametrizar `mod`, montar `infNFeSupl` com o QR Code
+(v2 ou v3 conforme a UF) e validar contra `enviNFe_v4.00.xsd`. A UF define a versão do QR Code —
+não é decisão do sistema.
