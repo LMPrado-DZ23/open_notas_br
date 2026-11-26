@@ -7,7 +7,7 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ### Adicionado — catálogo nacional, CT-e/MDF-e e primeira chamada real à SEFAZ
 
-Medido nesta sessão: **1319 testes**, 57 rotas, 15 tabelas, 11 migrations, gate 6/6, CI verde.
+Medido nesta sessão: **~1356 testes**, 57 rotas, 15 tabelas, 11 migrations, gate 6/6, CI verde.
 
 - **Catálogo SEFAZ completo**: NF-e, NFC-e, CT-e e MDF-e em **27/27 UFs** (648 endpoints), cada
   um com `fonte_url` e SHA-256 no manifesto. Importação idempotente por
@@ -28,6 +28,30 @@ Medido nesta sessão: **1319 testes**, 57 rotas, 15 tabelas, 11 migrations, gate
   gate local e no CI (a causa de o drift ter sobrevivido).
 - **Primeira chamada real a autorizador**: `NFeStatusServico4` de GO em homologação respondeu
   `cStat 107 — Serviço em operação`, com certificado A1 real. **Nenhuma nota foi emitida.**
+
+#### Contato real com autorizador (com certificado A1 da empresa)
+
+| Documento | Serviço | Autorizador | Resposta |
+|---|---|---|---|
+| NF-e | `NFeStatusServico4` | SEFAZ-GO (SOAP 1.2) | `107` |
+| NF-e | `NFeStatusServico4` | SVRS — ES, SC, TO (SOAP **1.1**) | `107` |
+| CT-e | `CTeStatusServicoV4` | SVRS — ES (SOAP 1.2) | `107` |
+| MDF-e | `MDFeStatusServico` | SVRS — ES (SOAP 1.2) | `107` |
+
+**Nenhuma nota foi emitida.** Status é leitura; autorização exige credenciamento.
+
+Sete defeitos de produção só apareceram nesse contato — e nenhum dos 1300+ testes locais os
+pegava, porque os fixtures vinham do leiaute e esses detalhes vivem no **WSDL**:
+
+1. `desenvelopar` devolvia o embrulho `nfeResultMsg` (autorização quebraria)
+2. TLS sem raízes ICP-Brasil (18+ UFs inacessíveis no Windows)
+3. SOAP sem `action` (HTTP 500)
+4. Wrapper no namespace fiscal em vez do namespace do serviço (242)
+5. SOAP 1.2 onde o serviço exige 1.1 (215)
+6. `nfeDadosMsg` no serviço de CT-e (243)
+7. Embrulho `*Result` não desembrulhado e `cStat` lido no namespace fixo de NF-e
+
+Cada um foi corrigido com teste que fixa o valor do WSDL.
 
 #### Limitações conhecidas
 

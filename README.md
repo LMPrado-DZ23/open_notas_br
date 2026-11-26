@@ -504,10 +504,10 @@ e `docs/PAINEL.md` (regenerável com `python -m scripts.gerar_painel`).
 | Documento | Geração | Assinatura | Transmissão | Consulta/Eventos | PDF |
 |---|---|---|---|---|---|
 | **NFS-e** | ✅ | ✅ | ✅ **real** (SEFIN homologação) | ✅ **real** | ✅ |
-| NF-e | ✅ | ✅ | ❌ credenciamento | ❌ | ✅ |
+| NF-e | ✅ | ✅ | ❌ credenciamento | ✅ **status real** (GO, ES, SC, TO) | ✅ |
 | NFC-e | ❌ | ❌ | ❌ | ❌ | ✅ |
-| CT-e | ✅ | ✅ | ❌ credenciamento | ❌ | ✅ |
-| MDF-e | ✅ | ✅ | ❌ credenciamento | ❌ | ✅ |
+| CT-e | ✅ | ✅ | ❌ credenciamento | ✅ **status real** (SVRS) | ✅ |
+| MDF-e | ✅ | ✅ | ❌ credenciamento | ✅ **status real** (SVRS) | ✅ |
 
 **O que isso significa na prática**: só a NFS-e emite de verdade hoje. A NF-e tem toda a
 pilha construída e testada com transporte falso — o que prova que o pedido é montado
