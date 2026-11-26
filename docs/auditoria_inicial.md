@@ -886,3 +886,29 @@ hipóteses (certificado não aceito ou bloqueio de rede/WAF) e **não embute o H
 **Lição**: eu classifiquei como indisponível um erro que era de autenticação, com base em
 "é HTML, logo é gateway". A investigação por caminho/host derrubou a hipótese em dois
 comandos.
+
+### 17. O que NÃO consegui verificar, e o motivo exato
+
+Pergunta aberta na §16: "o certificado A1 real continua sendo aceito pela SEFIN?".
+**Não consegui responder**, e o motivo está verificado:
+
+- `.env` tem `ENVIRONMENT`, `NFSE_ADAPTER`, 5 variáveis do Melhor Envio — **nenhum caminho de
+  certificado e nenhuma chave mestra**.
+- `Get-ChildItem -Recurse -Include *.pfx,*.p12` → **nenhum arquivo** no repositório.
+- O certificado A1 real foi enviado pela API e está **selado no banco**
+  (`tenant_certificates`). Abrir exige `MASTER_ENCRYPTION_KEY`, que não está neste ambiente.
+
+Portanto: a emissão NFS-e real **não foi re-testada nesta sessão**. O último sucesso
+verificado continua sendo o da emissão e do cancelamento anteriores; depois disso houve
+mudanças no caminho de emissão (circuito, laudo, idempotência) que **não** foram exercitadas
+contra a SEFIN.
+
+**Risco declarado**: as 1156 verificações atuais são todas locais. A emissão real precisa ser
+re-testada pelo proprietário, com a chave mestra e o certificado em mãos — e essa é a
+primeira coisa a fazer antes de qualquer outra evolução.
+
+**Como re-testar** (sem expor segredo no terminal):
+1. subir a stack com a chave mestra já configurada no ambiente do container;
+2. `POST /v1/emissoes` com uma nota de teste em homologação;
+3. conferir `GET /v1/emissoes/{id}` → `authorized`;
+4. se voltar 403, ler a mensagem: ela agora distingue borda (certificado/WAF) de leiaute.
