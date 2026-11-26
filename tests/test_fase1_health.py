@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import pytest
+from app.core.config import get_settings
 from app.core.redis import fechar_redis, ping_redis
 
 
@@ -40,6 +41,9 @@ class TestReadiness:
         assert corpo["verificacoes"]["database"]["ok"] is True
         assert corpo["verificacoes"]["redis"]["ok"] is True
         assert corpo["uptime_segundos"] >= 0
+        # O adaptador NFS-e é observável: sem isso, uma instância com dublê ligado é
+        # indistinguível de serviço fiscal real (o dublê imita a resposta de propósito).
+        assert corpo["nfse_adapter"] == get_settings().nfse_adapter
 
     async def test_health_503_quando_banco_cai(self, app_teste, cliente) -> None:
         """Simula banco fora para provar que a readiness reprova, não mente."""

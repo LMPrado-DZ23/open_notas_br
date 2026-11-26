@@ -6274,6 +6274,10 @@
             "type": "number",
             "title": "Uptime Segundos"
           },
+          "nfse_adapter": {
+            "type": "string",
+            "title": "Nfse Adapter"
+          },
           "verificacoes": {
             "additionalProperties": {
               "$ref": "#/components/schemas/EstadoDependencia"
@@ -6288,6 +6292,7 @@
           "versao",
           "ambiente",
           "uptime_segundos",
+          "nfse_adapter",
           "verificacoes"
         ],
         "title": "SaudeOut"

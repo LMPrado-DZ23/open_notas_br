@@ -39,6 +39,11 @@ class SaudeOut(BaseModel):
     versao: str
     ambiente: str
     uptime_segundos: float
+    #: Adaptador NFS-e em uso (`sefin` ou `mock`). Existe para que ninguém confunda uma
+    #: instância com dublê ligado com serviço fiscal real — o dublê é indistinguível na
+    #: resposta de emissão, de propósito. Não é segredo: é o nome do adaptador, não a
+    #: configuração dele.
+    nfse_adapter: str
     verificacoes: dict[str, EstadoDependencia]
 
 
@@ -91,6 +96,7 @@ async def saude(resposta: Response) -> SaudeOut:
         versao=APP_VERSION,
         ambiente=settings.environment,
         uptime_segundos=round(time.monotonic() - _INICIO, 3),
+        nfse_adapter=settings.nfse_adapter,
         verificacoes=verificacoes,
     )
 

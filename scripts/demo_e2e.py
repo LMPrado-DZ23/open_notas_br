@@ -166,6 +166,16 @@ def main() -> int:
         saude = http.get("/health")
         checar(saude.status_code == 200, f"GET /health -> {saude.status_code}")
 
+        # Recusa antes de qualquer escrita: este roteiro emite NFS-e. Se o adaptador for real,
+        # ele emitiria documento fiscal de verdade — a demo não tem autorização para isso.
+        adaptador = (saude.json() if saude.status_code == 200 else {}).get("nfse_adapter")
+        if adaptador != "mock":
+            falha(
+                f"NFSE_ADAPTER={adaptador!r} nesta instância; a demo exige 'mock'. "
+                "Suba com NFSE_ADAPTER=mock: rodar assim emitiria NFS-e real."
+            )
+            return 2
+
         passo("1. Criar tenant")
         slug = f"demo-e2e-{int(time.time())}"
         criado = http.post("/v1/tenants", json={"slug": slug, "nome": "Demo E2E LTDA"})

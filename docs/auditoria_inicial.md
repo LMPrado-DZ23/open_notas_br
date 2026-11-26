@@ -2106,3 +2106,49 @@ substituído é só a SEFAZ, que aqui não é chamada porque a rota não transmi
 
 Continua **sem transmissão**: a rota devolve XML assinado. Autorização de CT-e/MDF-e depende de
 credenciamento por UF e não é feita em nenhum ponto do código.
+
+---
+
+## 43. Adaptador NFS-e agora é observável — e a demo recusa rodar contra serviço real
+
+**Data:** 2026-11-26. **Origem:** risco encontrado ao tentar rodar `scripts/demo_e2e.py` no PC.
+
+### O risco
+
+O stack local em execução estava com `NFSE_ADAPTER=sefin` (medido: `docker compose exec -T api
+printenv NFSE_ADAPTER` → `sefin`). O `docker-compose.yml:24` usa `${NFSE_ADAPTER:-sefin}`, isto é,
+o **padrão é o adaptador real**. O `demo_e2e.py` emite NFS-e de ponta a ponta; rodá-lo nessa
+instância emitiria **documento fiscal de verdade**.
+
+Agrava o problema: `SefinMockAdapter` deriva a NFS-e da própria DPS (decisão registrada em
+`app/nfse/adapter.py:472`) — o dublê é **indistinguível** na resposta, de propósito. Logo, nem o
+operador nem um script conseguem saber, olhando a emissão, se a instância é real.
+
+Não executei o demo. Registrei o risco e corrigi a parte que é código.
+
+### A correção
+
+1. `GET /health` passa a devolver `nfse_adapter` (`sefin` ou `mock`). É o **nome do adaptador**,
+   não a configuração dele — não é segredo.
+2. `scripts/demo_e2e.py` lê esse campo **antes da primeira escrita** e aborta com código 2 se não
+   for `mock`, explicando como subir (`NFSE_ADAPTER=mock`) e por quê.
+3. `openapi.json` regenerado (campo novo no schema de readiness).
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_demo_e2e_guarda.py` | 2 passed — recusa `sefin` sem escrever; segue com `mock` |
+| `pytest tests/test_fase1_health.py` | 7 passed — inclui `nfse_adapter` igual ao `Settings` |
+| `pytest tests/test_openapi_sincronizado.py` | 3 passed |
+| `GET /health` no stack real | `{"status":"ok", ..., "verificacoes":{"database":{"ok":true},"redis":{"ok":true}}}` |
+| `GET /health/live` | `{"status":"ok","versao":"0.2.0"}` |
+
+O teste da guarda é de comportamento, não de texto: com `sefin` ele afirma que **nenhum `POST`**
+acontece; com `mock` ele afirma que o fluxo chega ao `POST /v1/tenants`.
+
+### O que continua valendo
+
+`validar_ambiente_de_execucao` já impede `ENVIRONMENT=production` com `mock`. O caso inverso —
+ambiente de desenvolvimento apontando para o serviço **real** — não é erro de configuração: é o
+padrão do `docker-compose.yml`. Por isso a guarda ficou no script que emite, não na configuração.
