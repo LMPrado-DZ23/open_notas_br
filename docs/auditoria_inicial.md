@@ -982,3 +982,21 @@ primeira coisa a fazer antes de qualquer outra evolução.
 - **Ainda ausente**: carregar `MunicipioParaDriver` da linha real de `municipios_nfse`
   (o mapeamento é trivial, mas exige sessão; a fábrica foi mantida sem ORM de propósito) e
   `testar_conectividade` contra URL real, que exige acesso ao provedor.
+
+### 1e. Do registro ORM ao driver, e o caminho até o transporte (Etapa E, parte 5)
+
+- `de_municipio(row, ambiente, versao_soap)` em `app/nfse/drivers_factory.py`.
+  10 testes em `tests/test_nfse_municipio_para_driver.py`, incluindo ponta a ponta local.
+- **O ambiente não tem default esperto**: `ambiente="homologacao"` por padrão. Produção
+  nunca é escolhida por omissão — emitir em produção por acidente é irreversível.
+- **`versao_soap` é parâmetro, não dedução.** Eu havia escrito
+  `"1.1" if "1_0" in provedor else "1.2"` — uma heurística sem fonte no repositório. Um
+  1.1 trocado por 1.2 faz o provedor recusar o envelope inteiro. Removi a dedução; quem
+  sabe a versão é o manual do município.
+- **`namespace_xml` nulo no cadastro levanta**: inventar namespace produz XML recusado sem
+  explicação.
+- `de_municipio` **não inventa URL**: se a do ambiente estiver vazia, devolve `None` e a
+  fábrica recusa com motivo — a guarda fica num lugar só.
+- **Ponta a ponta local provado**: linha do cadastro → `de_municipio` → `criar_driver` →
+  envelope SOAP → transporte falso, com `protocolo` extraído do retorno.
+- **O que esse teste NÃO prova**: que o provedor aceita. Exige contato real.

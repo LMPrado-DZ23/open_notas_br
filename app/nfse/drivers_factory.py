@@ -15,7 +15,7 @@ Nada de rede aqui: a fábrica monta, não chama.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 from app.nfse.drivers import ErroDeDriver, exigir_implementacao
 from app.nfse.drivers_abrasf import (
@@ -69,6 +69,51 @@ class MunicipioParaDriver:
     def __post_init__(self) -> None:
         if len(self.codigo_ibge) != 7 or not self.codigo_ibge.isdigit():
             raise ValueError(f"código IBGE inválido: {self.codigo_ibge!r}")
+
+
+Ambiente = Literal["homologacao", "producao"]
+
+
+def de_municipio(
+    row: Any, *, ambiente: Ambiente = "homologacao", versao_soap: str = "1.2"
+) -> MunicipioParaDriver:
+    """Mapeia a linha de `municipios_nfse` para a configuração da fábrica.
+
+    O `ambiente` escolhe qual URL usar. **Sem default esperto**: produção não é escolhida
+    por omissão — emitir em produção por acidente é irreversível.
+
+    `namespace_xml` nulo no cadastro levanta: inventar namespace produz XML que o provedor
+    recusa sem dizer por quê.
+
+    **`versao_soap` é parâmetro, não dedução.** É tentador inferir "ABRASF 1.0 usa SOAP 1.1"
+    pelo nome do provedor, e eu cheguei a escrever isso — mas não há fonte no repositório
+    confirmando a regra por provedor, e um 1.1 trocado por 1.2 faz o provedor recusar o
+    envelope inteiro. Quem sabe a versão é o manual do município; até ele ser cadastrado,
+    o padrão é 1.2 e a escolha fica explícita em quem chama.
+    """
+    url = row.url_homologacao if ambiente == "homologacao" else row.url_producao
+    namespace = row.namespace_xml
+    if not namespace:
+        raise ErroDeDriver(
+            str(row.provedor),
+            f"município {row.codigo_ibge} sem namespace_xml no cadastro",
+        )
+
+    # `EncodingXML` e `ProvedorNFSe` são enums do ORM; a fábrica trabalha com texto.
+    encoding = getattr(row.encoding, "value", row.encoding)
+    provedor = getattr(row.provedor, "value", row.provedor)
+
+    return MunicipioParaDriver(
+        codigo_ibge=row.codigo_ibge,
+        provedor=provedor,
+        url=url,
+        namespace=namespace,
+        versao_soap=versao_soap,
+        encoding=encoding,
+        assina_rps=bool(row.assina_rps),
+        assina_lote=bool(row.assina_lote),
+        fonte_url=row.fonte_url,
+    )
 
 
 def criar_driver(
