@@ -1906,3 +1906,25 @@ erro local é mais claro que um `215` remoto.
 | Evento | ✅ envelope validado |
 | Inutilização | ❌ serviço não existe em 4.00 (§34) |
 | **Emissão real** | ⏸️ credenciamento |
+
+### 38. Item 7 da lista obrigatória (`Idempotency-Key`): **implementado e testado**
+
+Verificado nesta rodada, com evidência:
+
+| Exigência | Comprovação |
+|---|---|
+| Contrato HTTP | `app/api/v1/emissoes.py:125` — header `Idempotency-Key` |
+| Compatibilidade com body | `:145` — `chave = idempotency_key or dados.idempotency_key` |
+| Precedência documentada | header vence; escolher o body permitiria que proxy injetado trocasse a chave |
+| Sem chave | 422 com mensagem acionável (`:147`) |
+| Validação | 8 a 128 caracteres (`:159`) |
+| Escopo por tenant | `_buscar_por_idempotencia(db, tenant.id, chave)` — `:166` |
+| Testes | **11 passando** (`pytest -k idempot`) |
+
+**Estado: implementado e testado.** Não é parcial, não é roadmap — o header já é o contrato
+preferido e o body permanece aceito para os clientes existentes.
+
+Os itens 1–6 da lista estão registrados nas seções anteriores com seu próprio evidência:
+drivers NFS-e (§9–§12), modelos e migrações (§24), transporte SOAP por documento (§26, §31, §37),
+`CalculoAudit` (§15), RFC 7807 / rate limit / DLQ (§16) e hash de XSD no boot (§18). Esta seção
+fecha o sétimo.
