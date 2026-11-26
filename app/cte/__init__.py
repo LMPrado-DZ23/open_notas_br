@@ -10,6 +10,7 @@ Transporte Eletrônico (origem, data e hash em `ORIGEM.md` e `data/xsd_manifest.
 
 from __future__ import annotations
 
+import enum
 from functools import lru_cache
 from pathlib import Path
 
@@ -19,6 +20,36 @@ RAIZ = Path(__file__).resolve().parents[2]
 DIR_SCHEMAS = RAIZ / "tests" / "fixtures" / "schemas" / "cte-4.00"
 #: Schema raiz do CT-e (modelo 57). Os demais são incluídos por `xs:import`.
 SCHEMA_PRINCIPAL = DIR_SCHEMAS / "cte_v4.00.xsd"
+
+
+class PapelTomador(enum.StrEnum):
+    """Código `toma` do leiaute: quem é o tomador do serviço.
+
+    Existe para que o gerador **não escolha** o grupo de tomador por conta própria. Escolher
+    `toma3` por omissão produz XML válido contra o schema e fiscalmente incorreto — o tomador
+    aparece como destinatário quando não é.
+
+    Os valores são os do leiaute, não invenção nossa.
+    """
+
+    REMETENTE = "0"
+    EXPEDIDOR = "1"
+    RECEBEDOR = "2"
+    DESTINATARIO = "3"
+    OUTROS = "4"
+
+    @property
+    def grupo(self) -> str:
+        """Qual bloco do `ide` este papel exige.
+
+        `toma3` serve quando o tomador é uma das partes já identificadas no documento.
+        `OUTROS` (4) exige `toma4`, com documento e endereço próprios.
+        """
+        return "toma3" if self is not PapelTomador.OUTROS else "toma4"
+
+    @property
+    def exige_dados_proprios(self) -> bool:
+        return self.grupo == "toma4"
 
 
 class ErroCTe(Exception):
