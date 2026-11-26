@@ -36,6 +36,7 @@ def envelopar(
     versao: str = "4.00",
     ns_servico: str | None = None,
     soap_versao: str = "1.2",
+    elemento_dados: str | None = None,
 ) -> bytes:
     """Embrulha o XML fiscal num envelope SOAP 1.1 ou 1.2.
 
@@ -55,7 +56,12 @@ def envelopar(
     corpo = etree.SubElement(envelope, f"{{{ns_soap}}}Body")
     # O wrapper vive no namespace **do serviço** (`.../wsdl/NFeStatusServico4`), não no fiscal.
     # Medido: GO aceita o namespace fiscal, SVRS responde 242 "Mensagem SOAP inválida".
-    dados_msg = etree.SubElement(corpo, f"{{{ns_servico or NS_NFE}}}{ELEMENTO_DADOS}")
+    # O nome do wrapper é do WSDL do serviço, não do leiaute: NF-e usa `nfeDadosMsg` e CT-e usa
+    # `cteDadosMsg`. Medido: com o nome de NF-e no serviço de CT-e, a SEFAZ responde 243
+    # "XML Mal Formado"; com o nome certo, 107 "Serviço em Operação".
+    dados_msg = etree.SubElement(
+        corpo, f"{{{ns_servico or NS_NFE}}}{elemento_dados or ELEMENTO_DADOS}"
+    )
     dados_msg.append(dados)
 
     return b'<?xml version="1.0" encoding="UTF-8"?>' + etree.tostring(envelope)
@@ -88,7 +94,10 @@ def desenvelopar(resposta: bytes) -> etree._Element:
     # Descoberto com resposta REAL da SEFAZ-GO: sem este salto, `ler()` recusava com
     # "elemento não é retorno da SEFAZ: nfeResultMsg" e o ciclo de autorização quebrava contra
     # o autorizador de verdade — os fixtures feitos em casa não tinham o embrulho.
-    if etree.QName(elemento).localname.endswith("ResultMsg") and len(elemento) > 0:
+    # NF-e embrulha em `nfeResultMsg`; CT-e embrulha em `cteStatusServicoCTResult`.
+    # Ambos precisam ser saltados: o leiaute começa no filho.
+    local = etree.QName(elemento).localname
+    if (local.endswith("ResultMsg") or local.endswith("Result")) and len(elemento) > 0:
         elemento = elemento[0]
 
     return elemento

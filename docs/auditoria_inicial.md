@@ -1594,7 +1594,7 @@ exigiriam os WSDLs/MOC oficiais de cada autorizador — mesma disciplina dos 112
 consultas ao INI e ao catálogo do banco resolveram o que três rounds de documentação não
 resolveram.
 
-### 31. Primeiro contato real com CT-e — SOAP 1.2, mas o XML é recusado
+### 31. Primeiro contato real com CT-e — **RESOLVIDO: cStat 107**
 
 Com o endpoint de status de CT-e finalmente no catálogo (§30), tentei a primeira chamada real.
 
@@ -1628,3 +1628,40 @@ antes de eu descobrir SOAP 1.1.
 de cada serviço informa.
 
 **Não houve emissão**: status é leitura; nenhum CT-e foi transmitido.
+
+#### RESOLVIDO: o 243 era o **nome do wrapper** e o **embrulho da resposta**
+
+Duas diferenças por documento, ambas invisíveis no XSD:
+
+1. **Wrapper do pedido**: NF-e usa `nfeDadosMsg`; **CT-e usa `cteDadosMsg`**. Com o nome de
+   NF-e, a SEFAZ responde `243 — XML Mal Formado`; com o correto, **`107 — Serviço em
+   Operação`**. Medido lado a lado, mesmo XML fiscal.
+2. **Embrulho da resposta**: NF-e devolve `nfeResultMsg`; CT-e devolve
+   `cteStatusServicoCTResult`, que **não** termina em `ResultMsg`. O filtro antigo não saltava,
+   e `cStat` era lido como `None`.
+
+Também corrigido: `RespostaSefaz.texto` procurava `cStat` no namespace **fixo de NF-e**;
+agora usa o namespace do próprio retorno (`.../nfe` ou `.../cte`).
+
+**Resultado medido com o código do projeto**:
+
+```
+CT-e status (SVRS, ES, homologação): cStat=107 | Servico em Operacao
+```
+
+**Implementado e testado** (41 testes no conjunto SOAP): `envelopar(elemento_dados=)`,
+`ClienteSefaz.chamar(elemento_dados=)`, `desenvelopar` saltando `*Result` **e** `*ResultMsg`, e
+`texto()` ciente do namespace. Defaults preservam NF-e, então **nenhuma regressão**.
+
+**Diferença entre documentos, agora medida em três eixos**:
+
+| Eixo | NF-e (SVRS) | CT-e (SVRS) |
+|---|---|---|
+| Versão SOAP | 1.1 | **1.2** |
+| Wrapper do pedido | `nfeDadosMsg` | **`cteDadosMsg`** |
+| Embrulho da resposta | `nfeResultMsg` | **`cteStatusServicoCTResult`** |
+
+Nenhum dos três está no XSD do leiaute — todos vêm do WSDL do serviço. É a razão de o projeto
+ter insistido em versionar WSDL, não só XSD.
+
+**Continua sem emissão**: status é leitura. Nenhum CT-e foi autorizado.

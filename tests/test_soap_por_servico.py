@@ -113,3 +113,38 @@ class TestCabecalhosPorVersao:
         from app.nfe.transporte import TransporteHTTP
 
         assert TransporteHTTP()._soap_versao == "1.2"
+
+
+class TestWrapperDoServico:
+    """O nome do wrapper e o embrulho de resposta variam por documento — medido ao vivo."""
+
+    def test_cte_usa_cte_dados_msg(self) -> None:
+        envelope = envelopar(
+            FISCAL, ns_servico=NS_SERVICO, soap_versao="1.2", elemento_dados="cteDadosMsg"
+        )
+        assert b"cteDadosMsg" in envelope
+        assert b"nfeDadosMsg" not in envelope
+
+    def test_desenvelopar_salta_result_de_cte(self) -> None:
+        # O CT-e embrulha a resposta em `cteStatusServicoCTResult`, que NAO termina em
+        # `ResultMsg`. Sem este salto, `cStat` era lido como None.
+        resposta = (
+            b'<?xml version="1.0"?>'
+            b'<soap:Envelope xmlns:soap="' + NS_SOAP12.encode() + b'">'
+            b'<soap:Body><cteStatusServicoCTResult xmlns="http://www.portalfiscal.inf.br/cte/wsdl/CTeStatusServicoV4">'
+            b'<retConsStatServCTe xmlns="http://www.portalfiscal.inf.br/cte" versao="4.00">'
+            b"<cStat>107</cStat></retConsStatServCTe></cteStatusServicoCTResult>"
+            b"</soap:Body></soap:Envelope>"
+        )
+        extraido = desenvelopar(resposta)
+        assert etree.QName(extraido).localname == "retConsStatServCTe"
+
+    def test_texto_le_cstat_de_namespace_cte(self) -> None:
+        from app.nfe.transporte import RespostaSefaz
+
+        xml = (
+            b'<retConsStatServCTe xmlns="http://www.portalfiscal.inf.br/cte" versao="4.00">'
+            b"<cStat>107</cStat></retConsStatServCTe>"
+        )
+        resposta = RespostaSefaz(xml=xml, elemento=etree.fromstring(xml))
+        assert resposta.cstat == "107"

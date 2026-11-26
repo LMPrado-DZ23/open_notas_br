@@ -39,7 +39,10 @@ class RespostaSefaz:
     elemento: etree._Element
 
     def texto(self, tag: str) -> str | None:
-        alvo = self.elemento.find(f".//{{http://www.portalfiscal.inf.br/nfe}}{tag}")
+        # O namespace é o do documento retornado (`.../nfe` ou `.../cte`), não o de NF-e fixo:
+        # com o fixo, o retorno de CT-e lia `cStat` como None.
+        ns = etree.QName(self.elemento).namespace
+        alvo = self.elemento.find(f".//{{{ns}}}{tag}") if ns else self.elemento.find(f".//{tag}")
         return alvo.text if alvo is not None else None
 
     @property
@@ -72,12 +75,18 @@ class ClienteSefaz:
         timeout_s: float | None = None,
         ns_servico: str | None = None,
         soap_versao: str = "1.2",
+        elemento_dados: str | None = None,
     ) -> RespostaSefaz:
         if not url.startswith("https://"):
             # R3: serviço fiscal em http é dado e credencial em texto claro.
             raise ValueError("URL de webservice precisa ser https")
 
-        envelope = envelopar(xml_fiscal, ns_servico=ns_servico, soap_versao=soap_versao)
+        envelope = envelopar(
+            xml_fiscal,
+            ns_servico=ns_servico,
+            soap_versao=soap_versao,
+            elemento_dados=elemento_dados,
+        )
 
         try:
             bruto = await self._transporte.enviar(
