@@ -40,10 +40,18 @@ MAPA_CTE = {
     "cterecepcaosinc_4.00": "CTeRecepcaoSinc",
     "cterecepcaoevento_3.00": "CTeRecepcaoEvento",
     "cterecepcaoevento_4.00": "CTeRecepcaoEvento",
+    # O INI do ACBr grafa a chave do evento SEM o prefixo do documento nas seções
+    # compartilhadas (`RecepcaoEvento_3.00`). Sem estas linhas, só a recepção síncrona
+    # entrava no catálogo e o CT-e ficava com 1 de 7 serviços (auditoria §30).
+    "recepcaoevento_3.00": "CTeRecepcaoEvento",
+    "recepcaoevento_4.00": "CTeRecepcaoEvento",
 }
 MAPA_MDFE = {
     "mdferecepcaosinc_3.00": "MDFeRecepcaoSinc",
     "mdferecepcaoevento_3.00": "MDFeRecepcaoEvento",
+    # Mesma indireção do CT-e: a chave do evento aparece sem o prefixo do documento.
+    "recepcaoevento_1.00": "MDFeRecepcaoEvento",
+    "recepcaoevento_3.00": "MDFeRecepcaoEvento",
 }
 
 MAPA = {

@@ -1511,7 +1511,7 @@ exige — nenhuma regressão.
 **O que isso NÃO muda**: nenhuma nota foi emitida. `NFeAutorizacao4` continua sem chamada, e
 autorizar exige credenciamento. Status é leitura, não emissão.
 
-### 30. Catálogo de CT-e e MDF-e está **INCOMPLETO** — correção de afirmação anterior
+### 30. Catálogo de CT-e e MDF-e: **lacuna medida e parcialmente corrigida**
 
 Medido por consulta ao banco:
 
@@ -1543,3 +1543,25 @@ natureza do que destravou NF-e para 270 endpoints.
 
 **Lição**: cobertura de UFs não é cobertura de serviços. Uma métrica "27/27" pode esconder que
 apenas 1 de 7 operações existe.
+
+#### Progresso do §30 — eventos de CT-e e MDF-e recuperados
+
+A causa raiz estava no mapeamento chave→serviço, não na fonte. O INI grafa a chave do evento
+**sem o prefixo do documento** nas seções compartilhadas (`RecepcaoEvento_3.00`), e o mapa só
+conhecia `cterecepcaoevento_*`.
+
+Adicionadas ao mapa as chaves `recepcaoevento_{1.00,3.00,4.00}` (CT-e e MDF-e). Medido após
+reconverter e reimportar:
+
+| Modelo | Antes | Depois |
+|---|---|---|
+| 57 (CT-e) | 54 endpoints, **1** serviço | **108 endpoints, 2** serviços (+`CTE_RECEPCAO_EVENTO`) |
+| 58 (MDF-e) | 54 endpoints, **1** serviço | **108 endpoints, 2** serviços (+`MDFE_RECEPCAO_EVENTO`) |
+| **Total do catálogo** | 648 | **756** |
+
+Importação: `válidas=756 inserir=108 atualizar=0 inalterado=648`.
+
+**O que ainda falta** (exige ampliar o enum + migration, não só o mapa): status, consulta e
+recepção assíncrona de CT-e/MDF-e. As URLs estão no INI (`CTeStatusServico_3.00`,
+`MDFeStatusServico_3.00`, `CTeRetRecepcao_3.00`), mas não há valor correspondente em
+`ServicoSefaz`, e o importador recusa serviço desconhecido — o que é o comportamento correto.
