@@ -232,3 +232,21 @@ de 5 s; o gargalo é fixture, não lógica.
 **Implicação para o v10.0**: o custo de fixture por teste sugere que a suíte vai
 ficar lenta quando triplicar. Antes da Fase 1, vale transformar as fixtures de
 tenant/certificado em factory com escopo de módulo.
+
+## 11. Verificação das 7 lacunas reportadas (evidência de código)
+
+Cada item conferido por comando. `AUSENTE` = a busca no código não achou arquivo nem símbolo.
+
+| # | Lacuna | Estado | Evidência |
+|---|---|---|---|
+| 1 | drivers NFS-e multi-prefeitura | PARCIAL | `app/nfse/drivers/` existe=False; `app/nfse/adapter.py` implementa só padrão nacional (`SefinNacionalClient`, `SefinMockAdapter`) |
+| 2 | modelos de município/credencial/webservice | AUSENTE | tabelas em `Base.metadata` faltando: ['municipios_nfse', 'credenciais_municipais', 'webservices_sefaz'] |
+| 3 | transporte SOAP DF-e | AUSENTE | ocorrências de soap/SOAPAction: 0; existem `app/nfe/gerador.py`, `assinatura.py`, `lote.py` (geração+assinatura+XSD, sem envio) |
+| 4 | CalculoAudit | AUSENTE | `CalculoAudit` no código=False; `app/tax/rtc.py` calcula sem auditar |
+| 5 | RFC 7807 / circuit breaker / DLQ / rate limit | PARCIAL | errors.py=True (módulo testado, handler NÃO registrado); circuit=False; DLQ=False; rate limit=True |
+| 6 | hash SHA-256 de XSD no boot | AUSENTE | verificação de hash de schema=False; schemas versionados sem hash em `tests/fixtures/schemas/` |
+| 7 | `Idempotency-Key` por header | PARCIAL | `idempotency_key` existe no body (`app/nfse/schemas.py`); header presente=False |
+
+**Conclusão**: nenhuma das 7 está completa. O item 5 é o único com código novo
+(módulo RFC 7807, testado isolado, sem efeito em rotas). Os outros exigem
+implementação nova, não correção.
