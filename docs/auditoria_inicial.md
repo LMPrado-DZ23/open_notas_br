@@ -239,7 +239,7 @@ Cada item conferido por comando. `AUSENTE` = a busca no código não achou arqui
 
 | # | Lacuna | Estado | Evidência |
 |---|---|---|---|
-| 1 | drivers NFS-e multi-prefeitura | PARCIAL | `app/nfse/drivers/` existe=False; `app/nfse/adapter.py` implementa só padrão nacional (`SefinNacionalClient`, `SefinMockAdapter`) |
+| 1 | drivers NFS-e multi-prefeitura | **PARCIAL — interface e roteamento prontos** | `app/nfse/drivers/` existe=False; `app/nfse/adapter.py` implementa só padrão nacional (`SefinNacionalClient`, `SefinMockAdapter`) |
 | 2 | modelos de município/credencial/webservice | AUSENTE | `Base.metadata` com `app.db.models` importado tem **10 tabelas** (batch_jobs, fiscal_documents, frete_credenciais, invoice_events, invoices, tax_assessments, tenant_certificates, tenant_fiscal_configs, tenants, webhook_deliveries); faltam exatamente ['municipios_nfse', 'credenciais_municipais', 'webservices_sefaz']. Correção de método: a primeira medição retornou 0 tabelas porque os modelos não estavam importados — evidência refeita. |
 | 3 | transporte SOAP DF-e | **PARCIAL** | ocorrências de soap/SOAPAction: 0; existem `app/nfe/gerador.py`, `assinatura.py`, `lote.py` (geração+assinatura+XSD, sem envio) |
 | 4 | CalculoAudit | AUSENTE | `CalculoAudit` no código=False; `app/tax/rtc.py` calcula sem auditar |
@@ -912,3 +912,19 @@ primeira coisa a fazer antes de qualquer outra evolução.
 2. `POST /v1/emissoes` com uma nota de teste em homologação;
 3. conferir `GET /v1/emissoes/{id}` → `authorized`;
 4. se voltar 403, ler a mensagem: ela agora distingue borda (certificado/WAF) de leiaute.
+
+### 1a. Interface de drivers e roteamento (Etapa E)
+
+- `app/nfse/drivers.py`: `ResultadoDriver`, `BaseNFSEDriver` (Protocol), `CategoriaErro`,
+  `provedor_suportado`, `exigir_implementacao`, `capacidade`. 10 testes.
+- **Roteamento sem `if municipio ==`**: a decisão é por `provedor`, e só existe num lugar
+  (P9).
+- **16 dos 17 provedores recusam com motivo factual**: cada um tem a dependência exata que
+  falta ("falta URL e manual do provedor GINFES", "falta XSD e endpoint da versão 2.04").
+  Recusar com motivo é diferente de `NotImplementedError` solto — e de mandar XML para
+  uma URL suposta.
+- `ResultadoDriver` normaliza retorno: o adaptador nunca olha o driver, só o resultado.
+- `CategoriaErro` **espelha** `OrigemErro` do RFC 7807; teste garante que os quatro valores
+  coincidem, senão o contrato de erro quebraria na borda do driver.
+- **Ainda ausente**: `AbrasfBaseDriver` (SOAP 1.1/1.2, assinatura seletiva, encoding) e os
+  cinco drivers especializados. Todos param na mesma falta: fonte oficial por provedor.
