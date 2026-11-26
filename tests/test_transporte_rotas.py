@@ -6,8 +6,9 @@ Cobre o que é verificável **sem** banco e sem certificado real:
 - o tenant **não** pode vir do corpo — há teste afirmando que o schema não tem o campo;
 - a dependência de tenant é `tenant_atual`, não leitura de payload.
 
-O caminho feliz (tenant + certificado no cofre → XML assinado) exige montar tenant e
-certificado no banco; está registrado como pendente na auditoria §25 e não é fingido aqui.
+O caminho feliz (tenant + certificado no cofre → XML assinado) **não** está aqui: ele vive em
+`tests/test_transporte_emissao_rota.py`, que monta tenant e A1 no banco e assina de verdade
+(auditoria §42). Este arquivo fica com o que se prova sem banco.
 """
 
 from __future__ import annotations

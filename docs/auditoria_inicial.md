@@ -2061,3 +2061,48 @@ Chamada real da **rota** contra a SEFAZ (tenant + A1 no banco + rede). A chamada
 **serviço** já foi medida (§31): CT-e status `107`, MDF-e status `107` pelo SVRS. Falta só o
 envelope HTTP da rota sobre ela, que exige subir a API com um tenant configurado — não é
 credencial faltando, é execução de ambiente.
+
+---
+
+## 42. `POST /v1/transportes/cte` e `/mdfe` — caminho feliz medido
+
+**Data:** 2026-11-26. Fecha a pendência declarada em §25 ("o caminho feliz exige montar tenant e
+certificado no banco; não é fingido aqui").
+
+### O que era assumido e virou medido
+
+As duas rotas de geração só tinham teste de auth, presença no OpenAPI e ausência de `tenant_id`
+no corpo. A parte que importa — tenant da API key → A1 do cofre → XML assinado e validado contra
+o XSD oficial — nunca havia sido executada por HTTP. Depois do defeito de §41 (rota que só
+funcionava nos caminhos de erro), essa era a lacuna de maior risco do módulo.
+
+**As rotas estavam corretas.** Diferente de §41, aqui não há defeito: `_certificado_do_tenant`
+usa `abrir_em_memoria` (API pública do cofre) e o gerador recebe o `CertificadoA1` — os dois
+caminhos que §41 mostrou quebrados em outro lugar.
+
+### Testes novos (`tests/test_transporte_emissao_rota.py`, 10 casos)
+
+| Teste | O que prova |
+|---|---|
+| CT-e 200 | `application/xml`, `<Signature>` presente, raiz `CTe` no namespace do CT-e |
+| CT-e assinatura | o `X509Certificate` do XML é **byte a byte** o DER do A1 do tenant |
+| CT-e sem A1 | 422 com instrução de upload (não 500) |
+| MDF-e 200 | `application/xml`, `<Signature>`, raiz `MDFe` no namespace do MDF-e |
+| MDF-e assinatura | mesmo DER do A1 do tenant |
+
+O certificado é PKCS#12 **autoassinado gerado no teste** (`gerar_pfx()`), não o A1 da empresa:
+nenhum material real entra em fixture. O PFX é selado e aberto pelo cofre de verdade — quem é
+substituído é só a SEFAZ, que aqui não é chamada porque a rota não transmite.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_transporte_emissao_rota.py` | **10 passed** |
+| `pytest -q` (suíte completa) | **100%, 0 failed** — 1396 testes |
+| `ruff check` / `ruff format --check` | limpos |
+
+### Limite honesto
+
+Continua **sem transmissão**: a rota devolve XML assinado. Autorização de CT-e/MDF-e depende de
+credenciamento por UF e não é feita em nenhum ponto do código.

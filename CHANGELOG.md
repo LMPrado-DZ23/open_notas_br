@@ -5,6 +5,14 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — caminho feliz de `POST /v1/transportes/{cte,mdfe}` medido
+
+- As rotas de geração tinham teste só de auth e OpenAPI; a pendência estava declarada em §25 e
+  nunca executada. Agora 10 testes montam tenant + A1 no cofre e provam, por HTTP, que o XML sai
+  assinado, no namespace certo e com o **DER do certificado do tenant** embutido (não um literal).
+- Nenhum defeito encontrado: as rotas estavam corretas — o que faltava era evidência.
+- Medido: **1396 testes**, 58 rotas, gate 6/6. Nada é transmitido: a rota devolve XML assinado.
+
 ### Corrigido — `GET /v1/transportes/status` respondia 500 com certificado ativo
 
 - A rota lia `certificado.cert_pem` / `certificado.key_pem`, atributos que o cofre **não** expõe
