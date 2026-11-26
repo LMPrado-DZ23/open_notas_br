@@ -814,3 +814,18 @@ Cada item com estado, prova, teste, risco e **decisão registrada**.
   (elemento serializado) separado de `.xml` (bruto, para auditoria).
 - **Ainda ausente**: cancelamento, inutilização, CC-e e contingência. E a chamada real,
   que exige credenciamento.
+
+### 5g. DLQ integrada ao worker (Etapa H, parte 5)
+
+- `app/worker/tarefas.py`: `executar_com_dlq` — executa com retry e persiste na DLQ quando
+  todas as tentativas falham. 6 testes em `tests/test_worker_tarefas.py`.
+- **Só falha transitória é retentada.** Rejeição fiscal definitiva vai direto para a DLQ
+  com o motivo: retentar não muda o resultado e queima cota do autorizador. Testado com
+  `ValueError` — 1 chamada, não 5.
+- **Sucesso deixa rastro zero na DLQ**: um teste verifica `itens == []`. Sem isso a tabela
+  viraria log de sucesso e a fila morta perderia o sentido.
+- Guarda o **payload original** e o `trace_id` — sem eles o replay seria adivinhação.
+- `tentativas` conta **execuções**, não repetições; `tentativas=0` levanta.
+- **Ainda ausente**: registrar a tarefa no `WorkerSettings` do ARQ e ligar o retry
+  exponencial do ARQ a este módulo. O mecanismo está pronto e testado; a fiação do
+  `arq` é uma linha por tarefa.
