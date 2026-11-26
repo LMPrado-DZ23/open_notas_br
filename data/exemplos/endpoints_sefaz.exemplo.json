@@ -1,0 +1,12 @@
+[
+  {
+    "uf": "XX",
+    "ambiente": "2",
+    "servico": "NFeAutorizacao",
+    "url": "https://exemplo.invalid/nao-e-endpoint-real",
+    "versao_soap": "1.2",
+    "versao_layout": "4.00",
+    "fonte_url": "https://exemplo.invalid/este-arquivo-e-so-formato",
+    "autorizador": "XX"
+  }
+]
