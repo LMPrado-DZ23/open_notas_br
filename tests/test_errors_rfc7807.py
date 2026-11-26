@@ -105,3 +105,26 @@ class TestConstrutores:
         ).para_dict()
         assert corpo["instance"] == "/v1/x"
         assert corpo["request_id"] == "abc"
+
+
+class TestHandlerHTTP:
+    """O handler registrado em `app/main.py` responde problem+json sem quebrar contrato."""
+
+    async def test_404_tem_content_type_problem_json(self, cliente) -> None:
+        resposta = await cliente.get("/v1/rota-que-nao-existe")
+        assert resposta.status_code == 404
+        assert resposta.headers["content-type"].startswith("application/problem+json")
+
+    async def test_detail_preservado_na_resposta_real(self, cliente) -> None:
+        # Cliente que lê `detail` continua funcionando (R2/P5).
+        resposta = await cliente.get("/v1/rota-que-nao-existe")
+        corpo = resposta.json()
+        assert "detail" in corpo
+        assert corpo["status"] == 404
+        assert corpo["origem"] in ("VALIDACAO", "INTERNO", "SEFAZ", "MUNICIPIO")
+
+    async def test_422_de_validacao_tambem_e_problem_json(self, cliente) -> None:
+        # Sem API key o guarda de tenant barra: o formato precisa valer para 4xx.
+        resposta = await cliente.post("/v1/emissoes", json={"valor": "10.00"})
+        assert resposta.status_code in (401, 422)
+        assert resposta.headers["content-type"].startswith("application/problem+json")

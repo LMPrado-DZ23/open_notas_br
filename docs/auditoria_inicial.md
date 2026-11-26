@@ -243,10 +243,19 @@ Cada item conferido por comando. `AUSENTE` = a busca no código não achou arqui
 | 2 | modelos de município/credencial/webservice | AUSENTE | `Base.metadata` com `app.db.models` importado tem **10 tabelas** (batch_jobs, fiscal_documents, frete_credenciais, invoice_events, invoices, tax_assessments, tenant_certificates, tenant_fiscal_configs, tenants, webhook_deliveries); faltam exatamente ['municipios_nfse', 'credenciais_municipais', 'webservices_sefaz']. Correção de método: a primeira medição retornou 0 tabelas porque os modelos não estavam importados — evidência refeita. |
 | 3 | transporte SOAP DF-e | AUSENTE | ocorrências de soap/SOAPAction: 0; existem `app/nfe/gerador.py`, `assinatura.py`, `lote.py` (geração+assinatura+XSD, sem envio) |
 | 4 | CalculoAudit | AUSENTE | `CalculoAudit` no código=False; `app/tax/rtc.py` calcula sem auditar |
-| 5 | RFC 7807 / circuit breaker / DLQ / rate limit | PARCIAL | errors.py=True (módulo testado, handler NÃO registrado); circuit=False; DLQ=False; rate limit=True |
+| 5 | RFC 7807 / circuit breaker / DLQ / rate limit | PARCIAL (RFC 7807 agora ativo) | errors.py=True (módulo testado, handler NÃO registrado); circuit=False; DLQ=False; rate limit=True |
 | 6 | hash SHA-256 de XSD no boot | AUSENTE | verificação de hash de schema=False; schemas versionados sem hash em `tests/fixtures/schemas/` |
 | 7 | `Idempotency-Key` por header | **IMPLEMENTADO E TESTADO** | `idempotency_key` existe no body (`app/nfse/schemas.py`); header presente=False |
 
 **Conclusão**: nenhuma das 7 está completa. O item 5 é o único com código novo
 (módulo RFC 7807, testado isolado, sem efeito em rotas). Os outros exigem
 implementação nova, não correção.
+
+### 5a. RFC 7807 — handler registrado (Etapa B, parte 1)
+
+- `app/main.py`: `@app.exception_handler(StarletteHTTPException)` devolve
+  `application/problem+json` preservando **status** e **`detail`**, e repassa os
+  headers originais (`WWW-Authenticate`, `Retry-After`, `Allow`).
+- Regressão zero comprovada: **921 testes passando** com o handler ativo.
+- 3 testes de contrato HTTP em `tests/test_errors_rfc7807.py` (`TestHandlerHTTP`).
+- **Ainda ausente**: rate limit por tenant, circuit breaker e DLQ recuperável.

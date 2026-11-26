@@ -21,11 +21,14 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.v1 import health
 from app.api.v1.router import router as v1_router
 from app.core.config import get_settings
+from app.core.errors import de_http_exception
 from app.core.logging import configurar_logging
 from app.core.redis import fechar_redis
 from app.db.session import dispose_engine
@@ -156,6 +159,25 @@ def criar_app() -> FastAPI:
     # Health no root (usado pelo healthcheck do container) e também sob /v1.
     app.include_router(health.router)
     app.include_router(v1_router, prefix="/v1")
+
+    @app.exception_handler(StarletteHTTPException)
+    async def _erro_rfc7807(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+        """Erros HTTP no formato RFC 7807, sem quebrar contrato existente.
+
+        O corpo ganha `type`/`title`/`origem`/`retryable`, mas **mantém `detail`**:
+        todo cliente que já lê `{"detail": ...}` continua funcionando. O status
+        também é preservado — mudar status seria breaking change (P5).
+
+        Os headers originais são repassados: `WWW-Authenticate`, `Retry-After` e
+        `Allow` carregam informação que o cliente precisa (ex.: 405 e 429).
+        """
+        problema = de_http_exception(exc.status_code, exc.detail).para_dict()
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=problema,
+            headers=dict(exc.headers or {}),
+            media_type="application/problem+json",
+        )
 
     return app
 
