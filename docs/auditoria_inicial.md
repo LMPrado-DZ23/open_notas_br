@@ -383,3 +383,19 @@ têm apenas representação impressa.
   `tenant_id`, `data_emissao`, consulta por `trace_id` e endpoint admin. O laudo já
   serializa tudo que a tabela precisa; falta o armazenamento e a ligação ao fluxo de
   emissão.
+
+### 4b. `CalculoAudit` — fatia 2, tabela e migração (Etapa C)
+
+- `app/db/models/tax.py`: `CalculoAudit` com 15 colunas e 4 índices
+  (`tenant_id`, `trace_id`, `hash_laudo`, e composto `tenant_id+data_emissao`).
+- `alembic/versions/0003_calculo_audit.py`: upgrade/downgrade simétricos, com
+  `server_default` para que a coluna exista em linha antiga sem backfill manual.
+- Guarda o **laudo completo** (entrada, saída, regras, tabelas com versão), não só os
+  hashes: hash prova que algo não mudou, não diz o que era. Em fiscalização é preciso
+  mostrar o conteúdo; o hash prova que não foi editado depois.
+- `invoice_id` com `ON DELETE SET NULL`: apagar a nota não apaga a prova de que o
+  cálculo existiu.
+- **Pendente**: `service` de registro/consulta por `trace_id`, endpoint admin e a
+  ligação ao fluxo de emissão. Testes de persistência real ainda não escritos.
+- **Não verificado**: `alembic upgrade`/`downgrade` não foi executado neste ambiente
+  (sem Postgres ativo nesta sessão). A migration foi escrita e revisada, não rodada.

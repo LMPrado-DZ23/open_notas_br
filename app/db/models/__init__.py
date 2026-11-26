@@ -20,11 +20,13 @@ from app.db.models.enums import (
 from app.db.models.frete import FreteCredencial
 from app.db.models.invoice import FiscalDocument, Invoice, InvoiceEvent
 from app.db.models.ops import BatchJob, TaxAssessment, WebhookDelivery
+from app.db.models.tax import CalculoAudit
 from app.db.models.tenant import Tenant, TenantCertificate, TenantFiscalConfig
 
 __all__ = [
     "AmbienteFiscal",
     "BatchJob",
+    "CalculoAudit",
     "FiscalDocument",
     "FreteCredencial",
     "Invoice",
