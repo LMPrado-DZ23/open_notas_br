@@ -555,4 +555,11 @@ têm apenas representação impressa.
   homologado para o padrão.
 - `fonte_url` gravada na própria linha (R3): a origem fica no registro, não só no script.
 - **Bug pego na execução**: `session_factory` não existe — o nome é `obter_sessionmaker`.
-- **Pendente**: carregar o cache real (5.570+) com `--fetch`, e as rotas de gestão.
+- ✅ **cache real carregado com `--fetch`**: **5571 municípios, 27 UFs**, 474 KB em
+  `data/ibge_municipios.json`. Segunda execução: `inseridos 0 | inalterados 5571`.
+- **5571, não 5570.** O número documentado por aí é 5570; a API devolveu 5571. Mais uma
+  razão para não fixar constante: eu teria escrito o número errado e o teste passaria.
+- Conferido no banco: `count(*) = 5571`, `count(DISTINCT uf) = 27`; São Paulo (3550308),
+  Goiânia (5208707) e Águas Lindas de Goiás (5200258) presentes, todos com
+  `provedor = NACIONAL_REST`.
+- **Pendente**: rotas de gestão (`GET /v1/municipios`, credenciais, status de certificado).
