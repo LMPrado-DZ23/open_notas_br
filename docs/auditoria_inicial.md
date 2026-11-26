@@ -826,6 +826,17 @@ Cada item com estado, prova, teste, risco e **decisão registrada**.
   viraria log de sucesso e a fila morta perderia o sentido.
 - Guarda o **payload original** e o `trace_id` — sem eles o replay seria adivinhação.
 - `tentativas` conta **execuções**, não repetições; `tentativas=0` levanta.
-- **Ainda ausente**: registrar a tarefa no `WorkerSettings` do ARQ e ligar o retry
-  exponencial do ARQ a este módulo. O mecanismo está pronto e testado; a fiação do
-  `arq` é uma linha por tarefa.
+- **Ainda ausente: registrar no ARQ — e a fiação NÃO é uma linha.** Correção de uma
+  afirmação minha anterior: eu disse duas vezes que "a fiação é uma linha por tarefa".
+  Não é.
+
+  Razão: o fluxo de emissão vive hoje **dentro** de `POST /v1/emissoes` (rota), não no
+  serviço. Uma tarefa ARQ não tem request, sessão nem tenant prontos, então registrar
+  `emitir_com_dlq` exigiria primeiro o que o v10.0 pede na Fase 4: **extrair o fluxo de
+  emissão da rota para o serviço**. Isso é refatoração de arquitetura, não fiação.
+
+  Verificação de que tentei e recuei: criei `app/worker/emissao_dlq.py` com a tarefa
+  registrada em `WorkerSettings.functions`. Ao revisar, o corpo interno levantava
+  `NotImplementedError` — o worker **aceitaria o job e sempre falharia para a DLQ**. Meia
+  medida pior que ausência: enfileira trabalho que nunca executa. Arquivo removido e
+  `main.py` revertido; `WorkerSettings.functions` segue com as 3 tarefas originais.
