@@ -206,3 +206,60 @@ Query de conferência precisa do nome, não do valor.
 `frete_credenciais` (índice único). Não tem relação com o catálogo e não quebra o CI, que não
 roda `alembic check`. Fica registrado para uma rodada própria — corrigir migration alheia às
 pressas, no meio de outra mudança, é como se cria drift novo.
+
+---
+
+## Prefeituras: dados obtidos da comunidade (2026-11-26)
+
+O usuário apontou as fontes centralizadas. Para NFS-e, a pepy MCP (downloads de pacotes
+PyPI) ajudou a **achar** bibliotecas que embarcam dados — `nfselib-ginfes` e
+`odoo-addon-l10n-br-nfse` — mas ambas só têm bindings SOAP e constantes, **sem URLs**. A
+fonte que tinha o mapa completo é o `ACBrNFSeXServicos.ini` do ACBr, baixado para
+`data/fontes/` (843 KB, Latin-1):
+
+```
+seções (município IBGE) : 5571
+com provedor            : 4898
+com URL https produção  : 1331
+URLs http no arquivo    : 1629  (recusadas)
+```
+
+### O que foi aplicado
+
+`python -m scripts.atualizar_municipios_acbr --aplicar` → **3648 municípios atualizados**.
+
+| Medida | Antes | Depois |
+|---|---|---|
+| municípios com provedor definido | 0 | **3648** |
+| com URL de produção https | 0 | **1195** |
+| com URL de homologação https | 0 | **635** |
+| `nacional_rest` (padrão nacional, sem URL própria) | 0 | **4375** |
+
+**4375 municípios usam o padrão nacional** — para eles basta o endpoint único
+(`sefin.nfse.gov.br`), não uma URL por prefeitura. É o caminho mais curto para cobertura real.
+
+### O que foi recusado, e por quê
+
+| Motivo | Municípios |
+|---|---|
+| provedor fora do enum | 691 |
+| sem provedor no arquivo | 673 |
+| sem URL https (só http ou vazia) | 559 |
+
+**1.629 URLs do arquivo são `http://`.** Não entram: credencial e XML fiscal em texto claro
+não vão para o banco mesmo que o provedor aceite.
+
+### O enum de provedores estava incompleto
+
+Tinha 6 provedores reais; o INI revelou 64. Adicionei os **22 com 10+ municípios** (fiorilli,
+pronim, ipm, megasoft, futurize, el, elotech, sintese…), totalizando 36 valores. Ainda faltam
+tributus (72), fisco (47), centi (45), elmar (40), abase (38), speedgov (36), tecnos (33),
+aspec (28) — extensão de dado, não de capacidade.
+
+**Adicionar provedor ao enum NÃO significa suportar emissão.** `criar_driver` continua
+recusando quem não está em `MOTOR_ABRASF`, com motivo factual.
+
+### Pendência
+
+Nenhum município foi **homologado**: `homologados = 0`. Ter a URL certa não é ter a emissão
+validada — falta a chamada real de status com certificado.
