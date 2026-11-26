@@ -1928,3 +1928,37 @@ Os itens 1–6 da lista estão registrados nas seções anteriores com seu próp
 drivers NFS-e (§9–§12), modelos e migrações (§24), transporte SOAP por documento (§26, §31, §37),
 `CalculoAudit` (§15), RFC 7807 / rate limit / DLQ (§16) e hash de XSD no boot (§18). Esta seção
 fecha o sétimo.
+
+### 39. Item 5 da lista obrigatória (RFC 7807 / rate limit / circuit breaker / DLQ): confirmado no código
+
+Verificado nesta rodada, com arquivo e linha em vez de referência a seção antiga:
+
+| Exigência | Evidência |
+|---|---|
+| RFC 7807 com content-type correto | `app/main.py:186` — `media_type="application/problem+json"` |
+| Contrato não quebra cliente antigo | `app/main.py:193` — mantém `detail`, preserva status |
+| Headers preservados | `WWW-Authenticate`, `Retry-After`, `Allow` repassados (`:205`) |
+| Rate limit | 2 arquivos em `app/`, 1 arquivo de teste |
+| Circuit breaker | 7 arquivos em `app/`, 5 arquivos de teste |
+| DLQ | 6 arquivos em `app/`, 3 arquivos de teste |
+
+**Estado: implementado e testado** para os quatro.
+
+#### A sonda mentiu pela terceira vez — e o defeito era meu `grep`
+
+Comecei esta verificação procurando `problem\+json` e obtive **0 arquivos em `app/`**. Ia registrar que
+o content-type estava ausente, ou seja, que o RFC 7807 não era de fato RFC 7807.
+
+Falso. Em regex básica, `\+` não é quantificador escapado — a busca literal nunca casaria. O
+`media_type` está lá desde sempre, em `app/main.py:186`.
+
+Terceira ocorrência do mesmo padrão hoje:
+
+| Rodada | Sonda | Verdade |
+|---|---|---|
+| §36 | GET nos endpoints de status | MT dava 500; com POST deu `107` |
+| §34 | GET em `CTeRecepcaoSinc` **do INI** | o do **catálogo** dava 200 |
+| §39 | `grep "problem\+json"` | `media_type` presente em `main.py:186` |
+
+**Regra que passa a valer**: antes de registrar ausência, provar que a sonda acha algo que
+**sabidamente existe**. Um negativo de ferramenta mal usada não é evidência de ausência.
