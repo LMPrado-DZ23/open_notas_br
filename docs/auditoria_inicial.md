@@ -506,3 +506,22 @@ têm apenas representação impressa.
 - `UNIQUE (tenant_id, codigo_ibge)`: uma credencial por tenant e município.
 - **Pendente**: serviço que sela/abre com `app/core/crypto.py` (AAD = tenant + IBGE), o
   lock propriamente dito, seed IBGE e rotas de gestão.
+
+### 2d. Serviço de credenciais (Etapa D)
+
+- `app/nfse/credenciais.py`: `salvar`, `segredo`, `por_municipio`, `reservar_numero_rps`,
+  `desativar`. 10 testes de integração contra Postgres em `tests/test_nfse_credenciais.py`.
+- **AAD por município** (`aad_do_tenant(tenant_id) + "|" + codigo_ibge`): blob copiado
+  para outro tenant **não abre** — GCM falha na autenticação. Testado.
+- **Selo verificado byte a byte**: o teste confirma que o texto claro não aparece no
+  ciphertext gravado.
+- **Rotação preserva segredo não informado**: trocar só a senha não apaga o token.
+- **Numeração** com `with_for_update()`; credencial inativa recusa reserva.
+- **Três bugs pegos pelos testes**:
+  1. `Cofre` espera **32 bytes crus**, não base64 (erro `tem 44`).
+  2. `aad_do_tenant` é **função de módulo**, não método de `Cofre`.
+  3. `senha_ws_criptografada` (feminino) vs `usuario_ws_criptografado`: concatenar sufixo
+     devolvia `None` em silêncio para senha. Corrigido com mapa explícito.
+- **Defeito de infraestrutura de teste encontrado**: `municipios_nfse` não está na lista
+  de truncate do `conftest`, então dado vaza entre testes. Contornado com helper
+  idempotente; a correção definitiva é incluir as tabelas novas no truncate.
