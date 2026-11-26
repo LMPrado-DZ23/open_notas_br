@@ -314,3 +314,45 @@ autorizadores: SVRS (70 = 35 blocos x 2 modelos), AM, GO, MG, MS, MT...
 **O modelo continua na chave** — São Paulo usa hosts diferentes para 55 e 65
 (`nfe.fazenda.sp` × `nfce.fazenda.sp`). Se `modelo` não existisse, a importação de NFC-e
 teria sobrescrito a de NF-e e a nota de SP iria para o host errado.
+
+---
+
+## Estado final do catálogo (2026-11-26)
+
+### SEFAZ — 100%
+
+| Documento | Homologação | Produção |
+|---|---|---|
+| NF-e (55) | 27/27 | 27/27 |
+| NFC-e (65) | 27/27 | 27/27 |
+
+### Municípios — medido no banco
+
+```
+municípios na base          : 5571
+com provedor definido       : 5571  (100%)
+com URL de produção https   : 1279
+padrão nacional (1 endpoint): 4290
+homologados (testados)      : 0
+```
+
+### Colisão de nome no enum, encontrada ao estender
+
+`TRIBUTUS`/`PRODATA` colidiram com membros existentes de valor diferente: o enum tinha
+`PRODATA = "proddata"` (grafia do nosso cadastro) e a fonte traz `prodata`. Python recusa dois
+membros com o MESMO NOME e valores diferentes.
+
+Correção: deduplicar por **nome** antes de inserir, não só por valor. Sem isso o import do
+módulo quebra — e quebraria o app inteiro, não só o catálogo.
+
+### O que continua fora
+
+| Motivo | Municípios |
+|---|---|
+| provedor com 5+ municípios e sem entrada no enum | 529 |
+| sem provedor no arquivo | 673 |
+| sem URL https (só http) | 636 |
+
+`tributus` (72), `fisco` (47), `centi` (45), `elmar` (40) seguem fora: exigem decidir o nome
+do membro sem colidir, caso a caso. É trabalho de dado, não de arquitetura — e o importador
+recusa com motivo, como deve.

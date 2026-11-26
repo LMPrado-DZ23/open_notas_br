@@ -61,6 +61,19 @@ class ProvedorNFSe(enum.StrEnum):
     SIGISSWEB = "sigissweb"
     SINTESE = "sintese"
     TINUS = "tinus"
+    ACTCON = "actcon"
+    AGILI = "agili"
+    CITTA = "citta"
+    GEISWEB = "geisweb"
+    GESTAOISS = "gestaoiss"
+    INFISC = "infisc"
+    PUBLICA = "publica"
+    RLZ = "rlz"
+    SILTECNOLOGIA = "siltecnologia"
+    SPEEDGOV = "speedgov"
+    TIPLAN = "tiplan"
+    VERSATECNOLOGIA = "versatecnologia"
+    XTRTECNOLOGIA = "xtrtecnologia"
 
 
 class EncodingXML(enum.StrEnum):
