@@ -537,3 +537,22 @@ têm apenas representação impressa.
   no truncate automaticamente, sem ninguém lembrar de editar a lista.
 - Verificado: `len(TABELAS) == 14` e os testes de credencial/auditoria passam sem o
   helper idempotente precisar mascarar a sobra.
+
+### 2e. Seed de municípios (Etapa D)
+
+- `scripts/seed_municipios.py`: lê a API oficial do IBGE
+  (`servicodados.ibge.gov.br/api/v1/localidades/municipios`), normaliza e faz upsert por
+  `codigo_ibge`.
+- **Dois modos**: `--cache` (arquivo versionado, determinístico, sem rede) e `--fetch`
+  (baixa da API — ato deliberado). Teste e execução offline usam o cache.
+- **Idempotência verificada por execução dupla no Postgres**:
+  - 1ª execução: `inseridos: 3 | atualizados: 0 | inalterados: 0`
+  - 2ª execução: `inseridos: 0 | atualizados: 0 | inalterados: 3`
+  - `SELECT count(*)` = 3 (não 6)
+- **Nada de "5.570" no código**: o script imprime `municípios na fonte: N` com o número
+  real do arquivo. Constante fixa faria o teste passar quando a fonte muda.
+- Preserva `provedor` e `homologado` de linha já existente: re-seed não rebaixa município
+  homologado para o padrão.
+- `fonte_url` gravada na própria linha (R3): a origem fica no registro, não só no script.
+- **Bug pego na execução**: `session_factory` não existe — o nome é `obter_sessionmaker`.
+- **Pendente**: carregar o cache real (5.570+) com `--fetch`, e as rotas de gestão.
