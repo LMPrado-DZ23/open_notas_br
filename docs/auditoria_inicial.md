@@ -416,8 +416,15 @@ têm apenas representação impressa.
   regenerado (o teste de sincronia confere).
 - Não existe rota de escrita, de propósito: laudo se grava no fluxo de emissão, nunca
   por API. Aceitar laudo do cliente transformaria a prova em declaração.
-- **Pendente**: gravar o laudo automaticamente no fluxo de emissão (`POST /v1/emissoes`).
-  Hoje a gravação é feita pelo serviço, mas a rota de emissão ainda não o chama.
+- ✅ `app/tax/integracao_emissao.py`: `da_emissao` monta o laudo a partir dos dados da
+  emissão (município, UF, regime, cTribNac, alíquota, base, tomador PJ → valor do ISS).
+  11 testes em `tests/test_tax_integracao_emissao.py`, incluindo determinismo.
+- A entrada guarda **só o que influencia o tributo**, não o payload inteiro: campo
+  irrelevante polui a auditoria e aumenta a superfície de dado pessoal.
+- Valor ilegível vira `None` em vez de explodir — não inventar número.
+- **Pendente (última etapa do item 4)**: chamar `da_emissao` + `svc.registrar` dentro de
+  `POST /v1/emissoes`, na mesma transação. As duas peças existem e estão testadas; falta
+  a linha de ligação na rota.
 - **VERIFICADO no Postgres** (containers `open-notas-br-postgres-1`, porta 55434):
 
   ```
