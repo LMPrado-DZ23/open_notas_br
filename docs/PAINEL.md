@@ -6,7 +6,7 @@
 |---|---|
 | F9.0 Plano canônico | ✅ |
 | F9.1 Cotação Melhor Envio real | ⚠️ bloqueado (autorização do proprietário) |
-| F9.2 NF-e XML + XSD | 🌗 XML valida; assinatura pendente de decisão de algoritmo |
+| F9.2 NF-e XML + XSD + assinatura | ✅ (risco: procedência do XSD a confirmar) |
 | F9.3 SOAP SEFAZ-GO | ⬜ |
 | F9.4 Autorização NF-e | ⬜ |
 | F9.5 Contingência | ⬜ |

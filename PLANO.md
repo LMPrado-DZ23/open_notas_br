@@ -20,15 +20,26 @@ Símbolos: ⬜ não iniciado · 🌗 em andamento · ✅ concluído · ⚠️ bl
 
 ## F9.2 NF-e 4.00: XML + XSD + assinatura
 
-- 🌗 XML gerado (`app/nfe/`) e **validado contra `nfe_v4.00.xsd` oficial** exceto a
-  assinatura
-- ✅ XSDs oficiais versionados em `tests/fixtures/schemas/nfe-4.00/`
-- ✅ chave de acesso de 44 posições com DV módulo 11
-- ⚠️ **Assinatura**: o XSD não aceita `rsa-sha256`/`sha256` nos atributos da
-  `Signature`. A enumeração exata precisa ser lida do XSD antes de escolher o
-  algoritmo — o valor legado (RSA-SHA1) é **hipótese**, não fato, e o `signxml`
-  recusa SHA-1 por padrão.
-- Aceite: XML **assinado** validando contra o XSD
+- ✅ XML gerado (`app/nfe/`), assinado e **validando contra `nfe_v4.00.xsd`**
+- ✅ XSDs versionados em `tests/fixtures/schemas/nfe-4.00/` (416 KB)
+- ✅ chave de acesso: 44 posições, DV módulo 11
+- ✅ algoritmos **CONFIRMADOS no XSD**: `CanonicalizationMethod` e `SignatureMethod`
+  são atributos `fixed` (C14N inclusiva e **rsa-sha1**); `Transform` só aceita
+  enveloped + C14N inclusiva. O `signxml` recusa SHA-1 por padrão e a recusa é
+  desligada numa subclasse isolada, com o motivo documentado.
+- Aceite: XML assinado valida contra o XSD — **2 controles negativos** (sem
+  assinatura o schema recusa; C14N exclusiva e rsa-sha256 não aparecem)
+
+### ⚠️ Risco aberto: procedência do XSD
+
+Os schemas vieram de repositório de referência, **não do Portal Nacional**. O portal
+publica Pacotes de Liberação numerados (PL). Há indicação de **PL_009_V4** (o mais
+usado) e **PL_010** (com IBS/CBS, exigido pela Reforma Tributária em 2026).
+**Não confirmei qual é o vigente** — e o gerador atual **não emite grupo IBS/CBS**.
+
+Antes de qualquer envio em produção: baixar o PL oficial em Portal Nacional da NF-e
+(Documentos > Esquemas XML), substituir os arquivos, registrar a versão aqui e
+reavaliar os campos novos.
 
 ## F9.3–F9.6 (não iniciadas)
 

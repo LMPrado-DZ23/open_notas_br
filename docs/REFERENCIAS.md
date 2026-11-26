@@ -882,3 +882,59 @@ o cadastro real do Simples Nacional.
 
 **A DPS tem de refletir o regime real.** O sistema não adivinha: quem configura o
 tenant precisa informar corretamente, e agora a recusa explica isso.
+
+---
+
+## 16. NF-e 4.00 — o que o XSD oficial determinou
+
+### 16.1 Algoritmos de assinatura: **CONFIRMADO** no schema
+
+`xmldsig-core-schema_v1.01.xsd` (o que acompanha o `nfe_v4.00.xsd`) declara os
+atributos como `fixed`:
+
+```xml
+<attribute name="Algorithm" use="required"
+           fixed="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>   <!-- C14N inclusiva -->
+<attribute name="Algorithm" use="required"
+           fixed="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>        <!-- RSA-SHA1 -->
+```
+
+E o `Transform` aceita apenas `enveloped-signature` e a C14N inclusiva.
+
+Consequências:
+- **NF-e não aceita SHA-256.** Isso não é escolha do projeto; é o leiaute. A NFS-e,
+  ao contrário, usa exclusive C14N com comentários e RSA-SHA256. Os dois assinadores
+  são diferentes de propósito.
+- O `signxml` recusa SHA-1 por padrão (`check_deprecated_methods`). A recusa é
+  desligada numa subclasse isolada (`app/nfe/assinatura.py`), com o motivo escrito.
+  **Limite declarado**: SHA-1 é quebrado para colisão; para assinatura com chave
+  privada o risco prático é menor, mas não é zero.
+- O `NFe` só valida contra o schema **depois** de assinado: `Signature` é filha
+  obrigatória. Testar antes de assinar dá falso negativo.
+
+### 16.2 Cinco defeitos que a validação pegou
+
+| Defeito | Correção |
+|---|---|
+| `c_dv="0"` como default somava um dígito à chave | chave de 43 + DV módulo 11 |
+| `ICMS102` para CSOSN | CSOSN usa `ICMSSN<codigo>` |
+| `PISAliq` sem `vBC`/`pPIS`/`vPIS` | ordem e campos do leiaute |
+| `ICMTot` | `ICMSTot` |
+| `NFe` sem `Signature` | assinar antes de validar |
+
+### 16.3 Risco aberto: procedência e versão do Pacote de Liberação
+
+Os XSD usados vieram de um repositório de referência, **não do Portal Nacional**.
+O portal distribui Pacotes de Liberação numerados (PL), e há indicativo de duas
+linhas relevantes em 2026: **PL_009_V4** (amplamente usado) e **PL_010**, que
+acrescenta **IBS/CBS** da Reforma Tributária.
+
+**Não confirmei qual é o vigente** — consulta ao portal encontrou redirecionamento em
+excesso, e o que sei de PL_010 vem de fonte secundária. O gerador atual **não emite
+grupo IBS/CBS**.
+
+Antes de enviar qualquer NF-e em produção:
+1. baixar o PL vigente em Portal Nacional da NF-e → Documentos → Esquemas XML;
+2. substituir `tests/fixtures/schemas/nfe-4.00/`;
+3. registrar a versão do PL aqui;
+4. reavaliar os campos novos (IBS/CBS) e o `enviNFe_v4.00.xsd` do lote.
