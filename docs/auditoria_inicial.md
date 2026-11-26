@@ -1064,3 +1064,29 @@ CT-e e MDF-e não têm geração de XML nem assinatura — só o endpoint catalo
 
 **Bloqueios externos que permanecem**: certificado A1 + `MASTER_ENCRYPTION_KEY` fora deste
 ambiente; credenciamento SEFAZ-GO; OAuth do Melhor Envio; CSC por UF para NFC-e.
+
+### 21. CT-e: gerado, assinado e validado contra o schema oficial
+
+**Implementado e testado** (`app/cte/gerador.py`, 10 testes):
+
+- `gerar(dados)` monta o XML na ordem extraída do `xs:sequence`.
+- `gerar_assinado(dados, certificado)` assina (reusa `app.nfe.assinatura`) e **valida** contra
+  `cte_v4.00.xsd`.
+- Saída medida: 4058 bytes, com `Signature`, aceita pelo schema.
+
+**Desenho**: `gerar()` devolve a árvore **não assinada** porque um CT-e sem `Signature` nunca
+será válido; há teste provando que o schema recusa esse XML.
+
+**Cobertura de tomador**: `toma3` (partes do documento) e `toma4` (outros, com `enderToma`),
+decididos por `PapelTomador` — o gerador não escolhe por conta própria.
+
+**O que continua ausente**: transmissão. Nenhum CT-e foi enviado a autorizador; depende de
+credenciamento e certificado ACP-Brasil real.
+
+#### Descobertas que custaram três tentativas (registradas para não repetir)
+
+`CTe@versao` inexistente na raiz · `procEmi` antes de `verProc` · `modal` como enumeração
+`01`–`06` · origem/destino antes de `retira` antes de `toma*` · `dhSaidaOrig` fora de `ide` ·
+`CEP` proibido em `enderEmit`/`enderDest` · `CRT` como último filho de `emit` · `qCarga` com
+4 casas · `imp` com grupo `ICMS`/`ICMS00` · `infCarga` antes de `infDoc` · `infModal` com
+`versaoModal` e `rodo`/`RNTRC` · **CT-e só é válido assinado**.
