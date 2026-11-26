@@ -1436,3 +1436,23 @@ certificado (`https://nfe-homologacao.svrs.rs.gov.br/ws/NfeStatusServico/NfeStat
 serviço por autorizador, como foi feito com os XSDs, e derivar o shape exato do `nfeDadosMsg`.
 Sem isso, continuar tentando seria adivinhação — e adivinhação em serviço fiscal é como o
 projeto já se queimou antes.
+
+#### O que já foi descartado no 215 do SVRS (para não repetir)
+
+Analisando o WSDL versionado, cada hipótese abaixo foi **eliminada com evidência**:
+
+| Hipótese | Evidência que elimina |
+|---|---|
+| Nome do wrapper errado | WSDL declara `s:element name="nfeDadosMsg"`; `soap.py:23` usa `nfeDadosMsg` |
+| Wrapper não qualificado | schema embutido tem `elementFormDefault="qualified"` com `targetNamespace=".../wsdl/NFeStatusServico4"` — é o que enviamos |
+| Wrapper com tipo restritivo | `s:complexType mixed="true"` + `s:any` — aceita qualquer conteúdo fiscal |
+| `action` ausente | corrigido; sem ela o erro era HTTP 500, não 215 |
+| XML fiscal inválido | `consStatServ` valida contra `consStatServ_v4.00.xsd` (cUF 43, tpAmb 2, xServ STATUS) |
+
+**Conclusão honesta**: o envelope está correto pelo WSDL, e o XML fiscal está correto pelo XSD.
+O 215 do SVRS não é explicável por nenhum dos dois — falta informação que não está nestes
+artefatos (possivelmente validação interna do autorizador ou exigência não publicada).
+
+**Próximo passo, se alguém retomar**: comparar com uma requisição que o SVRS aceite (ex.: capturar
+o tráfego de um cliente homologado, ou usar o validador oficial do Portal da NF-e) em vez de
+tentar variações. Adivinhar aqui já custou o suficiente.
