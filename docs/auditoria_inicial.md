@@ -1000,3 +1000,25 @@ primeira coisa a fazer antes de qualquer outra evolução.
 - **Ponta a ponta local provado**: linha do cadastro → `de_municipio` → `criar_driver` →
   envelope SOAP → transporte falso, com `protocolo` extraído do retorno.
 - **O que esse teste NÃO prova**: que o provedor aceita. Exige contato real.
+
+### 18. Concorrência na idempotência — provado em parte, e o resto declarado
+
+**O que está provado** (`tests/test_idempotencia_concorrencia.py`, 2 testes):
+- Envio repetido devolve `201` e depois `200` com o **mesmo `invoice_id`**, e a tabela
+  continua com **uma** fatura. A garantia vem da constraint
+  `uq_invoices_tenant_idempotency_key`, e o código trata `IntegrityError` buscando a
+  existente.
+- Chaves distintas criam faturas distintas — a constraint é por `(tenant, chave)`.
+
+**O que NÃO está provado: duas requisições realmente simultâneas.** Tentei com
+`asyncio.gather` e o teste quebrou com `MissingGreenlet` **dentro de `do_ping` do pool**
+(`pool_pre_ping`), não no código de emissão. Não sei ainda se é artefato do harness de teste
+(engine recriado por teste) ou uma corrida real na criação do engine.
+
+**Decisão**: não commitei um teste que não entendo, nem marquei "concorrência OK" sem
+entender. A lacuna fica registrada aqui e no roadmap. Verificar exige um harness com dois
+event loops/processos e banco próprio — trabalho à parte, não um ajuste de teste.
+
+**Risco residual**: se a corrida for real e não só do harness, duas requisições no mesmo
+milissegundo podem devolver 500 em vez de 200 na segunda. A constraint impede a **nota
+duplicada** (o dano fiscal), mas o cliente pode ver erro em vez de reaproveitamento.
