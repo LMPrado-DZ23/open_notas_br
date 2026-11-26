@@ -1348,3 +1348,37 @@ Correção: `desenvelopar` salta wrappers cujo nome termina em `ResultMsg`. Test
 
 **Continua sem emissão**: nada foi transmitido no `NFeAutorizacao4`. O que existe agora é prova
 de que o transporte mTLS, o envelope SOAP 1.2 e o parser funcionam contra o autorizador real.
+
+### 28. Multi-autorizador: GO funciona, RS e SP falham no TLS (medido)
+
+Depois de `NFeStatusServico` de GO responder 107, tentei o mesmo serviço em outros autorizadores
+com o **mesmo** certificado A1:
+
+| UF | Autorizador | Resultado |
+|---|---|---|
+| GO | SEFAZ-GO | **cStat 107** — "Serviço em operação" |
+| MG | SEFAZ-MG | HTTP **500** (erro do lado do servidor) |
+| RS | SVRS | `ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] unable to get local issuer certificate` |
+| SP | SEFAZ-SP | idem RS |
+
+**Diagnóstico (evidência, não hipótese)**: `CertificadoA1.ssl_context()` usa
+`ssl.create_default_context()`, que confia apenas no bundle de CAs do Python/OpenSSL — **não** no
+repositório do Windows. A cadeia do SVRS e da SEFAZ-SP sobe para raízes **ICP-Brasil**, que não
+estão nesse bundle. A cadeia de GO valida porque termina em raiz pública presente no bundle.
+
+**Consequência**: hoje o cliente SOAP funciona em GO e falha em pelo menos 18 UFs que usam
+SVRS/SVAN. Isso **não** é bug de código fiscal — é de confiança TLS.
+
+**Correção recomendada, não aplicada**:
+
+1. Preferida: usar a loja do sistema via `truststore` (dependência nova, ~1 pacote, sem código
+   nativo) — resolve Windows e Linux sem distribuir CAs.
+2. Alternativa: versionar o bundle de raízes ICP-Brasil e passar `cafile=` no contexto. Aumenta o
+   repositório e exige política de atualização das raízes.
+
+**Por que não apliquei agora**: acrescentar dependência exige justificativa registrada e teste de
+regressão multi-autorizador — e não havia contexto de sessão para verificar os dois. Aplicar
+`verify=False` seria pior: desligaria a verificação de servidor num serviço fiscal.
+
+**Risco**: chamadas para SVRS/SVAN falham com erro de TLS obscuro. Quem integrar precisa saber
+que o problema não é credencial nem leiaute.
