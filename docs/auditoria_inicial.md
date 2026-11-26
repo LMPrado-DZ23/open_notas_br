@@ -782,3 +782,19 @@ Cada item com estado, prova, teste, risco e **decisão registrada**.
   que o leiaute da resposta é o esperado em produção. Isso exige credenciamento.
 - **Ainda ausente no item 3**: ciclo de autorização do lote, consulta/recibo, cancelamento,
   inutilização, CC-e e contingência.
+
+### 3d. Leitura do retorno de autorização (Etapa F, parte 4)
+
+- `app/nfe/retorno.py`: `ler`, `Retorno`, `Protocolo`, `Situacao`. 10 testes.
+- **Lote processado ≠ nota autorizada.** `cStat 104` no lote diz "processei"; quem diz
+  "autorizei" é o `cStat` do `protNFe`. O código avalia protocolo **antes** do lote —
+  bug que o teste pegou na primeira execução, quando uma nota rejeitada aparecia como
+  "processada".
+- `denegada` é situação própria, não rejeição: a nota existe e foi recusada.
+- **Código desconhecido não vira "autorizada"**: sem protocolo autorizado e com `cStat`
+  não mapeado, a situação é `REJEITADA` ou `INDEFINIDA` — nunca sucesso por omissão.
+- **Limite declarado**: o significado de cada `cStat` é do MOC. O módulo trata 100, 103,
+  104 e 110 porque são inequívocos; o resto é classificado estruturalmente, não por
+  semântica inventada.
+- **Ainda ausente**: ciclo completo (enviar → receber recibo → consultar recibo →
+  autorizada), cancelamento, inutilização, CC-e e contingência.
