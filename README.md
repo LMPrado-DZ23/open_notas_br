@@ -336,7 +336,8 @@ etiquetas.
 
 | Item | Situação |
 |---|---|
-| Emissão de NF-e / NFC-e | fase 7 — representação (DANFE A4, etiquetas) pronta; emissão na SEFAZ pendente |
+| Emissão de NF-e | **pilha completa até o fio**: geração, assinatura (RSA-SHA1 fixo no XSD), validação PL_010h, envelope `enviNFe`, envelope SOAP 1.2, cliente com classificação de erro, transporte HTTP mTLS e ciclo de autorização. **Chamada real pendente de credenciamento em GO** — nenhum teste tocou a SEFAZ |
+| Emissão de NFC-e | representação (cupom, QR local) pronta; **sem CSC e sem transmissão** |
 | Emissão de CT-e / MDF-e | fase 8 — DACTE e DAMDFE prontos; emissão na SEFAZ pendente |
 | NFP-e | **fora de escopo** — não há padrão nacional publicado (ver `docs/DOCUMENTOS-FISCAIS.md`) |
 | Etiquetas de volume por volume | **pronto** (`formato=etiquetas`) |
@@ -494,3 +495,23 @@ explícita. Nenhuma lacuna é preenchida com suposição silenciosa.
 ## Licença
 
 MIT. Veja [LICENSE](LICENSE).
+
+## Estado fiscal verificado
+
+Medido por comando, não por memória. A fonte de verdade é `docs/auditoria_inicial.md` §15
+e `docs/PAINEL.md` (regenerável com `python -m scripts.gerar_painel`).
+
+| Documento | Geração | Assinatura | Transmissão | Consulta/Eventos | PDF |
+|---|---|---|---|---|---|
+| **NFS-e** | ✅ | ✅ | ✅ **real** (SEFIN homologação) | ✅ **real** | ✅ |
+| NF-e | ✅ | ✅ | ❌ credenciamento | ❌ | ✅ |
+| NFC-e | ❌ | ❌ | ❌ | ❌ | ✅ |
+| CT-e | ❌ | ❌ | ❌ | ❌ | ✅ |
+| MDF-e | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+**O que isso significa na prática**: só a NFS-e emite de verdade hoje. A NF-e tem toda a
+pilha construída e testada com transporte falso — o que prova que o pedido é montado
+corretamente, **não** que a SEFAZ o aceita.
+
+**Bloqueios externos** para mudar isso: credenciamento NF-e em Goiás, OAuth do Melhor
+Envio, e `pip-audit` (exige ADR).

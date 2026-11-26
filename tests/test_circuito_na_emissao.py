@@ -61,11 +61,11 @@ class TestBloqueio:
             chamou = True
             return "x"
 
+        import contextlib
+
         from app.core.circuit import CircuitoAberto
 
-        try:
+        with contextlib.suppress(CircuitoAberto):
             await emitir_com_circuito(registro_padrao, uf=UF_NACIONAL, acao=nao_devia)
-        except CircuitoAberto:
-            pass
         assert chamou is False, "com circuito aberto a SEFIN não pode ser chamada"
         registro_padrao.resetar()
