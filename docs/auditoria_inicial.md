@@ -259,3 +259,20 @@ implementação nova, não correção.
 - Regressão zero comprovada: **921 testes passando** com o handler ativo.
 - 3 testes de contrato HTTP em `tests/test_errors_rfc7807.py` (`TestHandlerHTTP`).
 - **Ainda ausente**: rate limit por tenant, circuit breaker e DLQ recuperável.
+
+### 5b. Rate limit — núcleo implementado (Etapa B, parte 2)
+
+- `app/core/ratelimit.py`: janela deslizante por tenant com `Protocol` de storage
+  (`ArmazenamentoMemoria` para teste/execução single-process; Redis entra na mesma
+  interface).
+- **Não está ligado ao middleware**: plugar muda comportamento de todas as rotas e
+  exige suíte inteira para provar regressão zero. Falta esta etapa.
+- 12 testes em `tests/test_ratelimit.py`: janela, bloqueio, `Retry-After`,
+  isolamento entre tenants, custo>1, falha aberta com storage fora do ar e
+  validação de configuração.
+- **Bug encontrado pelo smoke test antes de virar código commitado**: a primeira
+  versão incrementava só quando a requisição "cabia", então o total congelava no
+  limite e `restante == 0` era lido como permitido — o limitador nunca bloqueava.
+  Decisão corrigida para incrementar sempre e comparar com o limite.
+- **Segundo bug**: `custo > 1` não era aplicado (eu passava `janela*custo` como TTL
+  em vez de incrementar N vezes). Pego pelo teste, não em produção.
