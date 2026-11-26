@@ -338,7 +338,7 @@ etiquetas.
 |---|---|
 | Emissão de NF-e | **pilha completa até o fio**: geração, assinatura (RSA-SHA1 fixo no XSD), validação PL_010h, envelope `enviNFe`, envelope SOAP 1.2, cliente com classificação de erro, transporte HTTP mTLS e ciclo de autorização. **Chamada real pendente de credenciamento em GO** — nenhum teste tocou a SEFAZ |
 | Emissão de NFC-e | representação (cupom, QR local) pronta; **sem CSC e sem transmissão** |
-| Emissão de CT-e / MDF-e | fase 8 — DACTE e DAMDFE prontos; emissão na SEFAZ pendente |
+| Emissão de CT-e / MDF-e | **geração, assinatura e validação contra o XSD oficial** prontas, com rotas `POST /v1/transportes/cte` e `/mdfe`. Transmissão ao autorizador pendente de credenciamento |
 | NFP-e | **fora de escopo** — não há padrão nacional publicado (ver `docs/DOCUMENTOS-FISCAIS.md`) |
 | Etiquetas de volume por volume | **pronto** (`formato=etiquetas`) |
 | MAN/DNA, DAS e guia municipal reais | provedores são determinísticos, sem integração oficial |
@@ -506,8 +506,8 @@ e `docs/PAINEL.md` (regenerável com `python -m scripts.gerar_painel`).
 | **NFS-e** | ✅ | ✅ | ✅ **real** (SEFIN homologação) | ✅ **real** | ✅ |
 | NF-e | ✅ | ✅ | ❌ credenciamento | ❌ | ✅ |
 | NFC-e | ❌ | ❌ | ❌ | ❌ | ✅ |
-| CT-e | ❌ | ❌ | ❌ | ❌ | ✅ |
-| MDF-e | ❌ | ❌ | ❌ | ❌ | ✅ |
+| CT-e | ✅ | ✅ | ❌ credenciamento | ❌ | ✅ |
+| MDF-e | ✅ | ✅ | ❌ credenciamento | ❌ | ✅ |
 
 **O que isso significa na prática**: só a NFS-e emite de verdade hoje. A NF-e tem toda a
 pilha construída e testada com transporte falso — o que prova que o pedido é montado
