@@ -1510,3 +1510,36 @@ exige — nenhuma regressão.
 
 **O que isso NÃO muda**: nenhuma nota foi emitida. `NFeAutorizacao4` continua sem chamada, e
 autorizar exige credenciamento. Status é leitura, não emissão.
+
+### 30. Catálogo de CT-e e MDF-e está **INCOMPLETO** — correção de afirmação anterior
+
+Medido por consulta ao banco:
+
+| Modelo | Endpoints | Serviços catalogados |
+|---|---|---|
+| 55 (NF-e) | 270 | 5 (`AUTORIZACAO`, `RET_AUTORIZACAO`, `CONSULTA_PROTOCOLO`, `STATUS`, `INUTILIZACAO`) |
+| 65 (NFC-e) | 270 | os mesmos 5 |
+| **57 (CT-e)** | **54** | **1** — só `CTE_RECEPCAO_SINC` |
+| **58 (MDF-e)** | **54** | **1** — só `MDFE_RECEPCAO_SINC` |
+
+**Portanto "27/27 UFs" estava certo para o serviço catalogado, e enganoso como cobertura**:
+CT-e tem, no mínimo, recepção síncrona, recepção assíncrona, retorno, consulta, status, eventos
+e inutilização. Catalogamos um.
+
+**Causa raiz**: o `ACBrCTeServicos.ini` lista **muitas** chaves por autorizador
+(`CTeRecepcao_3.00`, `CTeRetRecepcao_3.00`, `RecepcaoEvento_3.00`, `RecepcaoEventoAN_4.00`,
+`CTeConsultaCadastro_3.00`, `URL-ConsultaCTe`, `URL-QRCode`…), mas o mapeamento chave→serviço do
+meu conversor só reconhecia a de recepção síncrona. **O dado sempre esteve lá; o código que o lê
+é que era estreito.**
+
+**Consequência prática**: `NFeStatusServico` funciona em GO e no SVRS; para CT-e **não existe
+endpoint de status no catálogo**, então não há como consultar status de CT-e mesmo com
+certificado válido. Foi exatamente o que impediu o primeiro contato real com o serviço de CT-e
+nesta sessão.
+
+**Correção (não aplicada — contexto de sessão esgotado)**: estender o mapa do conversor às chaves
+listadas acima, reimportar e medir. É trabalho de dados já baixados, não de fonte nova — a mesma
+natureza do que destravou NF-e para 270 endpoints.
+
+**Lição**: cobertura de UFs não é cobertura de serviços. Uma métrica "27/27" pode esconder que
+apenas 1 de 7 operações existe.
