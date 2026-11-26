@@ -248,3 +248,19 @@ class AbrasfBaseDriver:
             f"</ConsultarSituacaoLoteRpsEnvio>"
         ).encode(self._conf.encoding, errors="replace")
         return await self._chamar(xml, assinar=False)
+
+
+def assinador_de(certificado: Any, *, alvo: str = "rps") -> Callable[[bytes], Awaitable[bytes]]:
+    """Adapta `assinar_rps` ao contrato `Callable[[bytes], Awaitable[bytes]]` do driver.
+
+    Existe para que o driver não importe assinatura e vice-versa: um só lugar faz a ponte,
+    e o teste de integração cobre exatamente essa costura.
+    """
+    from app.nfse.assinatura_rps import AlvoAssinatura, assinar_rps
+
+    alvo_enum = AlvoAssinatura(alvo)
+
+    async def assinar(xml: bytes) -> bytes:
+        return assinar_rps(xml, certificado, alvo=alvo_enum).xml
+
+    return assinar

@@ -947,3 +947,21 @@ primeira coisa a fazer antes de qualquer outra evolução.
   recusam com motivo — não inventam envelope.
 - **Ainda ausente**: os cinco drivers especializados, cada um só com URL/leiaute oficial,
   e a assinatura XMLDSig real do RPS (o motor recebe o assinador, não o implementa).
+
+### 1c. Assinatura XMLDSig do RPS e costura com o driver (Etapa E, parte 3)
+
+- `app/nfse/assinatura_rps.py`: `assinar_rps`, `AlvoAssinatura`, `ResultadoAssinatura`.
+  6 testes. `drivers_abrasf.assinador_de` adapta ao contrato do driver; 4 testes de
+  integração em `tests/test_nfse_driver_assinatura.py`.
+- **Reutiliza o assinador do projeto** em vez de duplicar C14N/digest: duplicar seria a
+  segunda chance de errar o mesmo detalhe.
+- **Alvo explícito** (`rps` ou `lote`): o leiaute ABRASF assina o `InfDeclaracao` por `Id`,
+  e alguns provedores querem o lote. Adivinhar produz recusa; o alvo vem do manual.
+- Sem `Id`, falha `VALIDACAO_LOCAL` com motivo — sem `Id` não existe `URI` de referência.
+- **Teste de integração verifica o envelope realmente enviado**: `Reference URI == "#rps1"`
+  e `Signature` presente no corpo que sai para o transporte.
+- **Teste descartado, e o motivo**: eu havia escrito um caso com certificado falso que
+  levantava `AttributeError`; isso é erro de programação, não comportamento do sistema.
+  Afrouxar o `except` para "passar" seria esconder bug — removi o teste.
+- **Ainda ausente**: nenhum provedor real foi contatado; o que está provado é que a
+  assinatura é gerada, referencia o `Id` certo e sai dentro do envelope.
