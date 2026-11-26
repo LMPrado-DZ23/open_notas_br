@@ -1090,3 +1090,35 @@ credenciamento e certificado ACP-Brasil real.
 `CEP` proibido em `enderEmit`/`enderDest` · `CRT` como último filho de `emit` · `qCarga` com
 4 casas · `imp` com grupo `ICMS`/`ICMS00` · `infCarga` antes de `infDoc` · `infModal` com
 `versaoModal` e `rodo`/`RNTRC` · **CT-e só é válido assinado**.
+
+### 22. MDF-e: gerado, assinado e validado contra o schema oficial 3.00
+
+**Implementado e testado** (`app/mdfe/gerador.py`, 12 testes somando schema + gerador):
+
+- `gerar(dados)` monta na ordem extraída do `xs:sequence`.
+- `gerar_assinado(dados, certificado)` assina via `app.nfe.assinatura` e **valida** contra
+  `mdfe_v3.00.xsd`.
+- Saída medida: 3358 bytes com `Signature`, aceita pelo schema.
+
+Fechou em **uma** tentativa porque a ordem de trabalho foi invertida em relação ao CT-e:
+**validador primeiro, gerador depois**. O schema apontou apenas três pontos:
+
+1. `infDoc` exige `infMunDescarga` agrupando as chaves de NF-e, não chaves soltas;
+2. dentro do grupo a chave é `chNFe`, não `chave`;
+3. MDF-e só é válido assinado.
+
+**Modelo**: `Descarga(codigo_ibge, nome, chaves_nfe)` e
+`MunicipioCarregamento(codigo_ibge, nome)` espelham o leiaute. As recusas são explícitas — sem
+descarga, sem chave, sem município de carregamento, chave curta — nada é assumido em silêncio.
+
+**O que continua ausente**: transmissão. Nenhum MDF-e foi enviado a autorizador.
+
+#### Placar de geração por documento
+
+| Documento | Geração | Assinatura | Validação | Transmissão real |
+|---|---|---|---|---|
+| NFS-e | sim | sim | sim | **sim** (sessão anterior) |
+| NF-e | sim | sim | sim | não |
+| CT-e | sim | sim | sim | não |
+| MDF-e | sim | sim | sim | não |
+| NFC-e | não (exige CSC) | — | — | não |
