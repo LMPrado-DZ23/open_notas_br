@@ -704,8 +704,12 @@ Cada item com estado, prova, teste, risco e **decisão registrada**.
   (resiliencia) + 11 (dlq) + 5 (observabilidade) = 86.
 - **Risco**: as peças existem e são testadas isoladamente, mas **o circuito não está
   injetado no `emissao_service`** — hoje ele só abre se alguém chamar `executar`.
-- **Decisão**: **injetar é o próximo passo técnico**; o replay autenticado fica
-  **bloqueado por decisão do proprietário** (não existe admin auth no projeto).
+- **Decisão**: circuito **injetado** em `POST /v1/emissoes` (commit `d9c9ff5`), com
+  `CircuitoAberto` → **503 + `Retry-After`** em vez de 500. Item fechado exceto o replay.
+- **Replay autenticado**: decisão de arquitetura registrada em
+  `docs/adr/0001-admin-auth.md` — três opções avaliadas, recomendação de chave estática
+  com `admin_habilitado=False` por padrão. **Aguarda decisão do proprietário**: criar
+  rota "admin" sem mecanismo de admin seria falso positivo de segurança.
 
 ### 6. Hash SHA-256 de XSD — IMPLEMENTADO E TESTADO
 
