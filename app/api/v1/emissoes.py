@@ -43,6 +43,8 @@ from app.nfse.adapter import SefinMockAdapter
 from app.nfse.errors import ErroSefin
 from app.nfse.evento import MOTIVOS_CANCELAMENTO
 from app.nfse.eventos_tipos import TIPOS_DO_CONTRIBUINTE, TIPOS_EVENTO, ErroDeEventoCatalogo
+from app.nfse.injecao import UF_NACIONAL, emitir_com_circuito
+from app.nfse.resiliencia import registro_padrao
 from app.nfse.schemas import DocumentoOut, EmissaoDetalheOut, EmissaoIn, EmissaoOut
 from app.nfse.servico import (
     CertificadoAusente,
@@ -215,13 +217,20 @@ async def emitir(
     adaptador = SefinMockAdapter(dados.ambiente) if settings.nfse_adapter == "mock" else None
 
     try:
-        documento = await emissao_service.emitir(
-            db,
-            tenant,
-            invoice,
-            municipio_ibge=dados.municipio_ibge,
-            adapter=adaptador,
-            settings=settings,
+        documento = await emitir_com_circuito(
+            registro_padrao,
+            # Hoje a NFS-e é só padrão nacional: um circuito. Quando houver driver
+            # municipal, a chave passa a ser por município e a queda de uma prefeitura
+            # não para as outras.
+            uf=UF_NACIONAL,
+            acao=lambda: emissao_service.emitir(
+                db,
+                tenant,
+                invoice,
+                municipio_ibge=dados.municipio_ibge,
+                adapter=adaptador,
+                settings=settings,
+            ),
         )
         await db.commit()
     # `ConfiguracaoFiscalAmbigua` herda de `ErroDeEmissao`: precisa vir ANTES, senão

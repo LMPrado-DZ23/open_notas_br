@@ -27,6 +27,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.api.v1 import health
 from app.api.v1.router import router as v1_router
+from app.core.circuit import CircuitoAberto
 from app.core.config import get_settings
 from app.core.errors import de_http_exception
 from app.core.logging import configurar_logging
@@ -159,6 +160,30 @@ def criar_app() -> FastAPI:
     # Health no root (usado pelo healthcheck do container) e também sob /v1.
     app.include_router(health.router)
     app.include_router(v1_router, prefix="/v1")
+
+    @app.exception_handler(CircuitoAberto)
+    async def _circuito_aberto(request: Request, exc: CircuitoAberto) -> JSONResponse:
+        """Serviço externo fora do ar: 503 com `Retry-After`, não 500.
+
+        500 diz "erro do servidor" e o cliente tende a tentar de novo imediatamente, o
+        que piora a fila. 503 + `Retry-After` diz o que fazer: espere.
+        """
+        return JSONResponse(
+            status_code=503,
+            content={
+                "type": "https://opennotas.dev/errors/circuito-aberto",
+                "title": "Serviço fiscal indisponível",
+                "status": 503,
+                "detail": (
+                    "o autorizador está com o circuito aberto após falhas consecutivas; "
+                    f"tente em {exc.retry_after_s:.0f}s"
+                ),
+                "origem": "SEFAZ",
+                "retryable": True,
+            },
+            headers={"Retry-After": str(max(1, int(exc.retry_after_s)))},
+            media_type="application/problem+json",
+        )
 
     @app.exception_handler(StarletteHTTPException)
     async def _erro_rfc7807(request: Request, exc: StarletteHTTPException) -> JSONResponse:

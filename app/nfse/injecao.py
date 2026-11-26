@@ -23,6 +23,11 @@ from app.nfse.resiliencia import RegistroCircuitos, chave_sefaz, executar
 #: Operação usada na chave do circuito para autorização de NFS-e.
 OPERACAO_EMISSAO = "autorizacao"
 
+#: Chave de circuito para o padrão nacional. Não é UF: a NFS-e nacional não depende de
+#: SEFAZ estadual, então um único circuito cobre todos os municípios. Vira por município
+#: quando existirem drivers municipais.
+UF_NACIONAL = "NACIONAL"
+
 
 async def emitir_com_circuito[T](
     registro: RegistroCircuitos,
