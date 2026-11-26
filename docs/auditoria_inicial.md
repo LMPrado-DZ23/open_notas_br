@@ -244,7 +244,7 @@ Cada item conferido por comando. `AUSENTE` = a busca no código não achou arqui
 | 3 | transporte SOAP DF-e | AUSENTE | ocorrências de soap/SOAPAction: 0; existem `app/nfe/gerador.py`, `assinatura.py`, `lote.py` (geração+assinatura+XSD, sem envio) |
 | 4 | CalculoAudit | AUSENTE | `CalculoAudit` no código=False; `app/tax/rtc.py` calcula sem auditar |
 | 5 | RFC 7807 / circuit breaker / DLQ / rate limit | PARCIAL (RFC 7807 agora ativo) | errors.py=True (módulo testado, handler NÃO registrado); circuit=False; DLQ=False; rate limit=True |
-| 6 | hash SHA-256 de XSD no boot | AUSENTE | verificação de hash de schema=False; schemas versionados sem hash em `tests/fixtures/schemas/` |
+| 6 | hash SHA-256 de XSD no boot | **IMPLEMENTADO (modo WARN)** | verificação de hash de schema=False; schemas versionados sem hash em `tests/fixtures/schemas/` |
 | 7 | `Idempotency-Key` por header | **IMPLEMENTADO E TESTADO** | `idempotency_key` existe no body (`app/nfse/schemas.py`); header presente=False |
 
 **Conclusão**: nenhuma das 7 está completa. O item 5 é o único com código novo
@@ -334,3 +334,23 @@ arquivo/símbolo que comprova.
 **Leitura**: só a NFS-e tem ciclo completo validado contra serviço real. NF-e tem
 geração, assinatura e validação de schema, **sem transmissão**. NFC-e, CT-e e MDF-e
 têm apenas representação impressa.
+
+### 6a. Integridade dos XSD (Etapa G)
+
+- `app/core/schemas.py`: `gerar_manifesto`, `verificar`, `ModoVerificacao.WARN|STRICT`.
+- `data/xsd_manifest.json`: 21 schemas com hash SHA-256, versionado — alterar um XSD
+  aparece no diff do commit, não só na runtime.
+- `scripts/gerar_manifesto_xsd.py`: gera com `--apply`; sem a flag mostra o diff.
+- 13 testes em `tests/test_schemas_integridade.py`, incluindo um que confere o
+  manifesto real contra os arquivos do repositório.
+- Divergência cobre três casos: hash diferente, **arquivo ausente** e **arquivo não
+  manifestado** — este último porque schema novo sem registro é tão suspeito quanto
+  alterado.
+- **Decisão registrada**: modo padrão é `WARN`, não aborto no boot. O R3 do v10.0
+  pede abortar, mas nem todo schema aqui tem procedência oficial confirmada (o
+  PL_010h veio da referência canônica, não do ZIP do Portal). Derrubar a API por
+  schema não confirmado trocaria risco de integridade por risco de indisponibilidade.
+  `STRICT` fica disponível para quando a procedência estiver confirmada.
+- **Bug de portabilidade pego pelo teste**: `str(relative_to)` produz `\\` no
+  Windows e `/` no Linux; o manifesto gerado aqui não casaria no CI. Corrigido com
+  `as_posix()`.
