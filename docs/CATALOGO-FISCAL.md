@@ -356,3 +356,35 @@ módulo quebra — e quebraria o app inteiro, não só o catálogo.
 `tributus` (72), `fisco` (47), `centi` (45), `elmar` (40) seguem fora: exigem decidir o nome
 do membro sem colidir, caso a caso. É trabalho de dado, não de arquitetura — e o importador
 recusa com motivo, como deve.
+
+---
+
+## Quatro documentos, 27/27 UFs (2026-11-26)
+
+Um INI por documento no ACBr, todos com a mesma indireção `Usar=`. O conversor passou a
+iterar (arquivo, prefixo, modelo, mapa de serviços):
+
+| Documento | Modelo | Endpoints | UFs |
+|---|---|---|---|
+| NF-e | 55 | 270 | 27/27 |
+| NFC-e | 65 | 270 | 27/27 |
+| CT-e | 57 | 54 | 27/27 |
+| MDF-e | 58 | 54 | 27/27 |
+| **total** | | **648** | |
+
+### Três obstáculos resolvidos nesta rodada
+
+1. **Versões duplicadas.** CT-e e MDF-e trazem o mesmo serviço em 3.00 e 4.00, e ambos caem
+   no mesmo nome do nosso enum → chave `(uf, modelo, ambiente, servico)` repetida, 150 linhas
+   recusadas. Deduplicado preferindo a **última** ocorrência (4.00 vem depois).
+2. **`modelo` só aceitava 55/65.** CT-e é 57 e MDF-e é 58. Migration `0010` amplia o CHECK; a
+   validação do importador passou a usar `MODELOS`.
+3. **Meu `replace` não pegou.** A validação continuou recusando 57 porque a substituição de
+   texto não casou — descobri porque o conversor ainda acusava os mesmos 108 erros depois de
+   eu "corrigir". Troquei por regex e verifiquei o resultado antes de seguir.
+
+### O que isso NÃO significa
+
+**CT-e e MDF-e continuam sem geração de XML e sem transmissão.** O que existe agora é o
+endpoint catalogado com fonte. Geração, assinatura e ciclo de autorização desses documentos
+não estão implementados — só NF-e e NFC-e têm geração (e só até o envelope).

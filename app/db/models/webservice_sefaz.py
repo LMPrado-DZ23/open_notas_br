@@ -77,7 +77,7 @@ class WebserviceSefaz(Base, MixinTimestamps):
             "uf", "modelo", "ambiente", "servico", name="uq_webservices_sefaz_endpoint"
         ),
         CheckConstraint("ambiente IN ('1','2')", name="ck_webservices_sefaz_ambiente"),
-        CheckConstraint("modelo IN ('55','65')", name="ck_webservices_sefaz_modelo"),
+        CheckConstraint("modelo IN ('55','65','57','58')", name="ck_webservices_sefaz_modelo"),
         CheckConstraint("url LIKE 'https://%'", name="ck_webservices_sefaz_url_https"),
         CheckConstraint("fonte_url LIKE 'https://%'", name="ck_webservices_sefaz_fonte_https"),
     )

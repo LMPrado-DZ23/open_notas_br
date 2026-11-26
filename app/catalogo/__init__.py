@@ -19,6 +19,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 #: As 27 UFs. Recusa qualquer outra sigla — erro de digitação viraria endpoint órfão.
+#: Modelos suportados no catálogo. 55 NF-e, 65 NFC-e, 57 CT-e, 58 MDF-e.
+MODELOS = frozenset({"55", "65", "57", "58"})
+
 UFS = (
     "AC",
     "AL",
@@ -110,9 +113,9 @@ def validar_linha(bruta: dict[str, Any], *, linha: int) -> LinhaEndpoints:
             f"recebido {ambiente!r}"
         )
     modelo = str(bruta.get("modelo", "55")).strip()
-    if modelo not in ("55", "65"):
+    if modelo not in MODELOS:
         raise ErroDeImportacao(
-            f"linha {linha}: modelo precisa ser '55' (NF-e) ou '65' (NFC-e), recebido {modelo!r}"
+            f"linha {linha}: modelo inválido {modelo!r}; válidos: {sorted(MODELOS)}"
         )
 
     if versao_soap not in ("1.1", "1.2"):

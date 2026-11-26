@@ -30,6 +30,22 @@ FONTE = "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrNFe/ACBrN
 SAIDA = Path("data/endpoints_nfe_acbr.json")
 
 #: Chave no INI (minúscula) -> serviço do nosso enum.
+FONTE_CTE = "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrCTe/ACBrCTeServicos.ini"
+FONTE_MDFE = (
+    "https://svn.code.sf.net/p/acbr/code/trunk2/Fontes/ACBrDFe/ACBrMDFe/ACBrMDFeServicos.ini"
+)
+
+MAPA_CTE = {
+    "cterecepcaosinc_3.00": "CTeRecepcaoSinc",
+    "cterecepcaosinc_4.00": "CTeRecepcaoSinc",
+    "cterecepcaoevento_3.00": "CTeRecepcaoEvento",
+    "cterecepcaoevento_4.00": "CTeRecepcaoEvento",
+}
+MAPA_MDFE = {
+    "mdferecepcaosinc_3.00": "MDFeRecepcaoSinc",
+    "mdferecepcaoevento_3.00": "MDFeRecepcaoEvento",
+}
+
 MAPA = {
     "nfeautorizacao_4.00": "NFeAutorizacao",
     "nferetautorizacao_4.00": "NFeRetAutorizacao",
@@ -41,8 +57,8 @@ MAPA = {
 }
 
 
-def ler_secoes() -> dict[str, dict[str, str]]:
-    texto = INI.read_text(encoding="latin-1")
+def ler_secoes(caminho: Path | None = None) -> dict[str, dict[str, str]]:
+    texto = (caminho or INI).read_text(encoding="latin-1")
     secoes: dict[str, dict[str, str]] = {}
     for achado in re.finditer(r"^\[([^\]]+)\](.*?)(?=^\[|\Z)", texto, flags=re.M | re.S):
         nome, corpo = achado.group(1).strip(), achado.group(2)
@@ -81,13 +97,24 @@ def main() -> int:
         print(f"arquivo ausente: {INI} (baixe de {FONTE})")
         return 2
 
-    secoes = ler_secoes()
     linhas: list[dict] = []
     usados: Counter = Counter()
 
-    # O mesmo INI cobre NF-e (`NFe_`) e NFC-e (`NFCe_`). O modelo vai na linha porque os
-    # hosts divergem em algumas UFs (SP: nfe.fazenda.sp x nfce.fazenda.sp).
-    for prefixo, modelo in (("NFe", "55"), ("NFCe", "65")):
+    # Um INI por documento, mesma estrutura e mesma indireção `Usar=`.
+    # O modelo vai na linha porque os hosts divergem em algumas UFs
+    # (SP: nfe.fazenda.sp x nfce.fazenda.sp).
+    FONTES_POR_DOC = (
+        (INI, "NFe", "55", MAPA, FONTE),
+        (INI, "NFCe", "65", MAPA, FONTE),
+        (Path("data/fontes/ACBrCTeServicos.ini"), "CTe", "57", MAPA_CTE, FONTE_CTE),
+        (Path("data/fontes/ACBrMDFeServicos.ini"), "MDFe", "58", MAPA_MDFE, FONTE_MDFE),
+    )
+
+    for arquivo, prefixo, modelo, mapa, fonte in FONTES_POR_DOC:
+        if not arquivo.is_file():
+            print(f"aviso: {arquivo} ausente — pulando {prefixo}")
+            continue
+        secoes = ler_secoes(arquivo)
         for uf in UFS:
             for sufixo, ambiente in (("P", "1"), ("H", "2")):
                 secao, bloco = resolver(secoes, f"{prefixo}_{uf}_{sufixo}")
@@ -95,7 +122,7 @@ def main() -> int:
                     continue
                 autorizador = secao.split("_")[1] if "_" in secao else uf
                 usados[autorizador] += 1
-                for chave, servico in MAPA.items():
+                for chave, servico in mapa.items():
                     url = bloco.get(chave)
                     if not url:
                         continue
@@ -110,10 +137,20 @@ def main() -> int:
                             "servico": servico,
                             "url": limpa,
                             "versao_soap": "1.2",
-                            "fonte_url": FONTE,
+                            "fonte_url": fonte,
                             "autorizador": autorizador,
                         }
                     )
+
+    # O mesmo serviço aparece em duas versões (3.00 e 4.00) e ambas caem no mesmo nome do
+    # nosso enum. Ficar com as duas gera chave `(uf, modelo, ambiente, servico)` repetida.
+    # Preferir a **última** ocorrência: os blocos 4.00 vêm depois dos 3.00 no arquivo.
+    unicas: dict[tuple[str, str, str, str], dict] = {}
+    for linha in linhas:
+        unicas[(linha["uf"], linha["modelo"], linha["ambiente"], linha["servico"])] = linha
+    if len(unicas) != len(linhas):
+        print(f"deduplicado: {len(linhas)} -> {len(unicas)} (versões 3.00/4.00 do mesmo serviço)")
+    linhas = list(unicas.values())
 
     validas, erros = validar_lote(linhas)
     for erro in erros[:5]:
