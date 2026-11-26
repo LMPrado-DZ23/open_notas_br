@@ -17,6 +17,7 @@ from app.db.models.enums import (
     StatusWebhook,
     TipoDocumento,
 )
+from app.db.models.frete import FreteCredencial
 from app.db.models.invoice import FiscalDocument, Invoice, InvoiceEvent
 from app.db.models.ops import BatchJob, TaxAssessment, WebhookDelivery
 from app.db.models.tenant import Tenant, TenantCertificate, TenantFiscalConfig
@@ -25,6 +26,7 @@ __all__ = [
     "AmbienteFiscal",
     "BatchJob",
     "FiscalDocument",
+    "FreteCredencial",
     "Invoice",
     "InvoiceEvent",
     "OrigemFatura",

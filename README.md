@@ -60,9 +60,40 @@ precisa. Sem ele o fluxo obrigaria a digitar o código IBGE à mão.
 (peso, dimensões, valor segurado). O modelo comercial é **frete cotado e pago pelo
 cliente final**: cotar é somente leitura; comprar a etiqueta usa o saldo do lojista.
 
-> **[A VALIDAR]** A cotação e as rotas de etiqueta ainda **não** foram exercitadas
-> contra a API do Melhor Envio: falta o lojista autorizar o aplicativo (OAuth) para
-> que o token exista. O núcleo está testado com transporte HTTP simulado.
+### O frete é cobrado à parte, não compõe a NFS-e
+
+Decisão de modelagem, igual ao padrão de e-commerce:
+
+- **O frete é uma cobrança do pedido**, não do serviço. O cliente paga produto +
+  frete no checkout; o lojista compra a etiqueta com o saldo do Melhor Envio.
+- **A NFS-e continua sendo só o serviço.** Embutir frete no valor do serviço
+  tributaria a entrega como serviço — e a base do ISS ficaria maior do que o
+  serviço prestado.
+- Em NF-e (mercadoria), o frete aparece no grupo `transp`/`modFrete`, nunca como
+  item da nota. São coisas diferentes e o código as mantém separadas.
+
+Por isso `POST /v1/fretes/cotacao` é **somente leitura**: cota e devolve preço e
+prazo. Não existe compra automática — comprar gasta dinheiro da loja e só faz
+sentido depois do pagamento.
+
+### Rotas
+
+| Rota | O que faz |
+|---|---|
+| `GET /v1/fretes/oauth/iniciar` | devolve a URL de autorização do Melhor Envio |
+| `GET /v1/fretes/oauth/callback` | troca o `code` e guarda o token **cifrado** |
+| `GET /v1/fretes/status` | autorizado? expira quando? |
+| `POST /v1/fretes/cotacao` | cota o carrinho pelo CEP do cliente |
+| `DELETE /v1/fretes/credencial` | revoga os tokens do tenant |
+
+O `state` do OAuth é **assinado** (HMAC com a chave-mestra) e carrega o tenant:
+um `state` forjado, de outra loja ou com mais de 15 minutos é recusado. O token é
+selado com AES-256-GCM e `aad` do tenant — o blob de uma loja não abre em outra.
+
+> **[A VALIDAR]** As rotas existem e estão testadas com transporte simulado, mas a
+> chamada **real** ao Melhor Envio depende de o lojista autorizar o aplicativo.
+> Até lá, `POST /fretes/cotacao` responde 409 explicando o próximo passo.
+
 
 ## Subir em um comando
 

@@ -183,6 +183,315 @@
         }
       }
     },
+    "/v1/fretes/oauth/iniciar": {
+      "get": {
+        "tags": [
+          "frete"
+        ],
+        "summary": "URL para o lojista autorizar o Melhor Envio",
+        "operationId": "iniciar_autorizacao_v1_fretes_oauth_iniciar_get",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutorizacaoOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fretes/oauth/callback": {
+      "get": {
+        "tags": [
+          "frete"
+        ],
+        "summary": "Callback do OAuth: troca o código e guarda o token cifrado",
+        "operationId": "callback_oauth_v1_fretes_oauth_callback_get",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Code"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "name": "error",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Error"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "state inválido ou expirado"
+          },
+          "502": {
+            "description": "Melhor Envio recusou"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fretes/status": {
+      "get": {
+        "tags": [
+          "frete"
+        ],
+        "summary": "Situação da autorização",
+        "operationId": "status_frete_v1_fretes_status_get",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fretes/credencial": {
+      "delete": {
+        "tags": [
+          "frete"
+        ],
+        "summary": "Revoga a autorização do Melhor Envio neste tenant",
+        "operationId": "revogar_v1_fretes_credencial_delete",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Revogar V1 Fretes Credencial Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fretes/cotacao": {
+      "post": {
+        "tags": [
+          "frete"
+        ],
+        "summary": "Calcula o frete do carrinho pelo CEP do cliente",
+        "operationId": "cotar_v1_fretes_cotacao_post",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CotacaoIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CotacaoOut"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Melhor Envio não autorizado para este tenant"
+          },
+          "502": {
+            "description": "Falha na cotação junto ao Melhor Envio"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/tenants": {
       "post": {
         "tags": [
@@ -2997,6 +3306,33 @@
         "title": "ApuracaoOut",
         "description": "Apuração consolidada."
       },
+      "AutorizacaoOut": {
+        "properties": {
+          "url": {
+            "type": "string",
+            "title": "Url",
+            "description": "Abra esta URL no navegador para autorizar"
+          },
+          "expira_em_minutos": {
+            "type": "integer",
+            "title": "Expira Em Minutos",
+            "default": 15
+          },
+          "escopos": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Escopos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "url",
+          "escopos"
+        ],
+        "title": "AutorizacaoOut"
+      },
       "Body_criar_lote_v1_lotes_post": {
         "properties": {
           "arquivo": {
@@ -3338,6 +3674,89 @@
         ],
         "title": "ClassificacaoOut",
         "description": "Uma classificação tributária do IBS/CBS em uma vigência."
+      },
+      "CotacaoIn": {
+        "properties": {
+          "cep_destino": {
+            "type": "string",
+            "maxLength": 9,
+            "minLength": 8,
+            "title": "Cep Destino",
+            "examples": [
+              "01001-000"
+            ]
+          },
+          "cep_origem": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 9,
+                "minLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cep Origem",
+            "description": "Vazio usa o CEP da configuração fiscal do tenant."
+          },
+          "itens": {
+            "items": {
+              "$ref": "#/components/schemas/ItemCarrinho"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Itens"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cep_destino",
+          "itens"
+        ],
+        "title": "CotacaoIn"
+      },
+      "CotacaoOut": {
+        "properties": {
+          "opcoes": {
+            "items": {
+              "$ref": "#/components/schemas/OpcaoOut"
+            },
+            "type": "array",
+            "title": "Opcoes"
+          },
+          "mais_barata": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpcaoOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "mais_rapida": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OpcaoOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "observacao": {
+            "type": "string",
+            "title": "Observacao"
+          }
+        },
+        "type": "object",
+        "required": [
+          "opcoes",
+          "observacao"
+        ],
+        "title": "CotacaoOut"
       },
       "DocumentoOut": {
         "properties": {
@@ -4007,6 +4426,90 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "ItemCarrinho": {
+        "properties": {
+          "peso_kg": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1000.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Peso Kg"
+          },
+          "altura_cm": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 300.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Altura Cm"
+          },
+          "largura_cm": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 300.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Largura Cm"
+          },
+          "comprimento_cm": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 300.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Comprimento Cm"
+          },
+          "valor": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              }
+            ],
+            "title": "Valor"
+          },
+          "quantidade": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 1.0,
+            "title": "Quantidade",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "peso_kg",
+          "altura_cm",
+          "largura_cm",
+          "comprimento_cm",
+          "valor"
+        ],
+        "title": "ItemCarrinho"
+      },
       "LoteDetalheOut": {
         "properties": {
           "id": {
@@ -4145,6 +4648,44 @@
           "falhas"
         ],
         "title": "LoteOut"
+      },
+      "OpcaoOut": {
+        "properties": {
+          "servico_id": {
+            "type": "integer",
+            "title": "Servico Id"
+          },
+          "transportadora": {
+            "type": "string",
+            "title": "Transportadora"
+          },
+          "servico": {
+            "type": "string",
+            "title": "Servico"
+          },
+          "preco": {
+            "type": "string",
+            "title": "Preco"
+          },
+          "prazo_dias": {
+            "type": "integer",
+            "title": "Prazo Dias"
+          },
+          "moeda": {
+            "type": "string",
+            "title": "Moeda"
+          }
+        },
+        "type": "object",
+        "required": [
+          "servico_id",
+          "transportadora",
+          "servico",
+          "preco",
+          "prazo_dias",
+          "moeda"
+        ],
+        "title": "OpcaoOut"
       },
       "OrigemFatura": {
         "type": "string",
@@ -4616,6 +5157,68 @@
         ],
         "title": "StatusFatura",
         "description": "Ciclo de vida da fatura que originará o documento fiscal."
+      },
+      "StatusOut": {
+        "properties": {
+          "autorizado": {
+            "type": "boolean",
+            "title": "Autorizado"
+          },
+          "sandbox": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sandbox"
+          },
+          "expira_em": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expira Em"
+          },
+          "renovado_em": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Renovado Em"
+          },
+          "escopo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Escopo"
+          },
+          "proximo_passo": {
+            "type": "string",
+            "title": "Proximo Passo"
+          }
+        },
+        "type": "object",
+        "required": [
+          "autorizado",
+          "proximo_passo"
+        ],
+        "title": "StatusOut"
       },
       "StatusTenant": {
         "type": "string",
