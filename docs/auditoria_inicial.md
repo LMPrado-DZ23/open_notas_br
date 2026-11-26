@@ -489,3 +489,20 @@ têm apenas representação impressa.
 - **Pendente**: `credenciais_municipais`, seed IBGE e o seed de endpoints das 27 UFs
   (nenhum endpoint foi inserido — a tabela está vazia de propósito, porque popular URL
   sem fonte verificada violaria P2).
+
+### 2c. `credenciais_municipais` (Etapa D)
+
+- `app/db/models/credencial_municipal.py` + migration `0006`. 13 colunas.
+- Migration **executada**: 0006 → 0005 → 0006, `current` em `0006 head`.
+- **FK testada por INSERT real**: tenant inexistente →
+  `ERROR ... fk_credenciais_municipais_tenant_id_tenants`.
+- Segredos em `LargeBinary` (`usuario_ws_criptografado`, `senha_ws_criptografada`,
+  `token_ws_criptografado`) — **ciphertext, nunca texto claro** (R4/P3). Conferido em
+  `information_schema`.
+- `ultimo_numero_rps` BIGINT para incremento sob `SELECT ... FOR UPDATE`: sem o lock,
+  duas emissões simultâneas leem o mesmo número e o município recusa a segunda por
+  duplicidade — falha intermitente que só aparece com carga.
+- `ativa` em vez de DELETE: revogar sem perder a ligação com notas já emitidas.
+- `UNIQUE (tenant_id, codigo_ibge)`: uma credencial por tenant e município.
+- **Pendente**: serviço que sela/abre com `app/core/crypto.py` (AAD = tenant + IBGE), o
+  lock propriamente dito, seed IBGE e rotas de gestão.
