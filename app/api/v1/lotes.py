@@ -30,6 +30,7 @@ from app.db.models.ops import BatchJob, WebhookDelivery
 from app.db.models.tenant import Tenant
 from app.db.session import get_session
 from app.nfse.adapter import SefinAdapter
+from app.nfse.factory import montar_adapter
 from app.webhooks import service as webhook_service
 from app.webhooks.service import ErroWebhook
 
@@ -92,13 +93,13 @@ def _lote(job: BatchJob) -> LoteOut:
     )
 
 
-def _montar_adapter(settings: Settings) -> SefinAdapter:
-    """Adapter conforme configuração (mock em teste/homologação controlada)."""
-    from app.nfse.adapter import SefinMockAdapter, SefinNacionalClient
+def _montar_adapter(settings: Settings) -> SefinAdapter | None:
+    """Dublê quando configurado, `None` para o serviço montar o cliente real.
 
-    if settings.nfse_adapter == "mock":
-        return SefinMockAdapter()
-    return SefinNacionalClient(settings)
+    Ver `app/nfse/factory.py`: montar o cliente aqui com `Settings` mandava a emissão
+    para a SEFIN de **homologação** e sem certificado de cliente.
+    """
+    return montar_adapter(settings)
 
 
 @router.post(

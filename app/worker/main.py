@@ -75,14 +75,13 @@ async def processar_lote(ctx: dict[str, Any], lote_id: str) -> str:
     from app.db.models.ops import BatchJob
     from app.db.models.tenant import Tenant
     from app.db.session import obter_sessionmaker
-    from app.nfse.adapter import SefinMockAdapter, SefinNacionalClient
+    from app.nfse.factory import montar_adapter
 
     configuracao = settings_local()
-    adapter: Any = (
-        SefinMockAdapter()
-        if configuracao.nfse_adapter == "mock"
-        else SefinNacionalClient(configuracao)
-    )
+    # `None` aqui é deliberado: no caminho real quem monta o cliente é o serviço de emissão,
+    # com o `AmbienteFiscal` do tenant e o certificado dele. Um cliente montado com `Settings`
+    # caía sempre na SEFIN de homologação e sem mTLS (ver app/nfse/factory.py).
+    adapter: Any = montar_adapter(configuracao)
 
     async with obter_sessionmaker()() as sessao:
         job = await sessao.get(BatchJob, uuid.UUID(lote_id))

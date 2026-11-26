@@ -5,6 +5,19 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido — emissão por lote e por integração podia ir para a SEFIN de homologação
+
+- `app/api/v1/lotes.py`, `app/api/v1/integracoes.py` e `app/worker/main.py` montavam
+  `SefinNacionalClient(settings)`, passando `Settings` no parâmetro `ambiente`, que espera
+  `AmbienteFiscal`. Como `sefin_url()` decide por `is AmbienteFiscal.PRODUCAO`, qualquer outro
+  objeto cai em **homologação** — sem exceção e sem log. O cliente também ia sem certificado, e o
+  mTLS falhava. Achado por `mypy`; confirmado por leitura.
+- Correção: `app/nfse/factory.py::montar_adapter` decide o dublê em um só lugar e devolve `None` no
+  caminho real, para que o serviço de emissão monte o cliente com o ambiente do tenant e o A1 dele.
+- Testes: `tests/test_nfse_factory_ambiente.py` (7), incluindo guarda estrutural contra reintrodução.
+- Auditoria reconciliada em `docs/auditoria_inicial.md` §44, com baseline medido: **1405 testes**,
+  cobertura **87,98%**, 58 rotas, 2 jobs de CI, `mypy` com 93 erros (não verde, não está no CI).
+
 ### Adicionado — caminho feliz de `POST /v1/transportes/{cte,mdfe}` medido
 
 - As rotas de geração tinham teste só de auth e OpenAPI; a pendência estava declarada em §25 e

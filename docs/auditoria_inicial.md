@@ -2152,3 +2152,116 @@ acontece; com `mock` ele afirma que o fluxo chega ao `POST /v1/tenants`.
 `validar_ambiente_de_execucao` já impede `ENVIRONMENT=production` com `mock`. O caso inverso —
 ambiente de desenvolvimento apontando para o serviço **real** — não é erro de configuração: é o
 padrão do `docker-compose.yml`. Por isso a guarda ficou no script que emite, não na configuração.
+---
+
+## 44. Reconciliação de fontes e baseline (2026-11-26)
+
+**Commit de referência:** `55351cb` (base) · trabalho em `work/auditoria-e-fase-a`.
+**Método:** medição no ambiente local, não cópia de números anteriores.
+
+### 44.1 Comparação de fontes
+
+| Fonte | Situação medida |
+|---|---|
+| ZIP de referência | **não foi fornecido nesta sessão**. Não há `.zip` no workspace nem caminho informado. Registro a ausência em vez de inventar comparação. |
+| Branch padrão do GitHub | `main`, confirmada por `gh repo view --json defaultBranchRef` → `main` |
+| HEAD local | `55351cb` = `git rev-parse origin/main` → `55351cbc1f02…` (idênticos) |
+| Árvore de trabalho | limpa antes das mudanças (`git status --short` vazio) |
+
+**Conclusão:** trabalho feito sobre o estado atual do repositório, que coincide com a branch padrão
+no SHA `55351cb`. Se o ZIP existir, ele deve ser comparado contra este SHA; sem o arquivo, qualquer
+afirmação de divergência seria invenção.
+
+### 44.2 Baseline medido nesta data
+
+| Métrica | Valor | Comando |
+|---|---|---|
+| Testes aprovados | **1405** | `pytest -q` (suíte completa) |
+| Cobertura | **87,98%** (10 427 statements, 1 253 sem cobertura) | `pytest --cov=app --cov=notasbr` |
+| Limite de cobertura | 80% — atingido | idem |
+| Rotas OpenAPI | **58** | `len(criar_app().openapi()["paths"])` |
+| Tabelas ORM / migrations | 15 / 11 | `scripts/gerar_painel.py` |
+| Lint / formatação | limpos | `ruff check`, `ruff format --check` |
+| CI | 2 jobs (`Testes e lint`, `Contrato e schemas oficiais`) | `.github/workflows/ci.yml` |
+| `alembic check` | sem drift | `python -m alembic check` |
+| Tipagem (mypy) | **93 erros em 43 arquivos** | `python -m mypy app src` |
+
+### 44.3 Divergências encontradas entre documentação e código
+
+| Documento afirma | Código mostra | Ação |
+|---|---|---|
+| `docs/PAINEL.md` dizia 57 rotas / 1319 testes | 58 / 1405 | painel é gerado; regenerado |
+| `tests/test_transporte_rotas.py` dizia caminho feliz "pendente" | nenhuma rota de emissão testada com certificado | coberto em §42 |
+| §23 diz NFC-e ausente por CSC | confirmado: `app/nfe/gerador.py:58` fixa `mod="55"` | mantido, com decisão registrada |
+| Auditoria não mencionava defeito da rota de status | `AttributeError` real | corrigido em §41 |
+
+### 44.4 Defeito crítico novo: emissão real podia ir para homologação
+
+**Evidência.** `mypy` apontou `Argument 1 to "SefinNacionalClient" has incompatible type "Settings";
+expected "AmbienteFiscal"` em três lugares. Leitura confirmou:
+
+- `app/api/v1/lotes.py:101` → `SefinNacionalClient(settings)`
+- `app/api/v1/integracoes.py:67` → idem
+- `app/worker/main.py:84` → idem
+
+`SefinNacionalClient.__init__` recebe `ambiente: AmbienteFiscal` e faz
+`sefin_url(ambiente)`; `sefin_url` decide por `ambiente is AmbienteFiscal.PRODUCAO`
+(`app/nfse/constants.py:79-81`). Qualquer objeto que não seja o enum — inclusive `Settings` —
+cai em **homologação**, sem exceção e sem log.
+
+**Consequência.** Emissão por lote e pelas rotas de integração usava a SEFIN de homologação em
+qualquer ambiente; além disso o cliente era montado sem certificado, então o mTLS falhava. O
+caminho correto (`app/nfse/servico.py:353`) monta `SefinNacionalClient(config.ambiente,
+certificado, …)` com o ambiente do **tenant** e o A1 dele — e era justamente o que essas três
+cópias burlavam ao injetar `adapter`.
+
+**Causa raiz.** Decisão de adapter duplicada em três módulos, sem contrato de tipos.
+
+**Correção.** `app/nfse/factory.py: montar_adapter(settings) -> SefinAdapter | None` — devolve o
+dublê só quando `NFSE_ADAPTER=mock`; `None` no caminho real, para o serviço montar o cliente com
+ambiente e certificado do tenant. As três cópias passaram a chamar a fábrica.
+
+**Testes.** `tests/test_nfse_factory_ambiente.py` (7): dublê/`None`, a armadilha
+`sefin_url(Settings) == SEFIN_HOMOLOGACAO`, `sefin_url(AmbienteFiscal.PRODUCAO) == SEFIN_PRODUCAO`,
+e guarda estrutural de que os três módulos não voltem a instanciar `SefinNacionalClient`.
+
+**Limite do que foi medido.** O defeito foi provado por tipos e por leitura; não houve emissão real
+em nenhum ambiente nesta correção.
+
+### 44.5 Reconciliação das alegações (estado por item)
+
+| Alegação | Estado medido | Prova |
+|---|---|---|
+| Drivers NFS-e multi-prefeitura | **parcial**: existe `app/nfse/drivers/` com padrão nacional; não há driver municipal homologado | §9–§12 |
+| `municipios_nfse`, `credenciais_municipais`, `webservices_sefaz` | **implementado e testado** (AAD por tenant+finalidade) | §24, `test_credenciais_rota.py` |
+| NF-e transmissão | **parcial**: geração+assinatura+XSD; envio depende de credenciamento | §26, §37 |
+| CT-e / MDF-e | **parcial**: geração+assinatura+XSD+status real medido; autorização não transmitida | §31, §42 |
+| NFC-e | **ausente por bloqueio duplo**: `mod` fixo e CSC | §23 |
+| `CalculoAudit` | **implementado e testado** | §15 |
+| RFC 7807 / rate limit / CB / DLQ | **implementado e testado** | §39 |
+| Hash SHA-256 de XSD | **implementado**, com fontes oficiais e secundárias distinguidas | §40 |
+| `Idempotency-Key` | **implementado e testado** (11 testes) | §38 |
+| mypy no CI | **ausente**: 93 erros, não bloqueia merge | medido acima |
+
+### 44.6 Plano priorizado
+
+| # | Item | Depende de | Critério de aceite |
+|---|---|---|---|
+| A1 | ~~Emissão real em homologação por `Settings`~~ | — | **feito**: fábrica + 7 testes |
+| A2 | mypy no CI sem bloquear: reduzir a zero por módulo, começando por `app/nfse` e `app/api` | A1 | `mypy app` exit 0 |
+| A3 | Cobertura mínima por pacote (não só global) | — | `fail_under` por módulo |
+| B1 | Driver municipal NFS-e | fonte oficial + credencial | 1 provedor com URL, leiaute, XSD e teste |
+| C1 | NF-e autorização real | credenciamento SEFAZ-GO | `cStat 100` em homologação |
+| C2 | NFC-e | CSC por UF | QR Code + `infNFeSupl` válidos |
+| F1 | Métricas Prometheus | — | `/metrics` com labels sem tenant |
+
+### 44.7 Riscos conhecidos e bloqueios externos
+
+- **Sem credenciamento SEFAZ-GO**: nenhuma NF-e autorizada; `NFeAutorizacao4` não exercitado.
+- **Sem CSC**: NFC-e não implementável sem inventar QR Code.
+- **Inutilização CT-e/MDF-e**: não existe serviço 4.00 (404 medido com controles que funcionam).
+- **OAuth Melhor Envio**: pendente de autorização do usuário.
+- **mypy não verde**: 93 erros; impede adicionar tipagem ao gate sem trabalho prévio.
+
+atualizado por dsh em 2026-11-26
+
