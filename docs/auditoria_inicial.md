@@ -2513,3 +2513,56 @@ SEFAZ.
 
 Medição em uma máquina Windows, um processo, sem carga concorrente. Não é teste de carga e não
 inclui pico de fila. Reprodução: `python -m scripts.benchmark_mock --n 60 --warmup 10`.
+
+---
+
+## 49. Readiness passa a reportar o worker (e o teste de contrato parou de mentir)
+
+**Data:** 2026-11-26. **Fase:** F (health/readiness) + A (contrato).
+
+### Lacuna 1: `/health` não sabia do worker
+
+O worker **já** tinha batimento em Redis (`app/worker/main.py`, `CHAVE_HEARTBEAT` com TTL de 120 s)
+e healthcheck próprio para o Docker (`app/worker/healthcheck.py`). O que faltava era a **API**
+reportar isso: um operador olhando `/health` via `ok` com o worker morto — e webhooks/retentativas
+parados.
+
+Implementado em `app/api/v1/health.py`:
+
+- campo `worker: {ok, ultimo_batimento, detalhe}` na resposta de `/health`;
+- lê a **mesma** chave que o worker escreve (uma fonte só, sem constante duplicada);
+- Redis inacessível ⇒ `ok: false` com o motivo, nunca sucesso silencioso;
+- **política explícita**: `READINESS_EXIGE_WORKER` (padrão `false`). API e worker escalam
+  separado; uma API sem worker ainda serve leitura e consulta. A flag decide apenas se o estado do
+  worker **reprova** a readiness (503). Reportar ≠ reprovar, e a diferença está documentada em
+  `.env.example`.
+
+Ajuste de injeção: `saude()` passou a receber `settings` por `Depends(get_settings)` em vez de
+chamar `get_settings()` direto. Sem isso o `dependency_overrides` não tinha efeito — foi o próprio
+teste da flag que revelou.
+
+### Lacuna 2: o teste de contrato comparava só `paths`
+
+`tests/test_openapi_sincronizado.py` afirmava que o `openapi.json` versionado estava sincronizado,
+mas comparava **apenas** `paths`. Medido: o app tinha o schema `EstadoWorker` e o arquivo não —
+divergência real que o teste aprovava. `paths` iguais, `components` diferentes.
+
+- Teste novo `test_schemas_tambem_estao_sincronizados` compara `components` (foi executado
+  **vermelho** antes da correção, o que prova que detecta o drift).
+- `openapi.json` regenerado (+40 linhas: `EstadoWorker` e o campo `worker`).
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_fase1_health.py` | 10 passed (3 novos: sem batimento, com batimento, flag ligando o 503) |
+| `pytest tests/test_openapi_sincronizado.py` | 4 passed (1 novo) |
+| `pytest tests/test_configuracao_documentada.py` | 9 passed (`.env.example` cobre a variável nova) |
+| `mypy app src` | zero erros |
+| gate completo | 8/8 |
+
+### Limite
+
+O batimento prova que o **laço** do worker está vivo, não que cada tipo de job está saudável.
+Fila travada com worker vivo ainda aparece como `ok` — diagnóstico por tipo de job exige métrica,
+que continua ausente (§50 em diante).

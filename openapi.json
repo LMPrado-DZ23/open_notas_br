@@ -5384,6 +5384,42 @@
         ],
         "title": "EstadoDependencia"
       },
+      "EstadoWorker": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "ultimo_batimento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimo Batimento"
+          },
+          "detalhe": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detalhe"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "title": "EstadoWorker",
+        "description": "Sinal de vida do worker, lido do batimento em Redis.\n\n`detalhe` explica a ausência em linguagem de operação, não de stack trace. O valor do\nbatimento é um timestamp — não é dado de tenant nem PII."
+      },
       "EventoIn": {
         "properties": {
           "codigo": {
@@ -6278,6 +6314,9 @@
             "type": "string",
             "title": "Nfse Adapter"
           },
+          "worker": {
+            "$ref": "#/components/schemas/EstadoWorker"
+          },
           "verificacoes": {
             "additionalProperties": {
               "$ref": "#/components/schemas/EstadoDependencia"
@@ -6293,6 +6332,7 @@
           "ambiente",
           "uptime_segundos",
           "nfse_adapter",
+          "worker",
           "verificacoes"
         ],
         "title": "SaudeOut"

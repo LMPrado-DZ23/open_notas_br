@@ -5,6 +5,19 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — `/health` reporta o worker; teste de contrato passou a comparar schemas
+
+- O worker já tinha batimento em Redis (TTL 120 s) e healthcheck para o Docker, mas a **API** não
+  reportava nada: `/health` respondia `ok` com o worker morto. Agora a resposta traz
+  `worker: {ok, ultimo_batimento, detalhe}`, lendo a mesma chave do worker.
+- Política explícita: `READINESS_EXIGE_WORKER` (padrão `false`) decide se o worker **reprova** a
+  readiness. Reportar ≠ reprovar — API e worker escalam separado.
+- `saude()` passou a receber `settings` por `Depends`, senão `dependency_overrides` não tinha
+  efeito (o próprio teste da flag revelou).
+- **Defeito de teste corrigido**: `test_openapi_sincronizado` comparava só `paths` e aprovava um
+  `openapi.json` sem o schema novo. Com a comparação de `components`, o teste ficou vermelho, o
+  arquivo foi regenerado (+40 linhas) e voltou ao verde.
+
 ### Adicionado — performance do caminho síncrono medida (alvo de produto: p95 < 300 ms em mock)
 
 - `scripts/benchmark_mock.py`: emissão de NFS-e pelo HTTP completo, em processo (`ASGITransport`,

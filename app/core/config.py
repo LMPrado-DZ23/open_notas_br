@@ -93,6 +93,12 @@ class Settings(BaseSettings):
     rate_limit_habilitado: bool = False
     rate_limit_por_minuto: int = 60
 
+    #: Se `true`, `/health` responde 503 quando o worker não está batendo. Padrão `false`
+    #: porque API e worker escalam separado: uma API sem worker continua servindo leitura e
+    #: consulta. O estado do worker é sempre **reportado** em `/health`; esta flag decide
+    #: apenas se ele **reprova** a readiness.
+    readiness_exige_worker: bool = False
+
     # -- CNPJ (Fase 3) ------------------------------------------------
     serpro_cnpj_token: str = ""
     serpro_cnpj_base_url: str = "https://gateway.apiserpro.serpro.gov.br/consulta-cnpj-df-v1"
