@@ -2566,3 +2566,54 @@ divergência real que o teste aprovava. `paths` iguais, `components` diferentes.
 O batimento prova que o **laço** do worker está vivo, não que cada tipo de job está saudável.
 Fila travada com worker vivo ainda aparece como `ok` — diagnóstico por tipo de job exige métrica,
 que continua ausente (§50 em diante).
+
+---
+
+## 50. Análise de dependências: consistência agora, CVE decidida com gatilho
+
+**Data:** 2026-11-26. **Fase:** F (CI/CD e dependências). **ADR:** `docs/adr/0002-dependencias.md`.
+
+### O que o CI não cobria
+
+O CI tinha testes, cobertura, lint, tipagem, migrations, contrato e secret scanning. Não tinha
+**nada** sobre dependências. O prompt pede "análise de dependências" — e o nome cobre duas coisas
+que não são a mesma:
+
+| Verificação | O que responde | Custo |
+|---|---|---|
+| **Consistência** | o instalado satisfaz o declarado? há conflito de versão? | offline, determinístico |
+| **Vulnerabilidade (CVE)** | alguma dependência tem advisory publicado? | exige base de advisories + rede |
+
+### Implementado
+
+`python -m pip check` entrou no gate local (`scripts/check_ci.py`) e no CI. Offline, zero
+dependência nova, falha determinística. Pega o erro real de ambiente: extra faltando, pin
+incompatível, instalação parcial.
+
+Medido: `No broken requirements found.`
+
+### Decidido, não implementado: `pip-audit`
+
+`pip-audit` é a ferramenta certa para CVE e **não** foi adicionada agora. Motivos registrados no
+ADR 0002: introduz dependência nova (regra 11), depende de base externa (resultado muda sem mudança
+no commit, reprovando CI por fato alheio) e advisory sem versão corrigida exige `--ignore-vuln`
+justificado. **Gatilho para adotar**: quando existir ambiente publicado (homologação/produção) ou
+distribuição do pacote a terceiros — antes disso, CI intermitente custa mais do que entrega.
+
+Alternativas avaliadas e não escolhidas: `safety` (comercial no modo completo), `dependabot` e
+`renovate` (cuidam de atualizar, não de barrar merge por CVE, e exigem configuração no GitHub, fora
+do repositório).
+
+### Risco residual (explícito, não coberto)
+
+**CVE em dependência não é detectada hoje.** Isso está registrado como lacuna conhecida — não como
+cobertura. Quem for publicar precisa rodar `pip-audit` antes; o ADR deixa o passo pronto para
+entrar.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `python -m pip check` | `No broken requirements found.` |
+| `python -m scripts.check_ci` (rápido) | **7/7**, agora com `dependencias` |
+| gate completo | 9/9 |

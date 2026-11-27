@@ -5,6 +5,18 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — `pip check` no gate/CI e ADR 0002 decidindo a varredura de CVE
+
+- O CI não tinha **nada** sobre dependências. Agora tem consistência: `python -m pip check` no
+  gate local (7/7 rápido, 9/9 completo) e no CI.
+- `docs/adr/0002-dependencias.md` separa as duas coisas que "análise de dependências" costuma
+  misturar: **consistência** (implementada, offline) e **CVE** (decidida com gatilho objetivo).
+- `pip-audit` **não** foi adicionada agora: dependência nova (regra 11), base externa que reprova
+  CI por fato alheio ao commit, e `--ignore-vuln` exigindo disciplina de revisão. Gatilho para
+  adotar: existir ambiente publicado ou distribuição a terceiros.
+- **Risco residual declarado**: CVE em dependência não é detectada hoje — registrado como lacuna,
+  não como cobertura.
+
 ### Adicionado — `/health` reporta o worker; teste de contrato passou a comparar schemas
 
 - O worker já tinha batimento em Redis (TTL 120 s) e healthcheck para o Docker, mas a **API** não

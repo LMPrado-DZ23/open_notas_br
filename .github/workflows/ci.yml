@@ -76,6 +76,11 @@ jobs:
       - name: Secret scanning
         run: python -m scripts.verificar_segredos
 
+      # Consistencia de dependencias (ADR 0002). Nao e varredura de CVE: isso exige base de
+      # advisories e esta decidido com gatilho no ADR.
+      - name: Dependencias consistentes (pip check)
+        run: python -m pip check
+
       - name: Testes com cobertura
         run: pytest --cov=app --cov=notasbr --cov-report=term-missing
 

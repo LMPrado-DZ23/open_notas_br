@@ -37,6 +37,9 @@ CHECAGENS: tuple[Checagem, ...] = (
     # Regra dura do projeto (nunca versionar chave/senha/PEM) não tinha verificação nenhuma:
     # dependia de disciplina. Este scanner varre o índice do git e não ecoa o valor achado.
     Checagem("segredos", [sys.executable, "-m", "scripts.verificar_segredos"]),
+    # Consistência de dependências (ADR 0002). Offline e determinístico; **não** é varredura
+    # de CVE — isso exige base de advisories e fica decidido com gatilho no próprio ADR.
+    Checagem("dependencias", [sys.executable, "-m", "pip", "check"]),
     Checagem(
         "contrato openapi",
         [sys.executable, "-m", "pytest", "tests/test_openapi_sincronizado.py", "-q"],
