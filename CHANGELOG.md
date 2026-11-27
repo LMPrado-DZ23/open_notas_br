@@ -5,6 +5,21 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido — banco sem `statement_timeout` podia derrubar a API
+
+- O engine não definia `statement_timeout`, `idle_in_transaction_session_timeout` nem
+  `pool_recycle`. Uma consulta travada segurava a conexão indefinidamente; com `pool_size=10`, dez
+  consultas assim esgotavam o pool e a API parava de atender emissão, consulta e health.
+- Agora os tempos vão como `server_settings` do asyncpg (valem **no servidor**, para todo o pool) e
+  há reciclagem de conexão: `DB_STATEMENT_TIMEOUT_MS` (60 s), `DB_IDLE_TX_TIMEOUT_MS` (120 s),
+  `DB_POOL_RECYCLE_S` (1800 s) — documentados em `.env.example`.
+- 4 testes, sendo o principal `SHOW statement_timeout` após `criar_engine(...)`: prova que o valor
+  chega ao Postgres. A primeira versão inspecionava o `_creator` do pool por introspecção e passava
+  sem provar nada — foi substituída.
+- **Limite declarado:** o teto é global para a API; relatório longo passa a falhar em vez de demorar.
+  O caminho correto é o worker com teto próprio, que **ainda não existe** (o worker usa o mesmo
+  engine).
+
 ### Documentado — inventário de implementações isoladas (código testado, fluxo não)
 
 - Levantamento sistemático em `app/`: 8 módulos só são importados por testes e **não** estão no

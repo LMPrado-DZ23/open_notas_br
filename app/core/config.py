@@ -53,6 +53,17 @@ class Settings(BaseSettings):
     db_pool_size: int = 10
     db_max_overflow: int = 20
     db_echo: bool = False
+    #: Teto por consulta no servidor (`statement_timeout`). Sem ele, uma consulta patológica
+    #: segura a conexão para sempre e esgota o pool — a API inteira para por causa de uma query.
+    #: 60 s é folgado para o caminho síncrono; lote e apuração longa devem rodar no worker com
+    #: valor próprio, não aumentar este.
+    db_statement_timeout_ms: int = 60_000
+    #: Transação ociosa é desperdício de conexão: depois disto o Postgres derruba a sessão em vez
+    #: de deixá-la presa (falha de aplicação vira erro claro, não silêncio).
+    db_idle_tx_timeout_ms: int = 120_000
+    #: Recicla conexões depois deste tempo. `pool_pre_ping` cobre queda silenciosa, mas reciclar
+    #: evita carregar conexão velha por horas atrás de firewall/PgBouncer.
+    db_pool_recycle_s: int = 1_800
 
     # -- redis --------------------------------------------------------
     redis_url: str = "redis://127.0.0.1:56379/0"

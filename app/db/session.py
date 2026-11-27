@@ -25,7 +25,16 @@ _sessionmaker: async_sessionmaker[AsyncSession] | None = None
 
 
 def criar_engine(settings: Settings | None = None) -> AsyncEngine:
-    """Cria um engine novo a partir da configuração."""
+    """Cria um engine novo a partir da configuração.
+
+    Os tempos vão como `server_settings` do asyncpg, então valem **no servidor**, para qualquer
+    conexão do pool — não são timeout de cliente que só desiste de esperar enquanto o Postgres
+    continua trabalhando e segurando a conexão.
+
+    Sem `statement_timeout`, uma consulta patológica (apuração sobre tabela inteira, lock perdido)
+    segura a conexão indefinidamente; com pool de 10, dez consultas travadas derrubam a API
+    inteira. É proteção de disponibilidade, não de performance.
+    """
     conf = settings or get_settings()
     return create_async_engine(
         conf.database_url,
@@ -33,7 +42,14 @@ def criar_engine(settings: Settings | None = None) -> AsyncEngine:
         pool_size=conf.db_pool_size,
         max_overflow=conf.db_max_overflow,
         pool_pre_ping=True,
+        pool_recycle=conf.db_pool_recycle_s,
         future=True,
+        connect_args={
+            "server_settings": {
+                "statement_timeout": str(conf.db_statement_timeout_ms),
+                "idle_in_transaction_session_timeout": str(conf.db_idle_tx_timeout_ms),
+            }
+        },
     )
 
 

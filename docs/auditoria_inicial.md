@@ -3165,3 +3165,55 @@ completo por documento e criaria uma superfície que emite documento fiscal sem 
 |---|---|
 | varredura de importações em `app/` | 9 módulos com ≤1 referência interna; 8 confirmados isolados |
 | gate completo | 9/9 |
+
+---
+
+## 60. Sem `statement_timeout`: uma consulta travada podia derrubar a API
+
+**Data:** 2026-11-27. **Fase:** F (prontidão de produção). Achado por leitura do engine, não por teste
+falhando.
+
+### O risco
+
+`criar_engine()` criava o pool com `pool_pre_ping` e nada mais. Nenhum `statement_timeout`, nenhum
+`idle_in_transaction_session_timeout`, nenhum `pool_recycle`.
+
+Consequência concreta: uma consulta patológica — apuração sobre tabela inteira, lock perdido, plano
+ruim — segura a conexão **para sempre**. Com `pool_size=10`, dez consultas assim esgotam o pool e a
+API deixa de atender emissão, consulta e health. Um timeout de cliente não resolve: ele desiste de
+esperar enquanto o Postgres segue executando e segurando a conexão.
+
+### A correção
+
+`app/db/session.py` passa `server_settings` do asyncpg (valem **no servidor**, para toda conexão do
+pool) e `pool_recycle`:
+
+| Configuração | Padrão | O que impede |
+|---|---|---|
+| `DB_STATEMENT_TIMEOUT_MS` | 60 000 | consulta travada ocupando conexão indefinidamente |
+| `DB_IDLE_TX_TIMEOUT_MS` | 120 000 | transação aberta e ociosa prendendo conexão e lock |
+| `DB_POOL_RECYCLE_S` | 1 800 | conexão velha atrás de firewall/PgBouncer, já morta |
+
+Documentado em `.env.example`, com a orientação de que lote e apuração longa devem rodar no worker
+com valor próprio — não aumentar este teto para toda a API.
+
+### Testes (`tests/test_db_timeouts.py`, 4)
+
+| Teste | O que prova |
+|---|---|
+| padrões são folgados mas finitos | 1 s ≤ timeout ≤ 10 min, idle ≥ statement, recycle > 0 |
+| `SHOW statement_timeout` após `criar_engine(9_000)` | o valor configurado **chega ao servidor** |
+| `SHOW` com `connect_args` explícito | sanidade do mecanismo |
+| `pg_sleep(1)` com teto de 200 ms | a consulta é **cancelada**, não esperada |
+
+O segundo teste é o que importa: pergunta ao Postgres. A primeira versão inspecionava
+`pool._creator.__closure__` — passava sem provar nada; foi substituída.
+
+### Limite honesto
+
+- O teto é global para a API. Uma operação legítima e lenta (relatório de apuração de vários meses)
+  passa a falhar em vez de demorar. O caminho correto é o worker, com `statement_timeout` próprio —
+  que **ainda não existe** lá: o worker usa o mesmo `criar_engine`. Registrado como pendência.
+- `pool_recycle` de 30 min pode cortar conexão no meio de uma transação longa legítima; com teto de
+  60 s por consulta, é improvável, mas é uma interação entre os dois números que quem mudar precisa
+  conferir.
