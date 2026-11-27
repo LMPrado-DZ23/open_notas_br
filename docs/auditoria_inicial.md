@@ -4622,3 +4622,83 @@ não), e a entrega real: `404` → **uma** tentativa, sem reagendamento, item na
 | `pytest tests/test_webhook_falha_permanente.py` | **17 passed** |
 | `pytest tests/test_webhooks.py` | **24 passed** |
 | `mypy app src` | zero erros |
+
+---
+
+## 88. Revisão de continuidade do PR #1 — o que foi conferido, não repetido
+
+**Data:** 2026-11-27. **Escopo:** revisar a branch e o PR com evidência do repositório, sem refazer a
+auditoria e sem merge.
+
+### Estado conferido por comando
+
+| Item | Comando | Resultado |
+|---|---|---|
+| Branch / HEAD | `git status -sb`, `git rev-parse --short HEAD` | `work/auditoria-e-fase-a`, `4e7366d`, working tree limpo |
+| Base | `git rev-parse --short main` | `55351cb` |
+| Divergência | `git log --oneline main..HEAD \| wc -l` | **47 commits** |
+| Volume | `git diff --stat main..HEAD` | **126 arquivos**, +25.215 / −198 |
+| PR | `gh pr view 1` | `OPEN`, `MERGEABLE`, `CLEAN`, head `4e7366d` |
+| CI | `gh run list --branch ...` | `success` em `4e7366d` |
+
+Distribuição do diff: `app/` 42 · `tests/` 30 · `sources/` 17 · `docs/` 13 · `scripts/` 9 ·
+`alembic/` 4 · `.github/` 1.
+
+### Gates reexecutados nesta revisão (serial, banco compartilhado)
+
+`python -m scripts.check_ci --tudo` → **10/10** + suíte: lint, formatação, tipagem, segredos,
+dependências, contrato OpenAPI, integridade dos XSD (113 conferem), schema da DPS, migrações reproduzem
+os modelos, suíte completa. `pytest --co` → **1565 testes coletados**. `ruff format --check .` → 378
+arquivos formatados.
+
+Não remedi cobertura nesta rodada: o número anterior (**87,98%**) é de execução isolada registrada em
+§61/§83 e **não** é reivindicado como recém-medido aqui.
+
+### `xfail(strict=True)` — dois casos, ambos de divergência medida
+
+| Teste | O que fixa | Por que não esconde regressão |
+|---|---|---|
+| `test_xsd_acompanha_o_leiaute_declarado` | falha se o leiaute declarado for NT-009 e o XSD do repositório não tiver `finNFSe`/`vAjusteBC` | `strict=True`: se passar a passar, a suíte **quebra** e exige revisão |
+| `test_gerador_e_aceito_pelo_xsd_oficial` | valida a DPS gerada contra o pacote oficial extraído do ZIP versionado | falha hoje por `finNFSe` (o fixture do repo é adaptado, §82); quando o leiaute for alinhado, quebra de propósito |
+
+Nenhum dos dois usa `xfail` sem `strict`, e nenhum foi adicionado para "fazer a suíte passar" — ambos
+**descrevem** a divergência com o schema oficial.
+
+### Testes não alcançam produção
+
+| Controle | Evidência |
+|---|---|
+| Ambiente fixo de teste | `tests/conftest.py:24` → `ENVIRONMENT=test` |
+| Adaptador dublê obrigatório | `tests/conftest.py:30` → `NFSE_ADAPTER=mock` |
+| Banco de teste próprio | `tests/conftest.py:31` → `DATABASE_URL = suporte.url_teste()` |
+| Allowlist de host no cliente real | `app/nfse/adapter.py:243` + `app/core/config.py:86` (`sefin_permitir_host_nao_oficial=False` por padrão) |
+| `tp_amb=1` (produção) em teste | **nenhuma** instrução; texto antigo corrigido nesta rodada (§REQ-1) |
+
+### Isolamento entre tenants — amostra de testes presentes
+
+`test_certificado_usos.py` (histórico de uso), `test_chave_expira_revoga.py`, `test_cancelamento.py`,
+`test_apuracao.py`, `test_credenciais_rota.py`, `test_circuit.py` — todos com caso de "outro tenant" ou
+"tenant cruzado". O contrato de tenant-vindo-da-credencial está em `test_contrato_tenant.py`.
+
+### Manifesto e matriz: existem e conferem
+
+`sources/manifest.yaml` — **15 fontes**, todas com `sha256` verificado por script (`ok=15 diverge=0
+ausente=0`), sem caminho absoluto de disco. `docs/REQUISITOS-FONTES.md` — matriz com estados
+`PASS/PARTIAL/NOT_TESTED/BLOCKED` e a citação do que cada fonte diz.
+
+### Correções documentais desta revisão
+
+1. `tp_amb=1` → `tp_amb=2` na instrução de não-regressão (produção não recebe teste);
+2. **REQ-2**: `PARTIAL` → **`BLOCKED` para a regra**, com o cronograma oficial: Operações Condominiais
+   são o item 2.15 da **Release 3** (Produção Restrita prevista 07/12/2026);
+3. **REQ-4**: passa a **`PARTIAL`** (fluxo confirmado no FAQ v1.5) mantendo **`BLOCKED`** para a API de
+   consulta de vigência/revogação; `00233` registrado como **não citado** na fonte consultada;
+4. **REQ-3**: `BLOCKED` como regra executável, com a ressalva oficial de que não há regras de negócio
+   baseadas no Anexo VIII;
+5. ADR 0005 atualizado: o bloqueio permanece, mas o **fundamento mudou** — a representação existe e está
+   em produção desde 31/10/2026; falta a forma de verificar o vínculo e o grupo de XML (Release 3).
+
+### O que esta revisão **não** fez
+
+Não fez merge, não alterou `main`, não enviou mensagem externa, não reivindicou homologação nem produção.
+A decisão de merge continua com o mantenedor.

@@ -12,9 +12,9 @@ execução. O que existe é código anterior aos requisitos, e ele **não** foi 
 | REQ | Tema | Estado | Por quê |
 |---|---|---|---|
 | REQ-1 | XSD NT-009 (2026-11-24) + `indDest` | **PARTIAL** | **fonte obtida** em 2026-11-27: `esquemas-xsd-producao-restrita-20261124.zip` (sha256 `1ca83c1a…`) declara `finNFSe`, `indDest`, `vAjusteBC`. Falta adotar o schema, documentar a regra de `indDest` e validar (implementação não feita) |
-| REQ-2 | `condominios` / `imovel.unidades` / 99.05.01 | **PARTIAL** | **fonte obtida**: NT-009 v1.01, Anexo I (DPS 2026-11-24) e Anexo VI v1.04.01; o XSD oficial declara `condominios`, `gCobranca`, `gDetCobranca`, `unidades`. Falta a tabela campo a campo e os testes |
-| REQ-3 | Anexo VIII: 110019000 / 020201 / 200046 | **NÃO IMPLEMENTAR (fonte diz que não há regra)** | Anexo VIII v1.02.00, Anexo B (NBS 110019000) e Anexo C (020201) obtidos. A **página oficial** do Anexo VIII avisa: "apenas um trabalho inicial, ainda em desenvolvimento" e "**NÃO HÁ REGRAS DE NEGÓCIO BASEADAS NESTE ANEXO** no Piloto RTC nem em Produção". Codificar roteamento a partir dele contrariaria a fonte |
-| REQ-4 | Titularidade, certificado de terceiro, procuração RFB 00233 | **BLOCKED** | documentação técnica oficial do serviço não localizada. Achado secundário (não oficial) indica **indisponibilidade** de procuração eletrônica para as APIs da NFS-e — tratado como pista, não como prova |
+| REQ-2 | `condominios` / `imovel.unidades` / 99.05.01 | **BLOCKED** (regra) / **PARTIAL** (estrutura) | o XSD de 24/11/2026 declara os grupos, mas o **comunicado oficial de 27/11/2026** coloca **Operações Condominiais (NT-009 item 2.15) na Release 3, em desenvolvimento** (Produção Restrita prevista 07/12/2026). Sem leiaute/regras publicados, implementar seria inventar cardinalidade |
+| REQ-3 | Anexo VIII: 110019000 / 020201 / 200046 | **BLOCKED** (regra executável) | Anexo VIII v1.02.00, Anexo B (NBS 110019000) e Anexo C (020201) obtidos. A **página oficial** avisa: "apenas um trabalho inicial, ainda em desenvolvimento" e "**NÃO HÁ REGRAS DE NEGÓCIO BASEADAS NESTE ANEXO** no Piloto RTC nem em Produção". Roteamento automático a partir dele fica bloqueado por decisão fundamentada |
+| REQ-4 | Titularidade, certificado de terceiro, procuração RFB | **PARTIAL** (fluxo) / **BLOCKED** (API) | **fluxo confirmado** no FAQ v1.5: procuração eletrônica é concedida pelo cliente no Portal de Serviços da RFB para os serviços da NFS-e, o **emitente segue sendo o outorgante** e a plataforma valida o vínculo ao alternar perfil; a funcionalidade está em produção desde 31/10/2026. O grupo de XML para notas emitidas por representante só vem na Release 3. **Sem API documentada** de consulta de vigência/revogação. O FAQ **não cita o código 00233** — não confirmado por fonte consultada |
 | REQ-5 | Contrato multitenant (tenant ≠ emitente ≠ certificado ≠ operador) | **PARTIAL** | campos existem e são usados; falta `procurador` e vínculo certificado↔estabelecimento |
 
 ## Detalhe por requisito
@@ -36,7 +36,7 @@ um XSD que não é o oficial e não conhece os elementos da NT-009. Prova de div
 
 **Falta exatamente:** URL oficial do pacote NT-009 de 2026-11-24 (ou comunicado que o identifique), com
 os arquivos e o hash. Sem isso não se escreve schema, não se deriva `indDest` e não se prova
-não-regressão em `tp_amb=1`.
+não-regressão em `tp_amb=2` (Produção Restrita). **`tp_amb=1` é produção e não recebe teste algum.**
 
 ### REQ-2 — `condominios`, `imovel.unidades`, 99.05.01
 
@@ -155,3 +155,63 @@ Nenhum schema foi adotado, nenhum campo de condomínio foi implementado, nenhuma
 escrita. A regra do projeto (prompt §9) e o Adendo 3 exigem, antes de codificar: preservar o pacote,
 validar os **dois leiautes**, documentar a regra e provar não-regressão. Isso é a próxima fatia, e ela
 começa pela adoção do XSD de 24/11/2026 com manifesto próprio.
+
+---
+
+## Revisão de continuidade — 27/11/2026 (3ª rodada)
+
+Estado conferido na branch, não na narrativa: `work/auditoria-e-fase-a`, HEAD `4e7366d`, `main` em
+`55351cb`, **47 commits** à frente, working tree limpo, PR #1 `OPEN | MERGEABLE | CLEAN`, CI `success`.
+
+### Cronograma oficial (comunicado de 25/11/2026, atualizado 27/11/2026)
+
+| Release | Produção Restrita | Produção | Conteúdo |
+|---|---|---|---|
+| Release 1 | 20/10/2026 (implantado) | 07/12/2026 | NT-009 itens 2.16, 2.6, 2.7, 2.3 (`vAjusteBC`) |
+| Release 2 | **24/11/2026** (implantado) | 07/12/2026 | NT-009 itens **2.9 a 2.14**; novo IndOp v1.03.00; **procuração e alternância de perfis** |
+| Release 3 | 07/12/2026 | 07/12/2026 | **NT-009 item 2.15 Operações Condominiais**; Emissor Web 99.02–99.05; DANFSe Especial; nova série da DPS; **grupo de notas emitidas por terceiros representantes** |
+| Release 4 | 24/12/2026 | 24/12/2026 | NT-009 item 2.4 Simples Nacional |
+
+Isso **data** o pacote de 24/11/2026: ele é o **Release 2**, não o leiaute de condomínios. Os grupos
+`condominios`/`gCobranca`/`unidades` existem no XSD, mas as **regras de negócio do item 2.15 só entram na
+Release 3** — implementar condomínios hoje seria antecipar leiaute sem regra publicada.
+
+### Procuração — o que a fonte oficial confirma e o que não confirma
+
+**Confirmado** (FAQ v1.5, Tema 28): a procuração eletrônica é concedida por CPF/CNPJ no **Portal de
+Serviços da Receita Federal**, para os serviços da NFS-e; a plataforma valida o vínculo na **alternância
+de perfil**; o **emitente continua sendo o outorgante**; o procurador pode usar e-CNPJ/e-CPF ou gov.br
+(Prata/Ouro). A funcionalidade está **em produção desde 31/10/2026** e foi estendida à Produção Restrita
+no Release 2.
+
+**Não confirmado**: o FAQ **não cita o código de serviço `00233`**, e **não documenta API** para consultar
+vigência, revogação ou lista de procuradores. Portanto:
+
+- a expressão "serviço 00233" fica registrada como **não confirmada** na fonte consultada — não será usada
+  como contrato;
+- **consulta de vigência/revogação por API = `BLOCKED`** (capacidade citada no adendo, sem documentação
+  oficial de endpoint);
+- o grupo de XML para nota emitida por representante **ainda não existe** no leiaute vigente (Release 3).
+
+### Correção obrigatória aplicada
+
+O texto deste documento dizia "não se prova não-regressão em `tp_amb=1`". **Corrigido**: `tp_amb=1` é
+produção e não recebe teste; a validação de não-regressão usa `tp_amb=2` com endpoint de Produção
+Restrita.
+
+### Fontes novas desta rodada (hash no manifesto)
+
+| Fonte | Arquivo | Bytes | SHA-256 (16) |
+|---|---|---|---|
+| Comunicado Release 2 (25/11/2026, atualizado 27/11) | `comunicado-release-2-20261125.html` | 99.734 | `6a317b2bd2116833` |
+| FAQ NFS-e v1.5 (23/11/2026) | `faq-nfse-v1.5-20261123.html` | 359.323 | `b35b053ba11dcde9` |
+
+Manifesto passa a **15 fontes**, todas com hash conferido, e a entrada do Adendo 3 foi corrigida: estava
+com caminho absoluto do disco do usuário (`C:/Users/lmpra/...`) e **sem** hash — dois defeitos para um
+manifesto versionado.
+
+### Distinção mantida
+
+"Fonte encontrada" **não** significa autorização de produção nem homologação do sistema. O que existe: uma
+NFS-e autorizada em Produção Restrita (25/11/2026, §15) e consultas reais de NF-e/CT-e. Produção fiscal:
+zero.

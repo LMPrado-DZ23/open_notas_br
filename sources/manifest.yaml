@@ -100,7 +100,9 @@ fontes:
     requisito: [REQ-1, REQ-2, REQ-3, REQ-4]
     orgao: externo
     titulo: "Adendo 3 — Evidências oficiais (documento recebido do solicitante)"
-    arquivo: "C:/Users/lmpra/Downloads/adendo-3-deepseek-evidencias-oficiais-regras-fiscais-2026-11-27.md"
+    arquivo: sources/adendos/adendo-3-evidencias-oficiais-2026-11-27.md
+    bytes: 6517
+    sha256: 4f03ccd0b7b7ebb2a2b165e66c4633cfaca92d05ff4e384059888420d1e24b89
     data_acesso: "2026-11-27"
     status_coleta: coletado
     limitacao: >
@@ -201,6 +203,30 @@ fontes:
     data_acesso: "2026-11-27"
     status_coleta: coletado
     limitacao: "contém o código 020201"
+
+  - id: F-COMUNICADO-RELEASE-2
+    requisito: [REQ-1, REQ-2, REQ-4]
+    orgao: cgnfs-e
+    titulo: "CGNFS-e informa: disponibilizado no ambiente de testes o Release 2 das evoluções da Nota Técnica 009 (publicado 25/11/2026, atualizado 27/11/2026)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/noticias/cgnfs-e-informa-disponibilizado-no-ambiente-de-testes-o-release-2-das-evolucoes-da-nota-tecnica-009"
+    arquivo: sources/oficiais/comunicado-release-2-20261125.html
+    bytes: 99734
+    sha256: 6a317b2bd211683378f29f8cd47e536286da151b4dee8e32938417d62475e9b2
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "cronograma oficial: Release 2 (NT-009 v1.01 itens 2.9-2.14) em Produção Restrita em 24/11/2026 e produção em 07/12/2026; Release 3 (07/12/2026) traz o item 2.15 Operações Condominiais, ainda em desenvolvimento; procuração/alternância de perfis já em produção desde 31/10/2026"
+
+  - id: F-FAQ-NFSE-V1.5
+    requisito: [REQ-4]
+    orgao: cgnfs-e
+    titulo: "Perguntas Frequentes da NFS-e — versão 1.5 (23/11/2026)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/perguntas-frequentes/teste-do-perguntas"
+    arquivo: sources/oficiais/faq-nfse-v1.5-20261123.html
+    bytes: 359323
+    sha256: b35b053ba11dcde935ff6a46f16646692326859e3ee9b52448e9e2072f90576d
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "Tema 28: procuração eletrônica é concedida no Portal de Serviços da RFB para os serviços da NFS-e e o vínculo é validado na alternância de perfil; emitente segue sendo o outorgante. NÃO cita o código de serviço 00233 e NÃO documenta API de consulta de vigência/revogação"
 
 nao_encontrado:
   - requisito: REQ-1
