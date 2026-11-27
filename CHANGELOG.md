@@ -5,6 +5,20 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Documentado — dois modos de operação, com as lacunas do modo hospedado
+
+- `docs/MODOS-DE-OPERACAO.md`: auto-hospedado × serviço hospedado. Verificado antes de escrever:
+  licença **MIT**, **nenhuma** chamada obrigatória ao servidor do mantenedor, **nenhuma** telemetria,
+  sem paywall nem limite de emissão no código. O `ConectorDz23` é webhook de **entrada** opcional
+  (autenticado por `tenant_atual`); desativá-lo não afeta emissão.
+- `docs/ONBOARDING-HOSPEDADO.md`: os 10 passos de onboarding mapeados às rotas reais, com **lacuna**
+  explícita onde não há rota.
+- **Lacunas medidas do modo hospedado:** sem escopos por chave, sem expiração, sem revogação sem
+  substituição, sem auditoria de uso do certificado, sem usuário/papel por tenant, sem
+  exportação/exclusão por API, e exclusão de certificado sem sobrescrita do ciphertext.
+- **Não confirmado (registrado, não inventado):** cadastro da empresa desenvolvedora, responsável
+  técnico, CSRT ou homologação por UF/documento — próximo passo escrito.
+
 ### Corrigido — 422 era o único erro fora do padrão RFC 7807
 
 - Medido em container: 401, 404 e 405 saíam `application/problem+json`; o **422 saía

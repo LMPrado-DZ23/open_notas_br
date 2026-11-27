@@ -3665,3 +3665,54 @@ recusa — sem ele o handler estouraria 500 dentro do próprio tratamento de err
 | `pytest tests/test_erros_rfc7807.py` | **5 passed** |
 | gate completo | **9/9** |
 | `mypy` | zero erros |
+
+---
+
+## 70. Dois modos de operação documentados, com as lacunas do modo hospedado
+
+**Data:** 2026-11-27. **Fase:** produto/documentação. Atende ao adendo de continuidade (§2–§6).
+
+### O que foi verificado antes de escrever
+
+| Verificação | Resultado |
+|---|---|
+| Licença | **MIT** (`LICENSE`) |
+| Chamada obrigatória a servidor do mantenedor | **nenhuma** |
+| Telemetria/analytics | **nenhuma** (`grep` em `app/`, `src/`, `scripts/` = zero) |
+| Paywall, limite de emissão, licença remota | **não existem no código** |
+| `ConectorDz23` | é **webhook de entrada** opcional, autenticado por `tenant_atual`; desativá-lo não afeta emissão |
+
+### Entregues
+
+- **`docs/MODOS-DE-OPERACAO.md`**: modo auto-hospedado × serviço hospedado; o que muda (responsabilidade
+  operacional) e o que **não** muda (o código é o mesmo, sem build "enterprise"); custos transparentes;
+  fronteira desenvolvedor × operador × contribuinte; e a lista do que **não** está pronto para serviço
+  comercial.
+- **`docs/ONBOARDING-HOSPEDADO.md`**: os 10 passos pedidos, cada um mapeado à rota real, com
+  **lacuna** marcada onde a rota não existe.
+
+### Lacunas do modo hospedado, medidas no código (não estimadas)
+
+| Lacuna | Consequência para um serviço comercial |
+|---|---|
+| Sem **escopos** por chave | chave é tudo-ou-nada no tenant; não há como dar acesso só de leitura ao ERP |
+| Sem **expiração** de chave | credencial vive para sempre |
+| Sem **revogação sem substituição** | único caminho é rotacionar (emite outra) |
+| Sem **auditoria de uso do certificado** | não é possível responder "quem usou qual A1, quando, para quê" |
+| Sem **usuário/papel** por tenant | um tenant = uma chave; várias pessoas exigem compartilhar segredo |
+| Sem **exportação/exclusão** por tenant na API | portabilidade e LGPD dependem de acesso ao banco |
+| Certificado: remoção apaga a linha, **sem sobrescrever** o ciphertext | "exclusão segura" não está comprovada |
+
+Essas lacunas são a diferença entre "o software permite operar" e "o serviço hospedado está pronto".
+O documento diz isso explicitamente — não afirma prontidão que a evidência não sustenta.
+
+### Não confirmado (registrado, não inventado)
+
+Exigência de cadastro da empresa desenvolvedora, identificação de responsável técnico, CSRT ou
+homologação por UF/documento. **Não há fonte oficial verificada neste repositório.** O próximo passo
+está escrito: consultar o manual do autorizador por documento/UF e registrar versão, data e hash, como
+já se faz com XSD em `data/xsd_manifest.json`.
+
+### Verificação
+
+Documentação apenas; nenhum código alterado nesta seção. Gate da rodada: 9/9.
