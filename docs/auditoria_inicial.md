@@ -4156,3 +4156,63 @@ e a persistência: emissão grava `codigo_status="100"` e `protocolo is None`.
   chamada externa), então a classe de evidência é **"registro+banco"**, não "reproduzido hoje";
 - `dhProc`/`nDFSe` continuam só no XML: poderiam virar colunas, mas não são necessários para responder
   "autorizada?", que é o que `cStat` resolve.
+
+---
+
+## 79. CI vermelho por infraestrutura: `lxml` compilado sem headers
+
+**Data:** 2026-11-27. **Fase:** F (CI/CD).
+
+### O que aconteceu
+
+O commit de §78 subiu e a CI falhou em **"Instalar dependências"**, nos dois jobs:
+
+```
+Error: Please make sure the libxml2 and libxslt development packages are installed.
+ERROR: Failed to build 'lxml' when getting requirements to build wheel
+```
+
+Não era regressão de código: o commit anterior passou no **mesmo** workflow, e o instalador é idêntico
+(`pip install -e ".[app,dev]"`). É o caso clássico de runner cujo `pip` resolve uma versão de `lxml` sem
+wheel correspondente e cai para o build do fonte — e o runner não tem os headers.
+
+Reexecutei os jobs falhos (`gh run rerun --failed`) para distinguir transiente de persistente:
+**falhou de novo**. Persistente.
+
+### Correção aplicada
+
+Passo novo nos **dois** jobs, antes do `pip`:
+
+```yaml
+- name: Bibliotecas de sistema para compilar lxml
+  run: |
+    sudo apt-get update
+    sudo apt-get install -y --no-install-recommends libxml2-dev libxslt1-dev
+```
+
+Resolve o build em vez de mascarar o erro. **Não** adiciona dependência de runtime, **não** altera o
+ambiente do usuário e não mexe em versão de biblioteca — é só o runner de CI.
+
+### Erro meu no caminho (registrado)
+
+A primeira edição juntou `run: |` na linha do `name:` e **quebrou o YAML**. O `yaml.safe_load` recusou com
+`mapping values are not allowed here` na linha 66. Corrigi as duas ocorrências e validei antes de
+commitar: `jobs: ['testes','contrato']`, 11 passos e 5 passos.
+
+Se eu tivesse commitado sem validar, o push teria criado um workflow inválido — pior que a falha
+original, porque o GitHub não roda workflow inválido e o vermelho viria sem log.
+
+### Verificação
+
+| Passo | Resultado |
+|---|---|
+| `yaml.safe_load` no workflow | estrutura válida, 2 jobs |
+| reexecução antes da correção | `completed failure` (persistente) |
+| CI após a correção | **`completed success`** |
+
+### O que isto **não** prova
+
+Que o build de `lxml` do fonte seja desejável. Se o runner voltar a não ter headers, o passo de apt
+resolve; o certo a médio prazo seria fixar uma versão de `lxml` com wheel garantida para toda matriz
+suportada — mas pin sem necessidade declarada é dívida, e o projeto não declara matriz de runners.
+O gatilho fica registrado aqui em vez de virar pin especulativo.

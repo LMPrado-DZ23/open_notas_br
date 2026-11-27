@@ -638,3 +638,13 @@ multi-prefeitura. Medido: **1156 testes**, 55 rotas, 15 tabelas, 7 migrations.
   produção**; em homologação há autorização real documentada.
 - Nenhum arquivo passou a chamar Produção Restrita de produção: o README agora diz explicitamente que
   são níveis diferentes.
+
+### Corrigido — CI vermelho por infraestrutura (`lxml` sem headers)
+
+- A CI falhou em "Instalar dependências" nos dois jobs: `Please make sure the libxml2 and libxslt
+  development packages are installed`. Não era regressão de código — o commit anterior passou no mesmo
+  workflow. Reexecutei: persistente.
+- Passo `apt-get install libxml2-dev libxslt1-dev` adicionado aos dois jobs, antes do `pip`. Resolve o
+  build em vez de mascarar o erro; não adiciona dependência de runtime.
+- **Erro meu registrado:** a primeira edição juntou `run: |` na linha do `name:` e quebrou o YAML. O
+  `yaml.safe_load` pegou antes do commit. Workflow inválido não roda e produziria vermelho sem log.
