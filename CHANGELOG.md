@@ -5,6 +5,20 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Documentado (correção de precisão) — o motor ABRASF não tem transporte real
+
+- §59 e o painel diziam "contrato, roteamento e motor ABRASF existem e são testados", o que sugere
+  que faltava só ligar. O código mostra outra coisa: `TransporteProvedor` é apenas um **`Protocol`**,
+  há **zero implementações em `app/`**, e os testes usam `TransporteFalso`.
+- Ou seja: **não existe cliente SOAP municipal**, e nenhum provedor tem URL/leiaute com fonte oficial
+  no repositório — a condição que o próprio `criar_driver` impõe. Ligar a fábrica hoje não habilitaria
+  município nenhum.
+- Corrigido em `docs/MATRIZ-COBERTURA.md` (linha nova), no gerador do painel (estado vira
+  🔒 **bloqueado**) e no `docs/ROADMAP.md` (pendência passa a ser "implementar transporte real e
+  evidência oficial por provedor", não "ligar").
+- Nenhuma mudança de código: o `Protocol` é a decisão correta; o erro era de descrição. Inclusive esta
+  seção começou atribuindo a frase à matriz, onde ela não estava — corrigido.
+
 ### Verificado — demo ponta a ponta em container, com 20/20 verificações
 
 - A demo estava registrada como "não reexecutada" desde a Fase 7. Executada agora em container, com

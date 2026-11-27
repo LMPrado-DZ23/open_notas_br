@@ -359,7 +359,7 @@ Ordem sugerida; nenhuma pode ser "concluída" sem ambiente de homologação para
 
 | # | Pendência | O que falta | Por que não foi feito já |
 |---|---|---|---|
-| 1 | Ligar `nfse/drivers_factory` ao `nfse/servico.py` | escolher driver por município; hoje sempre usa o padrão nacional | muda comportamento: município com stub passaria a **recusar** onde hoje emite pelo nacional — precisa homologação |
+| 1 | **Implementar transporte SOAP municipal real** e depois ligar `nfse/drivers_factory` ao `nfse/servico.py` | hoje `TransporteProvedor` é só `Protocol`: os testes usam `TransporteFalso`. Sem transporte e sem URL/leiaute oficial por provedor, ligar não habilitaria município nenhum (§66) | falta evidência oficial (URL, manual, leiaute) por provedor — inventar viola R8 |
 | 2 | Rota de consulta de situação do CT-e | endpoint sobre `cte/consulta_situacao.py` | a chamada real de §31 foi por script; criar rota exige contrato e teste de erro |
 | 3 | Rotas de transmissão de CT-e/MDF-e | schema de entrada por documento | criaria superfície que emite documento fiscal sem homologação possível |
 | 4 | Usar `worker/tarefas.py` (retry→DLQ) nos jobs | trocar tratamento manual dos jobs pelo helper | muda retentativa em produção; o webhook já foi ligado à DLQ em §54 |

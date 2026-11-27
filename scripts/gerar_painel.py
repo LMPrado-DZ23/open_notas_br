@@ -101,7 +101,7 @@ marcado na coluna "o que falta" — as células antigas diziam "AUSENTE" para co
 
 | # | Lacuna | Estado | O que falta |
 |---|---|---|---|
-| 1 | Drivers NFS-e multi-prefeitura | 🌗 PARCIAL | contrato, roteamento e motor ABRASF existem e são testados, mas **não estão ligados** ao `nfse/servico.py` (§59) |
+| 1 | Drivers NFS-e multi-prefeitura | 🔒 **bloqueado** | contrato, roteamento e fluxo ABRASF testados com transporte **falso**; **não existe cliente SOAP municipal** e nenhum provedor tem URL/leiaute com fonte oficial (§66). Ligar não habilitaria município nenhum |
 | 2 | Modelos município/credencial/webservice + rotas | ✅ | conectividade no cadastro (sem endpoint real por município) |
 | 3 | Transporte SOAP DF-e | 🌗 PARCIAL | transporte testado e status **real** medido (`cStat 107`); **autorização sem rota e sem credenciamento** |
 | 4 | `CalculoAudit` | ✅ | — |

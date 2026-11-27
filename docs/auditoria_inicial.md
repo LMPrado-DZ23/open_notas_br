@@ -3498,3 +3498,54 @@ medidos nesta data, não herdados.
 **Pronto no código para a próxima validação.** Não homologado, não em produção. O que separa este
 estado de produção não é código pendente do meu lado — é credenciamento, certificado real com
 aceitação do autorizador e ambiente de homologação liberado.
+
+---
+
+## 66. Correção de precisão: o motor ABRASF não tem transporte real
+
+**Data:** 2026-11-27. **Fase:** B (documentação de precisão).
+
+### O que eu vinha escrevendo
+
+A afirmação estava em §59 e no texto do gerador do painel (não em `MATRIZ-COBERTURA.md`, que não fala
+de ABRASF — corrigir aqui é parte da precisão que este trabalho exige). Dizia: "contrato, roteamento e
+motor ABRASF existem e são **testados**". A frase está certa e sugere algo falso.
+### O que o código mostra
+
+`app/nfse/drivers_abrasf.py` define `TransporteProvedor` como **`Protocol`** — o contrato do
+transporte SOAP municipal. Procurando implementações em `app/` e `tests/`:
+
+- **nenhuma implementação em `app/`**;
+- nos testes, existe `TransporteFalso` (`tests/test_nfse_drivers_abrasf.py:13`).
+
+Ou seja: o fluxo ABRASF (montagem do RPS, lote, assinatura, envelope) é testado **com transporte
+falso**. Não existe cliente SOAP para webservice municipal, e nenhum provedor tem URL e leiaute com
+fonte oficial verificável no repositório — que é justamente a condição que o próprio repositório
+impõe (`criar_driver` recusa município sem `fonte_url`).
+
+### Consequência para o veredito
+
+Ligar a fábrica de drivers ao `servico.py` hoje **não habilitaria nenhum município**: sem transporte
+real, a primeira chamada levantaria antes de sair para a rede. A lacuna não é de integração, é de
+**implementação de transporte + evidência oficial por provedor**.
+
+### Correção aplicada
+
+| Onde | Antes | Agora |
+|---|---|---|
+| `docs/MATRIZ-COBERTURA.md` | "motor ABRASF existe e é testado" | "fluxo ABRASF testado com **transporte falso**; **sem transporte municipal real**" |
+| `docs/PAINEL.md` (gerador) | "contrato, roteamento e motor existem e são testados, mas não estão ligados" | acrescenta "e **não há transporte municipal real**: ligar não habilitaria município nenhum" |
+| `docs/ROADMAP.md` | pendência 1 = "ligar a fábrica" | pendência 1 = "implementar transporte municipal + fonte oficial por provedor" e, só então, ligar |
+
+### O que continua verdadeiro
+
+- O padrão nacional (DPS → SEFIN) é o único fluxo NFS-e que emite de verdade, e está testado e
+  medido em container.
+- As tabelas `municipios_nfse`, `credenciais_municipais` e `webservices_sefaz` existem, com rotas de
+  cadastro e criptografia por tenant + município — o **cadastro** funciona; o **motor municipal** não.
+- Nenhum município é rotulado como atendido por aparecer no seed.
+
+### Verificação
+
+Nenhuma mudança de código: só documentação, porque o código já estava correto (o `Protocol` é a
+decisão certa). O erro era meu, na descrição.

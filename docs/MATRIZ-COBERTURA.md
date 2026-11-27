@@ -31,6 +31,7 @@ aceitação do autorizador — são níveis diferentes e o projeto os reporta se
 | Cancelamento (evento) | ✅ | teste | local |
 | Demais eventos | ✅ | teste (`eventos_tipos` com restrições do leiaute) | local |
 | PDF (DANFSe) | ✅ | teste (`danfse/`) | local |
+| Roteamento por provedor municipal (ABRASF) | 🔒 **sem transporte real** | contrato, roteamento, fluxo RPS/lote e assinatura testados com `TransporteFalso` (§66); **não existe cliente SOAP municipal** e nenhum provedor tem URL/leiaute com fonte oficial no repositório | — |
 | Contingência | ❌ | não existe para NFS-e neste projeto | — |
 
 **Sobre "autorizado" no banco local:** medido em 2026-11-26 — `fiscal_documents`: 2 registros,
