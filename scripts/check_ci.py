@@ -30,6 +30,10 @@ class Checagem:
 CHECAGENS: tuple[Checagem, ...] = (
     Checagem("lint", [sys.executable, "-m", "ruff", "check", "."]),
     Checagem("formatacao", [sys.executable, "-m", "ruff", "format", "--check", "."]),
+    # O mypy existia no `pyproject.toml` desde o início e **nunca** rodava em gate nem em CI:
+    # 93 erros acumularam, três deles defeitos de execução (um mandava emissão real para a
+    # SEFIN de homologação). Zero erros hoje; entrar no gate é o que impede o retorno.
+    Checagem("tipagem", [sys.executable, "-m", "mypy", "app", "src"]),
     Checagem(
         "contrato openapi",
         [sys.executable, "-m", "pytest", "tests/test_openapi_sincronizado.py", "-q"],

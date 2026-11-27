@@ -18,6 +18,7 @@ respondendo; abrir o circuito por isso pararia de emitir por erro do nosso lado.
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
 
@@ -51,13 +52,11 @@ class CircuitBreaker:
     _estado: Estado = field(default=Estado.FECHADO, init=False)
     _falhas: int = field(default=0, init=False)
     _aberto_em: float = field(default=0.0, init=False)
-    _relogio: object = field(default=time.monotonic, init=False, repr=False)
+    _relogio: Callable[[], float] = field(default=time.monotonic, init=False, repr=False)
 
     @property
     def estado(self) -> Estado:
-        if (
-            self._estado is Estado.ABERTO and self._relogio() - self._aberto_em >= self.espera_s  # type: ignore[operator]
-        ):
+        if self._estado is Estado.ABERTO and self._relogio() - self._aberto_em >= self.espera_s:
             self._estado = Estado.MEIO_ABERTO
         return self._estado
 
@@ -68,7 +67,7 @@ class CircuitBreaker:
     def retry_after_s(self) -> float:
         if self.estado is not Estado.ABERTO:
             return 0.0
-        decorrido = self._relogio() - self._aberto_em  # type: ignore[operator]
+        decorrido = self._relogio() - self._aberto_em
         return max(0.0, self.espera_s - decorrido)
 
     def registrar_sucesso(self) -> None:
@@ -80,7 +79,7 @@ class CircuitBreaker:
         self._falhas += 1
         if self._estado is Estado.MEIO_ABERTO or self._falhas >= self.limite_falhas:
             self._estado = Estado.ABERTO
-            self._aberto_em = self._relogio()  # type: ignore[assignment]
+            self._aberto_em = self._relogio()
 
     def resetar(self) -> None:
         """Volta ao início. Usado em teste e em comando admin de recuperação."""

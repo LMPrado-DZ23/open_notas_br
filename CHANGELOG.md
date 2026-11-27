@@ -5,6 +5,21 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — `mypy` no gate e no CI; 93 → 0 erros
+
+- `mypy` estava configurado no `pyproject.toml` desde o início e **nunca** rodava: 93 erros
+  acumularam em 43 arquivos. Agora são **0 em 173**, e a checagem entrou no gate local
+  (`scripts/check_ci.py`, 7/7) e no CI (`Tipagem (mypy)`).
+- Dois **defeitos de execução** apareceram na triagem: `enviar_evento` (CT-e) chamava
+  `montar_evento` sem `cnpj` → `TypeError` em todo envio de evento; e o `Protocol` de
+  `registrar_evento` não declarava `operacao`, que as duas implementações já aceitavam.
+- `reset_ephemeral_key()` removido: prometia descartar uma chave efêmera que não existe (a chave
+  de desenvolvimento é constante derivada, de propósito).
+- Guarda nova: certificado A1 sem CNPJ no titular falha **antes** da chamada, em cancelamento e
+  em evento, em vez de seguir com autor indefinido.
+- `app/nfse/documento_autorizado.py`: a chave de acesso de documento autorizado passou a carregar
+  o invariante no tipo, em vez de só em `if` de tempo de execução.
+
 ### Corrigido — emissão por lote e por integração podia ir para a SEFIN de homologação
 
 - `app/api/v1/lotes.py`, `app/api/v1/integracoes.py` e `app/worker/main.py` montavam

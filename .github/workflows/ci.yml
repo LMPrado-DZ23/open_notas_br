@@ -65,6 +65,12 @@ jobs:
           ruff check .
           ruff format --check .
 
+      # Tipagem estava configurada desde o inicio e nunca rodava: 93 erros acumularam, tres
+      # deles defeitos de execucao (um mandava emissao real para a SEFIN de homologacao).
+      # Hoje sao zero; este passo existe para nao voltar.
+      - name: Tipagem (mypy)
+        run: mypy app src
+
       - name: Testes com cobertura
         run: pytest --cov=app --cov=notasbr --cov-report=term-missing
 

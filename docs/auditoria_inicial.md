@@ -2265,3 +2265,87 @@ em nenhum ambiente nesta correção.
 
 atualizado por dsh em 2026-11-26
 
+
+---
+
+## 45. Tipagem: 93 → 0 erros, com dois defeitos de execução no caminho
+
+**Data:** 2026-11-26. **Fase:** A (fundação) e F (prontidão).
+
+### O problema de processo
+
+`mypy` estava configurado no `pyproject.toml` desde o começo e **nunca** rodava: nem no gate local
+(`scripts/check_ci.py`), nem no CI. Resultado medido antes desta seção: **93 erros em 43 arquivos**.
+Verificação declarada e não executada é pior que ausência de verificação — dá a impressão de
+cobertura de tipos que não existe.
+
+### Triagem (não foi limpeza cosmética)
+
+| Grupo | Qtd | Natureza |
+|---|---|---|
+| `library stubs not installed` (`lxml`, `reportlab`) | 53 | ruído de terceiro |
+| `arg-type` / `assignment` / `call-arg` | 22 | mistura de defeito real e anotação |
+| `unused-ignore` | 6 | `# type: ignore` com código errado ou obsoleto |
+| outros (`index`, `dict-item`, `operator`, `attr-defined`) | 12 | anotação |
+
+**Dois defeitos de execução** apareceram na triagem — nenhum deles seria encontrado por teste,
+porque os caminhos não tinham teste:
+
+1. **`app/cte/evento.py::enviar_evento` chamava `montar_evento` sem `cnpj`**, parâmetro
+   keyword-only obrigatório → `TypeError` em qualquer envio de evento de CT-e. Havia teste de
+   *montagem*, nenhum de *envio*. Corrigido com `cnpj` obrigatório e teste novo que confere o XML
+   realmente enviado (`TestEnvio`).
+
+2. **`app/nfse/adapter.py`: o `Protocol` declarava `registrar_evento(chave, xml)`**, mas as duas
+   implementações (cliente real e dublê) aceitam `operacao`. O comentário do dublê afirmava que o
+   campo existia no `Protocol` — era falso. Protocol alinhado à implementação real.
+
+Além disso, `app/core/config.py::reset_ephemeral_key()` atribuía um global que ninguém lia e
+prometia "descartar a chave efêmera" — **não existe chave efêmera**: a chave de desenvolvimento é
+constante derivada, de propósito (API e worker são processos separados). O método foi removido e o
+teste que o chamava foi renomeado para dizer o que de fato prova.
+
+### O que mudou para chegar a zero
+
+- `pyproject.toml`: exceção de stubs para `lxml` e `reportlab` (não é dependência nova — regra 11).
+- `app/core/circuit.py`: `_relogio` era `object`; agora `Callable[[], float]` — três `type: ignore`
+  errados saíram junto.
+- `src/notasbr/regras/tributos.py`: `_grupo_icms` devolvia `object | None`; agora `ET.Element | None`.
+- `app/core/config.py`, `app/nfse/servico.py`, `app/nfse/errors.py`: variáveis com nome próprio em
+  vez de reúso de variável já estreitada.
+- `app/catalogo/__init__.py`: `vistos` é chave de **4** elementos (uf, modelo, ambiente, servico).
+- `app/api/v1/representacoes.py`, `app/api/v1/cnpj.py`: anotação da interface comum.
+- `app/nfse/signer.py`, `app/nfe/assinatura.py`: `type: ignore[dict-item]` documentado para o
+  namespace default (chave `None`), que a tipagem do signxml não modela.
+- `src/notasbr/regras/assinatura.py`: `x509_cert` passa PEM `str` em vez de `bytes`.
+- `app/nfse/eventos_tipos.py`: `RESTRICOES` virou `dict[str, RestricaoCampo]` (TypedDict), no lugar
+  de `dict[str, object]` que fazia `int(object)`/`join(object)`.
+- `app/nfse/documento_autorizado.py` (**novo**): `DocumentoAutorizado` carrega `documento` + `chave`
+  já estreitada. Antes, `cancelamento` e `eventos` garantiam `chave` em tempo de execução e
+  seguiam usando `documento.chave` tipado como `str | None`; o invariante existia só na cabeça de
+  quem leu. Agora está no tipo.
+- Guarda nova: certificado sem CNPJ no titular passa a falhar **antes** de qualquer chamada, em
+  cancelamento e em evento (`"o certificado A1 ativo não identifica CNPJ no titular"`).
+
+### Resultado
+
+| Antes | Depois |
+|---|---|
+| 93 erros / 43 arquivos | **0 erros / 173 arquivos** |
+
+Comando: `python -m mypy app src` → `Success: no issues found in 173 source files`.
+
+### Fechamento do gate
+
+`mypy` entrou em dois lugares, na mesma mudança:
+
+- `scripts/check_ci.py` (gate local, hook de pré-commit): checagem `tipagem`;
+- `.github/workflows/ci.yml`, job `testes`: passo `Tipagem (mypy)`.
+
+Sem isso, a redução de 93 para 0 seria um evento único que voltaria a degradar — que foi
+exatamente o que aconteceu com `ruff format --check` no passado (§8).
+
+### Limite honesto
+
+`mypy` sem `--strict`; `disallow_untyped_defs` não está ligado. Zero erros significa "sem erro nas
+regras atuais", não "código totalmente tipado".

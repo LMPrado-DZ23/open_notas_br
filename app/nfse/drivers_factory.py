@@ -167,5 +167,5 @@ def criar_driver(
         assinador = assinador_de(certificado, alvo=alvo_assinatura)
 
     driver = AbrasfBaseDriver(configuracao=configuracao, transporte=transporte, assinador=assinador)
-    driver.nome = municipio.provedor  # type: ignore[attr-defined]
+    driver.nome = municipio.provedor
     return driver

@@ -58,7 +58,7 @@ async def atualizar_hash_de_chave(
 ) -> Tenant:
     tenant.api_key_prefix = prefixo
     tenant.api_key_hash = chave_hash
-    tenant.api_key_rotacionada_em = func.now()  # type: ignore[assignment]
+    tenant.api_key_rotacionada_em = func.now()
     await sessao.flush()
     return tenant
 

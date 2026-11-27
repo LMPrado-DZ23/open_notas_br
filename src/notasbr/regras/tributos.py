@@ -8,6 +8,7 @@ verifica **forma** e **coerência interna**, não substitui o contador.
 from __future__ import annotations
 
 import re
+from xml.etree import ElementTree as ET
 
 from ..xml_util import filhos, local
 from .base import Contexto, regra
@@ -131,7 +132,7 @@ def ncm(ctx: Contexto) -> None:
             )
 
 
-def _grupo_icms(ctx: Contexto, item) -> object | None:
+def _grupo_icms(ctx: Contexto, item: ET.Element) -> ET.Element | None:
     """Devolve o grupo concreto de ICMS (ICMS00, ICMSSN102, ...) do item."""
     icms = None
     imposto = None
@@ -167,7 +168,7 @@ def icms_cst(ctx: Contexto) -> None:
         nome = local(getattr(grupo, "tag", ""))
         cst = None
         csosn = None
-        for filho in grupo:  # type: ignore[union-attr]
+        for filho in grupo:
             if local(filho.tag) == "CST":
                 cst = (filho.text or "").strip()
             elif local(filho.tag) == "CSOSN":
@@ -216,8 +217,8 @@ def crt_versus_cst(ctx: Contexto) -> None:
         if grupo is None:
             continue
         nome = local(getattr(grupo, "tag", ""))
-        tem_csosn = any(local(f.tag) == "CSOSN" for f in grupo)  # type: ignore[union-attr]
-        tem_cst = any(local(f.tag) == "CST" for f in grupo)  # type: ignore[union-attr]
+        tem_csosn = any(local(f.tag) == "CSOSN" for f in grupo)
+        tem_cst = any(local(f.tag) == "CST" for f in grupo)
         if usa_csosn and tem_cst and not tem_csosn:
             ctx.aviso(
                 "TRIB-CRT-001",
