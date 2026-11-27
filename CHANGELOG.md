@@ -695,3 +695,18 @@ exige o pacote íntegro e revisão dos testes dependentes.
 
 O mais recente publicado é de **2026-02-09**, e não declara `finNFSe`, `vAjusteBC`, `indDest` nem grupos de
 condomínio. O manual ADN v1.1 (2026-11-03) tem 5 páginas e nenhum dos termos procurados.
+
+### Achado crítico — o XSD do repositório foi adaptado ao código, não é o oficial
+
+- Substituí os 8 XSD do fixture pelos arquivos **oficiais** (`esquemas-xsd-v1.01-20260209.zip`, sha256
+  `e7935cbd9470527c…`) e rodei a suíte: **falhou**.
+- `finNFSe`: o gerador emite campo da **NT 009** e o XSD oficial vigente (2026-02-09) **rejeita** —
+  `This element is not expected. Expected is one of (cMotivoEmisTI, chNFSeRej, cLocEmi)`.
+- `serie = "1"` e `idEvManifRej` também não atendem aos padrões oficiais (`TSSerieDPS`, `TSIdNumEvento`).
+- **Conclusão:** a validação XSD da suíte provava conformidade com um schema **modificado**, não com o
+  oficial. O `ORIGEM.md` já dizia "projeto de terceiro"; agora o efeito está medido.
+- Fixtures revertidos (suíte verde) e a divergência virou **duas guardas `xfail(strict=True)`**: uma falha
+  se o leiaute declarado for NT 009 sem XSD correspondente; a outra valida a DPS contra o **zip oficial
+  versionado** e falha hoje por `finNFSe` — quando as duas passarem a passar, a suíte **quebra** para
+  forçar revisão da decisão.
+- Nada foi "corrigido" por inferência: adotar NT 009 exige o pacote oficial (REQ-1, **BLOCKED**).

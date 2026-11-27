@@ -4360,3 +4360,70 @@ implementá-la por hipótese reintroduziria o defeito que §77 corrigiu.
 
 Com qualquer um em mão: baixar → SHA-256 → manifesto → atualizar matriz → implementar **só** o contrato
 comprovado → testes positivo e negativo → revisão independente.
+
+---
+
+## 82. Prova dura: o XSD do repositório foi adaptado para aceitar o código
+
+**Data:** 2026-11-27. **Fase:** C/F (integridade de schema). Consequência direta do pacote oficial baixado
+no Adendo 3.
+
+### Experimento executado
+
+Substituí os 8 XSD de `tests/fixtures/schemas/nfse-1.01/` pelos arquivos **oficiais** do pacote
+`esquemas-xsd-v1.01-20260209.zip` (sha256 `e7935cbd9470527c…`) e rodei a suíte de schema. Resultado:
+**falhou**, com dois erros independentes.
+
+### Erro 1 — `finNFSe` não existe no leiaute oficial 1.01
+
+```
+Element '{...}finNFSe': This element is not expected.
+Expected is one of ( cMotivoEmisTI, chNFSeRej, cLocEmi )
+```
+
+O gerador emite `finNFSe` (campo da **NT 009**) dentro da DPS. O XSD oficial **vigente** (2026-02-09) é
+anterior à NT 009 e não aceita o elemento.
+
+**Conclusão material:** o fixture do repositório aceitava `finNFSe` porque foi **modificado**. O
+`ORIGEM.md` já declarava origem em projeto de terceiro ("OpenAC.Net.NFSe.Nacional"); a comparação agora
+prova o efeito: **a validação XSD da suíte não provava conformidade com o schema oficial** — provava
+conformidade com um schema ajustado ao código.
+
+### Erro 2 — `serie` e `idEvManifRej` com padrão não atendido
+
+- `serie` = `"1"` rejeitado pelo padrão oficial (`TSSerieDPS`, `tiposSimples_v1.01.xsd`);
+- `idEvManifRej` do catálogo de eventos não atende `[0-9]{59}` (`TSIdNumEvento`).
+
+Ambos são **dados de teste/geração** que o schema permissivo não pegava. Não foram corrigidos nesta
+execução: corrigir exige decidir qual leiaute adotar (ver abaixo), e o fixture oficial não pode ser
+adotado com o gerador no estado atual.
+
+### Decisão: reverter o fixture e transformar a divergência em teste
+
+Os fixtures voltaram aos arquivos anteriores (a suíte fica verde) **e** a divergência passou a ser
+verificada, não narrada:
+
+`tests/test_leiaute_nt009_guard.py` agora tem **duas** guardas `xfail(strict=True)`:
+
+1. `test_xsd_acompanha_o_leiaute_declarado` — falha se o leiaute declarado for NT 009 e o XSD não tiver
+   os elementos;
+2. `test_gerador_e_aceito_pelo_xsd_oficial` — extrai o **zip oficial versionado** (funciona na CI, sem
+   depender de download) e valida a DPS gerada contra ele. Hoje falha por `finNFSe`; **passa a passar no
+   dia em que o gerador e o leiaute estiverem alinhados — e, por ser `strict`, quebra a suíte para forçar
+   a revisão da decisão**.
+
+Nenhum dos dois "relaxa expectativa": os dois quebram quando a situação mudar, que é o oposto.
+
+### O que isso muda no estado do projeto
+
+| Antes | Agora |
+|---|---|
+| "XSD oficial, validação offline" (texto do `ORIGEM.md` e do teste) | fixture de **fonte secundária, adaptado**; divergência medida e testada |
+| leiaute declarado NT 009 sem schema | continua **BLOCKED** (REQ-1), agora com prova de que o oficial rejeita o campo |
+| — | pacote oficial preservado em `sources/oficiais/` com hash no manifesto |
+
+### Bloqueio que permanece, com o pré-requisito exato
+
+Adotar a NT 009 exige o **pacote oficial dela (2026-11-24)**. Sem esse pacote não se decide se o campo
+`finNFSe` está correto, nem se `serie` deve ser zero-padded, nem se o catálogo de eventos precisa de 59
+dígitos. Escrever isso por inferência seria inventar leiaute — o que o Adendo 3 proíbe.
