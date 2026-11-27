@@ -745,3 +745,14 @@ condomínio. O manual ADN v1.1 (2026-11-03) tem 5 páginas e nenhum dos termos p
   definitiva. 2 testes novos + 11 existentes verdes.
 - **Incidente meu:** rodei cobertura em segundo plano durante testes, no mesmo banco, e colhi 401 falso.
   Matei o job e a suíte passou. Terceira vez; anotado: medição e testes de banco são sequenciais.
+
+### Corrigido — webhook retentava recusa permanente
+
+- Qualquer não-2xx entrava no backoff de 5 tentativas: um `404` no endpoint do cliente consumia 5
+  chamadas em ~42 min antes de chegar à DLQ.
+- `_recusa_permanente()`: `4xx` (exceto `408`/`429`) e `3xx` → falha definitiva na hora, com DLQ;
+  timeout, rede, `408`, `429` e `5xx` seguem no backoff. Motivo registrado: "recusa permanente, não
+  retentada".
+- 17 testes (classificação + entrega 404 → 1 tentativa + DLQ). `test_webhooks` 24 verdes; mypy zero.
+- Observação de método: dois erros meus no teste (tenant dict em vez de ORM; enum `failed` vs `falhou`)
+  foram corrigidos no teste, não na expectativa do produto.

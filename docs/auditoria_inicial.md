@@ -4582,3 +4582,43 @@ resultado foi contaminação: `test_transporte_status_rota.py` falhou com **401 
 erro que não existia. Matei o job e a mesma suíte passou (11/11). É a **terceira vez** que cometo esse
 erro nesta sessão; o registro fica para não repetir: medição de cobertura e testes de banco são
 sequenciais, nunca concorrentes.
+
+---
+
+## 86. Webhook retentava recusa permanente — 5 chamadas inúteis e 42 min até a DLQ
+
+**Data:** 2026-11-27. **Fase:** E/F. Missão §3: "retry somente para falhas transitórias".
+
+### Medição
+
+`app/webhooks/service.py` tratava **qualquer** não-2xx como falha retentável: `BACKOFF_SEGUNDOS = (10,
+30, 120, 600, 1800)`, cinco tentativas. Um `404` no endpoint do cliente — configuração errada, que nunca
+vai passar — consumia 5 chamadas ao servidor dele ao longo de ~42 minutos antes de chegar à DLQ.
+
+### Correção
+
+`_recusa_permanente(codigo)` separa as classes:
+
+| Resposta | Tratamento |
+|---|---|
+| `2xx` | entregue |
+| `3xx` | **permanente** — o cliente HTTP não segue redirecionamento (decisão anterior, para não entregar payload assinado a outro host); então 3xx é configuração errada |
+| `4xx` exceto `408`/`429` | **permanente** — o destino recusou o pedido |
+| `408`, `429`, `5xx`, erro de rede, timeout | transitório, backoff normal |
+
+Falha permanente usa `_marcar_falha_definitiva`: conta a tentativa, fecha como `FALHOU`,
+`proxima_tentativa=None` e cai no caminho de DLQ que já existia. O `ultimo_erro` diz "recusa permanente,
+não retentada" — para o operador não procurar um problema de rede que não existe.
+
+### Testes (`tests/test_webhook_falha_permanente.py`, 17)
+
+Classificação paramétrica (400/401/403/404/410/422/301/302 → permanente; 408/429/500/502/503/504/2xx →
+não), e a entrega real: `404` → **uma** tentativa, sem reagendamento, item na **DLQ**.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_webhook_falha_permanente.py` | **17 passed** |
+| `pytest tests/test_webhooks.py` | **24 passed** |
+| `mypy app src` | zero erros |

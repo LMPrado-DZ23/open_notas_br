@@ -190,7 +190,14 @@ async def entregar(
             entrega.ultimo_erro = None
             entrega.proxima_tentativa = None
         else:
-            _registrar_falha(entrega, f"HTTP {resposta.status_code}")
+            if _recusa_permanente(resposta.status_code):
+                # 4xx (exceto 408/429) recusa o **pedido**, não está fora do ar: repetir cinco vezes
+                # com backoff de até 30 min não muda a resposta e só atrasa a DLQ (§86).
+                _marcar_falha_definitiva(
+                    entrega, f"HTTP {resposta.status_code} (recusa permanente, não retentada)"
+                )
+            else:
+                _registrar_falha(entrega, f"HTTP {resposta.status_code}")
     except httpx.HTTPError as exc:
         _registrar_falha(entrega, f"falha de rede: {type(exc).__name__}")
     finally:
@@ -214,6 +221,28 @@ async def entregar(
         },
     )
     return entrega
+
+
+def _recusa_permanente(codigo: int) -> bool:
+    """`4xx` que não é "tente de novo": o destino recusou o pedido em si.
+
+    Exceções deliberadas — `408` (timeout do servidor) e `429` (rate limit) são transitórias por
+    definição e continuam no backoff. `3xx` **não** entra aqui: o cliente não segue redirecionamento,
+    então 3xx é falha de configuração do destino e retentar não resolve; tratado como permanente.
+    """
+    if codigo in (408, 429):
+        return False
+    if 300 <= codigo < 400:
+        return True
+    return 400 <= codigo < 500
+
+
+def _marcar_falha_definitiva(entrega: WebhookDelivery, motivo: str) -> None:
+    """Encerra sem reagendar: contabiliza a tentativa e fecha como falha, indo para a DLQ."""
+    entrega.tentativas += 1
+    entrega.ultimo_erro = motivo[:500]
+    entrega.status = StatusWebhook.FALHOU
+    entrega.proxima_tentativa = None
 
 
 def _registrar_falha(entrega: WebhookDelivery, motivo: str) -> None:
