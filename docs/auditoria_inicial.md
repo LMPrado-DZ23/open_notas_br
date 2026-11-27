@@ -3035,3 +3035,65 @@ Para clientes que só repetem o mesmo pedido (o caso normal), nada muda.
 - Não há janela de expiração da chave: a fatura antiga nunca "expira", então a chave vale para sempre
   para aquele tenant. É coerente com retenção fiscal, mas significa que reusar chave antiga nunca
   emitirá documento novo.
+
+---
+
+## 58. Rate limit existia e nunca era instalado
+
+**Data:** 2026-11-27. **Fase:** A (integração de componente ao fluxo). Item do objetivo:
+"identificar implementações isoladas que ainda não estão integradas ao fluxo de produção".
+
+### O defeito
+
+`app/core/middleware_ratelimit.py` estava escrito, testado (12 testes) e **nunca registrado** em
+`criar_app()`. Ligar `RATE_LIMIT_HABILITADO=true` não fazia absolutamente nada: a flag acendia uma
+proteção que ninguém executava.
+
+Os testes antigos não podiam pegar isso porque construíam uma `FastAPI()` própria e adicionavam o
+middleware à mão — provavam que o middleware **funciona**, nunca que ele **está no fluxo**. É a
+diferença entre testar a peça e testar a instalação.
+
+Efeito prático: um operador lê `.env.example`, liga a flag, e fica com a API sem cota — acreditando
+que tem.
+
+### A correção
+
+1. `MiddlewareRateLimit` é registrado **sempre** em `criar_app()`; o próprio middleware não faz nada
+   quando a flag está desligada (o padrão). Registrar condicionalmente criaria dois caminhos de
+   construção de app e um deles nunca seria exercitado pelos testes.
+2. Ordem: `MiddlewareRequisicao` fica **por fora** do rate limit, para que uma resposta 429 ainda
+   ganhe `X-Request-ID`, entre no log e conte em `/metrics`. (Medido: `CORSMiddleware` é o mais
+   externo de todos; a asserção do teste fixa a ordem relativa entre os dois que importam.)
+3. **Storage trocado para Redis** (`ArmazenamentoRedis` em `app/core/ratelimit.py`). O middleware
+   usava `ArmazenamentoMemoria`, então com N instâncias a cota real seria `N x limite` — o número
+   documentado mentiria. Redis usa `INCR` (atômico) e `EXPIRE` só na primeira escrita, senão a janela
+   viraria deslizante e a cota nunca fecharia. Falha do Redis continua **fail-open**, como o
+   `Limitador` já garantia.
+
+### Testes (`tests/test_ratelimit_instalado.py`, 5)
+
+| Teste | O que prova |
+|---|---|
+| middleware está no app real | `criar_app()` registra `MiddlewareRateLimit` |
+| requisição por fora do limite | ordem relativa correta entre os dois middlewares |
+| terceira requisição vira 429 | com `rate_limit_por_minuto=2`: 200, 200, **429** com `Retry-After`, `application/problem+json` e `X-Request-ID` |
+| `/health/live` nunca é barrado | rota isenta mesmo acima da cota |
+| desligado não barra | padrão preservado |
+
+### Achados de teste honestos
+
+- A primeira versão usava `X-API-Key` fixa e **passou a falhar ao rodar de novo**: o contador vive no
+  Redis e não expira entre execuções, então a primeira requisição do teste seguinte já vinha 429. Keys
+  agora são únicas por teste. Isso também documenta um comportamento real: a cota é por prefixo de
+  chave e a janela é de 60 s.
+- A primeira asserção de ordem estava invertida (supus que o último da lista era o mais externo;
+  Starlette embrulha em ordem reversa e o **primeiro** é o mais externo). Corrigido com o comentário
+  explicando a semântica, para o próximo não repetir o erro.
+
+### Limites
+
+- Sem Redis, o contador cai para memória por processo — a cota vira `N x limite`. O fail-open está
+  documentado em `docs/OPERACAO.md`; a consequência de escala está registrada aqui.
+- A chave de cota é o **prefixo** da API key (`api_key[:8]`), não o hash: prefixo é público por
+  desenho. Duas chaves com o mesmo prefixo dividiriam cota — improvável, mas é o comportamento.
+- O `retry_after_s` é o da janela fixa, não um cálculo exato do instante de liberação.

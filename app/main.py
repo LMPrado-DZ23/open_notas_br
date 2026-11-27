@@ -164,6 +164,17 @@ def criar_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    # Rate limit por tenant. **Registrado sempre**; o próprio middleware não faz nada quando
+    # `RATE_LIMIT_HABILITADO=false` (o padrão). Antes desta linha o middleware existia e nunca era
+    # instalado: a flag ligava algo que ninguém executava — proteção que só existia no nome.
+    #
+    # A ordem importa: `MiddlewareRequisicao` é adicionado depois e fica por fora, então uma
+    # requisição barrada com 429 ainda ganha `X-Request-ID` e entra no log e nas métricas.
+    from app.core.middleware_ratelimit import MiddlewareRateLimit
+    from app.core.ratelimit import ArmazenamentoRedis
+
+    app.add_middleware(MiddlewareRateLimit, settings=settings, armazenamento=ArmazenamentoRedis())
+
     app.add_middleware(MiddlewareRequisicao)
 
     origens = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]

@@ -5,6 +5,19 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido — rate limit existia e nunca era instalado
+
+- `MiddlewareRateLimit` estava escrito e testado, mas **`criar_app()` não o registrava**: ligar
+  `RATE_LIMIT_HABILITADO=true` não fazia nada. Os testes antigos montavam uma `FastAPI()` própria e
+  adicionavam o middleware à mão — provavam a peça, nunca a instalação.
+- Agora é registrado sempre (o middleware no-opa quando desligado), **por dentro** do middleware de
+  requisição, para o 429 ainda carregar `X-Request-ID`, log e métrica.
+- Storage trocado de memória para **Redis** (`ArmazenamentoRedis`): com N instâncias a cota em memória
+  seria `N x limite`. `INCR` atômico e `EXPIRE` só na primeira escrita (senão a janela desliza e a
+  cota nunca fecha). Falha do Redis segue **fail-open**, como antes.
+- 5 testes novos no app real; dois achados registrados: chave de cota fixa vazava entre execuções
+  (Redis não expira entre testes) e a ordem dos middlewares no Starlette é o inverso do que eu supus.
+
 ### Alterado (correção com mudança de comportamento) — mesma `Idempotency-Key` com corpo diferente agora é 409
 
 - Antes: reusar a chave com **outro corpo** devolvia `200` com a fatura anterior e `ja_existia: true`.
