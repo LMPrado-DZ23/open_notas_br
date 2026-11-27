@@ -5,6 +5,20 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Documentado — ADR 0003 decide não instalar OpenTelemetry agora
+
+- Traces distribuídos nunca existiram, mas a lacuna não tinha **decisão registrada** — lacuna sem
+  decisão vira esquecimento.
+- Motivos no ADR: cinco pacotes com versionamento próprio, necessidade de coletor (decisão de
+  infraestrutura) e, o principal, instalar SDK e chamar de "temos OTel" seria o falso positivo que o
+  objetivo manda evitar. Sem backend consumindo span, ganho zero e custo imediato.
+- Gatilho registrado (incidente em ambiente publicado em que `request_id` não bastou; mais de um
+  worker; exigência contratual) e mínimo aceitável quando entrar, incluindo **teste que prove span
+  exportado**.
+- Alternativa intermediária registrada e não escolhida: propagar `request_id` no payload do job.
+- Cobertura medida nesta rodada: **87,72%** — o valor anterior (87,98%) era baseline antigo e foi
+  corrigido no documento.
+
 ### Corrigido (crítico) — emissão concorrente com a mesma `Idempotency-Key` devolvia 500
 
 - Duas requisições **simultâneas** com a mesma chave passavam as duas pela checagem, as duas

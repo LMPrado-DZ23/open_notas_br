@@ -2918,3 +2918,58 @@ vez de "não provado, talvez seja o harness".
   (segundos, não milissegundos).
 - O caminho `IntegrityError` continua sem teste que o force a acontecer (a trava o torna
   inalcançável no fluxo normal). Ele existe como defesa, não como caminho exercitado.
+
+---
+
+## 56. Decisão registrada sobre traces (ADR 0003) e consolidação do estado
+
+**Data:** 2026-11-27. **Fase:** F. **ADR:** `docs/adr/0003-traces.md`.
+
+### O que faltava
+
+Traces distribuídos nunca existiram, e isso estava escrito como lacuna em §51 — mas **sem decisão
+registrada**. Lacuna sem decisão vira esquecimento: quem ler depois não sabe se foi avaliado e
+descartado, ou se ninguém olhou.
+
+### Decisão
+
+Não instalar OpenTelemetry neste ciclo. Motivos no ADR: cinco pacotes com versionamento próprio,
+necessidade de coletor (decisão de infraestrutura), e — o principal — **instalar SDK e chamar isso
+de "temos OTel" seria exatamente o falso positivo que o objetivo manda evitar**. Sem backend
+consumindo span, o ganho é zero e o custo é imediato.
+
+O que **existe** e resolve o caso atual: `request_id` no header e no log JSON, latência por rota em
+`/metrics` (seção 51). O que falta é a costura API→worker, não o número.
+
+**Gatilho para adotar** (registrado): incidente em ambiente publicado em que `request_id` não
+bastou; mais de um worker/instância; ou exigência contratual de SLA com trace. O ADR fixa também o
+mínimo aceitável quando entrar — spans em `TransporteHTTP`, no job do worker e na entrega de webhook,
+com **teste que prove span exportado**, não instrumentação registrada.
+
+Alternativa intermediária registrada e não escolhida: propagar `request_id` no payload do job do
+ARQ (barato, sem dependência, resolve metade do problema). Candidata ao próximo ciclo.
+
+### Estado consolidado após esta rodada
+
+| Medida | Valor |
+|---|---|
+| Commits na branch (PR #1) | 15 |
+| Testes | 1457 |
+| Cobertura | **87,72%** (fail_under = 80) - medido nesta rodada, nao herdado do baseline |
+| mypy | 0 erros / 174 arquivos |
+| Gate | 9/9 |
+| Segredos | nenhum em 490 arquivos |
+| ADRs | 3 (admin auth, dependências, traces) |
+
+Defeitos corrigidos nesta série: emissão real em homologação por `Settings` no lugar de `ambiente`
+(3 módulos); `enviar_evento` sem `cnpj`; rota de status com `cert_pem` inexistente (500 com
+certificado); webhook esgotado sem DLQ; **corrida de idempotência devolvendo 500**; teste de contrato
+comparando só `paths`; `mypy` fora do CI; re-selagem de chave-mestra inexistente.
+
+### Limite de leitura da cobertura
+
+Medido nesta rodada: `app/api/v1/emissoes.py` aparece com 46% e `app/api/v1/transportes_status.py`
+com 61%, **apesar de testes que exercitam os caminhos**. O motivo está no próprio ROADMAP: o corpo de
+handlers assíncronos aparece como não coberto. Ou seja: aqui cobertura **subestima** o testado, e
+perseguir o número levaria a escrever teste redundante em vez de corrigir defeito. Registrado para
+que ninguém "conserte" a cobertura quebrando os testes.
