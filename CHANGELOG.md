@@ -5,6 +5,17 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido — exclusão de certificado agora sobrescreve o envelope
+
+- `remover()` só apagava a linha: o ciphertext continuava em **páginas antigas** e no **WAL**,
+  recuperável com ferramenta trivial. "Removido" no banco ≠ "fora do banco".
+- `_sobrescrever_envelope()` troca `pfx_selado`/`senha_selada` por bytes **aleatórios do mesmo
+  tamanho** e dá `flush` **antes** do `DELETE`; aplicado em `remover()` e `remover_todos()`.
+- **O que não garante** (declarado): WAL, réplicas e backups antigos ainda têm a versão anterior; a
+  proteção efetiva continua sendo a selagem AES-256-GCM com `aad` por tenant + guarda da chave-mestra.
+  A sobrescrita é camada adicional, não substituta.
+- 3 testes (bytes mudam/tamanho preservado, sem senha, remoção apaga a linha).
+
 ### Adicionado — expiração e revogação de API key (migração 0013)
 
 - A chave vivia **para sempre** e não havia como matá-la sem emitir outra — insuficiente para operar

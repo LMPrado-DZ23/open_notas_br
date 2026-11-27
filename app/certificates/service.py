@@ -172,15 +172,42 @@ async def ativar(
     return registro
 
 
+def _sobrescrever_envelope(registro: TenantCertificate) -> None:
+    """Sobrescreve o envelope antes de apagar a linha.
+
+    Excluir só a linha deixa o ciphertext em páginas antigas da tabela e no WAL. Sobrescrever não
+    torna o dado irrecuperável de um dump — **nada** em software resolve isso —, mas evita que a
+    remoção de um certificado continue legível por consulta a páginas mortas com ferramenta trivial.
+
+    O conteúdo é aleatório do **mesmo tamanho**: manter o tamanho evita registrar na própria linha
+    quanto media o segredo, e bytes aleatórios não têm cabeçalho que confunda o parser de envelope.
+    """
+    import secrets
+
+    if registro.pfx_selado:
+        registro.pfx_selado = secrets.token_bytes(len(registro.pfx_selado))
+    if registro.senha_selada:
+        registro.senha_selada = secrets.token_bytes(len(registro.senha_selada))
+
+
 async def remover(sessao: AsyncSession, tenant_id: uuid.UUID, certificado_id: uuid.UUID) -> None:
+    """Remove o certificado: sobrescreve o envelope e então apaga a linha."""
     registro = await por_id(sessao, tenant_id, certificado_id)
+    _sobrescrever_envelope(registro)
+    await sessao.flush()
     await sessao.delete(registro)
     await sessao.flush()
 
 
 async def remover_todos(sessao: AsyncSession, tenant_id: uuid.UUID) -> int:
-    """Apaga todos os certificados do tenant (uso em exclusão de conta)."""
+    """Apaga todos os certificados do tenant (uso em exclusão de conta).
+
+    Sobrescreve cada envelope antes de apagar, mesmo critério de `remover`.
+    """
     registros = await listar(sessao, tenant_id)
+    for registro in registros:
+        _sobrescrever_envelope(registro)
+    await sessao.flush()
     for registro in registros:
         await sessao.delete(registro)
     await sessao.flush()

@@ -3831,3 +3831,54 @@ repeti o prefixo no decorador. O teste pegou como **404**; corrigido para
 Revogar deixa o tenant **sem acesso** até alguém emitir outra chave. No auto-hospedado isso é acesso ao
 banco; no modo hospedado é o suporte. Não existe rota de "emitir chave para outro tenant" — a decisão
 de quem pode fazer isso é de operação, não de código, e ficou fora.
+
+---
+
+## 74. Exclusão de certificado passa a sobrescrever o envelope
+
+**Data:** 2026-11-27. **Fase:** A / adendo §5 ("exclusão segura"). Fecha a lacuna que eu havia
+registrado em `docs/ONBOARDING-HOSPEDADO.md` §4.
+
+### O que estava errado
+
+`remover()` executava `DELETE` na linha. O ciphertext continuava em **páginas antigas** da tabela e no
+**WAL** — recuperável com ferramenta trivial em muitos cenários. "Removido" no banco não significava
+"fora do banco".
+
+### O que mudou
+
+`_sobrescrever_envelope()` troca `pfx_selado` e `senha_selada` por bytes **aleatórios do mesmo
+tamanho** e dá `flush` **antes** do `DELETE`. Usado em `remover()` e em `remover_todos()`.
+
+Duas decisões de detalhe:
+- **mesmo tamanho**: manter o comprimento evita que a própria linha registre quanto media o segredo
+  (metadado que ajuda quem procura);
+- **bytes aleatórios**: conteúdo sem cabeçalho que confunda parser de envelope.
+
+### O que este código NÃO garante (e não vou afirmar que garante)
+
+Sobrescrever reduz a superfície; **não torna o dado irrecuperável**. Limites reais:
+
+1. **WAL** e réplicas podem conter a versão anterior até o reciclo;
+2. **backups e dumps** já feitos mantêm o envelope antigo — e neles o conteúdo continua selado com a
+   chave-mestra, que é o que realmente protege;
+3. `autovacuum` decide quando a página é reutilizada; não há `VACUUM FULL` no caminho.
+
+A proteção efetiva continua sendo a **selagem AES-256-GCM com `aad` por tenant** mais a guarda da
+chave-mestra (`docs/OPERACAO.md` §5). A sobrescrita é camada adicional, não substituta.
+
+### Testes (`tests/test_certificado_usos.py`, +3)
+
+| Teste | O que prova |
+|---|---|
+| bytes mudam, tamanho preservado | a sobrescrita acontece e não vira lixo de tamanho diferente |
+| registro sem senha não quebra | caminho do A1 sem senha |
+| remoção apaga a linha | contraprova: sobrescrever não impede o `DELETE` |
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_certificado_usos.py` | **8 passed** |
+| gate completo | **9/9** |
+| `mypy` | zero erros |

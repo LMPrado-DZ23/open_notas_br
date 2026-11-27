@@ -46,7 +46,7 @@ evita divergência entre certificado e emitente.
 | Substituir | ✅ enviar novo e ativar |
 | Remover | ✅ `DELETE /v1/me/certificados/{id}` |
 | **Auditoria de uso** (quem usou qual certificado, quando, para qual operação) | ❌ **não existe** |
-| **Exclusão segura comprovada** (sobrescrever o blob antes de remover) | ⚠️ remoção apaga a linha; não há sobrescrita do ciphertext |
+| **Exclusão segura** | ✅ sobrescreve o envelope antes do `DELETE` (§74) — reduz a superfície, **não** torna irrecuperável (WAL, réplicas e backups antigos) |
 | A3 / token / HSM | ❌ não implementado — **não anunciar** |
 
 O certificado é usado **em memória** no momento da chamada (`abrir_em_memoria`) e nunca gravado em

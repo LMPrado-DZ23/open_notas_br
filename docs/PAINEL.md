@@ -10,7 +10,7 @@
 | Rotas | 60 |
 | Tabelas ORM | 16 |
 | Migrations | 13 (head `0013`) |
-| Testes aprovados | 1503 |
+| Testes aprovados | 1506 |
 | Municípios no seed | 5571 (IBGE, 27 UFs) |
 | Postgres de teste | porta 55434, db `notasbr` |
 

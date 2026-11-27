@@ -178,3 +178,87 @@ class TestConsulta:
         )
 
         assert resposta.status_code == 404, "histórico de uso não pode vazar entre tenants"
+
+
+class TestSobrescrita:
+    """A remoção sobrescreve o envelope antes de apagar a linha (§74).
+
+    Excluir só a linha deixa o ciphertext em páginas antigas e no WAL. Não é possível provar
+    irrecuperabilidade de um dump — isso não existe em software —, então o teste prova o que é
+    verificável: os bytes mudam, o tamanho é preservado e nada de segredo aparece no objeto.
+    """
+
+    def _registro(self, pfx: bytes, senha: bytes | None):
+        from app.db.models.tenant import TenantCertificate
+
+        return TenantCertificate(
+            tenant_id=uuid.uuid4(),
+            apelido="a1",
+            cnpj="11222333000181",
+            fingerprint_sha256="f" * 64,
+            pfx_selado=pfx,
+            senha_selada=senha,
+        )
+
+    def test_bytes_mudam_e_tamanho_e_preservado(self) -> None:
+        from app.certificates import service as cert_service
+
+        pfx = b"conteudo-do-pfx-falso" * 3
+        senha = b"senha-falsa"
+        registro = self._registro(pfx, senha)
+
+        cert_service._sobrescrever_envelope(registro)
+
+        assert registro.pfx_selado != pfx
+        assert len(registro.pfx_selado) == len(pfx)
+        assert registro.senha_selada != senha
+        assert len(registro.senha_selada) == len(senha)
+
+    def test_sem_senha_nao_quebra(self) -> None:
+        from app.certificates import service as cert_service
+
+        registro = self._registro(b"pfx", None)
+
+        cert_service._sobrescrever_envelope(registro)
+
+        assert registro.senha_selada is None
+
+    async def test_remocao_apaga_a_linha(self, cliente, sessao_db) -> None:
+        """Contraprova: sobrescrever não pode impedir a exclusão de fato."""
+        from app.db.models.tenant import TenantCertificate
+        from sqlalchemy import select
+
+        criado = await cliente.post("/v1/tenants", json={"slug": "del-1", "nome": "Del LTDA"})
+        tenant = criado.json()
+        await cliente.put(
+            "/v1/me/config-fiscal",
+            json={
+                "municipio_ibge": "3550308",
+                "uf": "SP",
+                "ambiente": "homologacao",
+                "codigo_tributacao_nacional": "010701",
+                "serie_dps": "1",
+                "aliquota_iss": 0.05,
+            },
+            headers={"X-API-Key": tenant["api_key"]},
+        )
+        certificado = await cliente.post(
+            "/v1/me/certificados",
+            files={"arquivo": ("c.pfx", gerar_pfx(), "application/x-pkcs12")},
+            data={"senha": SENHA.decode(), "apelido": "a1"},
+            headers={"X-API-Key": tenant["api_key"]},
+        )
+        assert certificado.status_code == 201, certificado.text
+        cert_id = certificado.json()["id"]
+
+        resposta = await cliente.delete(
+            f"/v1/me/certificados/{cert_id}", headers={"X-API-Key": tenant["api_key"]}
+        )
+        assert resposta.status_code == 204, resposta.text
+
+        restante = (
+            await sessao_db.execute(
+                select(TenantCertificate).where(TenantCertificate.id == uuid.UUID(cert_id))
+            )
+        ).scalar_one_or_none()
+        assert restante is None
