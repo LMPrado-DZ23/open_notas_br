@@ -3998,3 +3998,81 @@ documentos com XML autorizado.
 | `pytest tests/test_exportacao_tenant.py` | **6 passed** |
 | gate completo | **9/9** |
 | contrato + Postman | regenerados |
+
+---
+
+## 77. Roteamento da NFS-e Nacional: campo existia, decisão não existia
+
+**Data:** 2026-11-27. **Fase:** B (regra fiscal). Atende ao adendo regulatório.
+
+### O defeito medido
+
+`tenant_fiscal_configs.aderente_emissor_nacional` era **gravado e nunca consultado**. Varredura em
+`app/` por esse nome retornava: a definição no modelo, o schema de entrada e **um texto de orientação
+de erro** (`nfse/errors.py`, mensagem do `E0312`). Nenhuma decisão de rota olhava o campo.
+
+Consequência: o sistema sempre tentava o Emissor Nacional. Para município cujo parâmetro oficial diz
+"não aderente", o erro só aparecia como **rejeição `E0312` vinda da SEFIN**, depois de gerar, assinar
+e transmitir.
+
+### Fontes consultadas (2026-11-27)
+
+- [Perguntas Frequentes NFS-e v1.2 (arquivo de 2026-10-27)](https://www.gov.br/nfse/pt-br/perguntas-frequentes/perguntas-frequentes-nfs-e-v1-2-20261027.pdf)
+- [Perguntas Frequentes NFS-e v1.3 (arquivo de 2026-11-06)](https://www.gov.br/nfse/pt-br/perguntas-frequentes/perguntas-frequentes-nfs-e-v1-3-20261106.pdf)
+
+O que essas fontes sustentam: ME/EPP do Simples emitem **exclusivamente** pelo Emissor Nacional a
+partir de **01/11/2026** (sistema municipal deixa de autorizar); `situacaoEmissaoPadraoContribuintesRFB = 0`
+significa que o município **não** usa os Emissores Nacionais como padrão; a Autorização de Uso dos
+Emissores Públicos (CNC/Painel do Contribuinte) é trava de exclusividade, não opção paralela.
+
+### O que foi implementado
+
+`app/nfse/roteamento.py` — função **pura** de decisão, com quatro ramos e fonte citada em cada um:
+
+| Situação | Decisão |
+|---|---|
+| ME/EPP Simples, competência ≥ 2026-11 | **nacional permitido** (obrigação legal vence parâmetro municipal) |
+| Parâmetro **não confirmado** + produção | **bloqueia** — rota não pode ser presumida em produção |
+| Parâmetro não confirmado + fora de produção | segue com **aviso** (não é prova de rota) |
+| Aderente confirmado | nacional permitido |
+| Não aderente confirmado, fora da obrigação | **bloqueia** com pendência (integração municipal §66 ou autorização CNC) |
+
+Preflight ligado em `nfse/servico.py::emitir` **antes de reservar número, assinar e transmitir**, com
+`RotaNaoPermitida` carregando a **pendência**, e tradução dedicada em `emissoes.py` para que o 422 diga
+o que falta (o `except` genérico de `ErroDeEmissao` descartaria essa informação).
+
+### Migração 0015
+
+`aderente_confirmado_em` e `aderente_fonte` em `tenant_fiscal_configs`. Sem eles, não havia como
+distinguir "o município não adere" de "ninguém conferiu" — e bloquear por omissão derrubaria município
+aderente cujo booleano ficou `False` no default.
+
+### Exceções **não** implementadas, de propósito
+
+A alegação de que **MEI** e operações do **grupo 99** escapam de `aderenteEmissorNacional = 0` **não
+foi confirmada** em fonte oficial nesta sessão. Não há ramo para elas, e o teste
+`test_mei_nao_recebe_tratamento_especial` fixa o comportamento conservador: MEI é tratado como
+qualquer contribuinte. Implementar a exceção sem fonte produziria nota pela rota errada **com
+aparência de autorizada** — pior que bloquear.
+
+### Testes (`tests/test_nfse_roteamento.py`, 13)
+
+Decisão (10): Simples ≥ 2026-11 passa; Simples 2026-10 **não** é reclassificado; MEI sem tratamento
+especial; competência ausente não vira obrigação; aderente permite; não aderente bloqueia com
+pendência; produção exige confirmação; homologação avisa e segue; decisão imutável; **todo bloqueio
+traz próximo passo**.
+
+Rota real (3): não aderente → **422** com "Pendência"; Simples 2026-11 → **201**; bloqueio de um
+tenant **não afeta** outro.
+
+### Limites declarados
+
+- `simples_nacional`/`optante_mei` continuam **preenchidos à mão**. O correto é vir dos parâmetros
+  oficiais do contribuinte; hoje o sistema registra a procedência do parâmetro municipal
+  (`aderente_*`), mas **não** do regime. É a próxima lacuna, e ela exige fonte de dados oficial.
+- A exceção do MEI/grupo 99 fica como pendência com o pré-requisito escrito: confirmar em fonte e
+  adicionar ramo com teste.
+- A decisão **não** consulta o CNC em tempo real: `Autorização de Uso` entra como pendência textual,
+  não como verificação. Consultar exigiria integração autenticada ao Painel do Contribuinte.
+- `producao` bloqueia sem confirmação — o que significa que **nenhuma emissão real é possível hoje
+  sem parametrizar a fonte**. Isso é intencional: o projeto nunca emitiu em produção.

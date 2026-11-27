@@ -20,6 +20,7 @@ from sqlalchemy import (
     LargeBinary,
     Numeric,
     String,
+    Text,
     UniqueConstraint,
     Uuid,
     text,
@@ -110,6 +111,11 @@ class TenantFiscalConfig(Base, MixinId, MixinTimestamps):
     aderente_emissor_nacional: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default=text("false")
     )
+    #: Quando o valor acima foi conferido em fonte oficial (NULL = não consultado). Separa aviso de
+    #: bloqueio: sem confirmação, o sistema não bloqueia produção por um booleano digitado à mão.
+    aderente_confirmado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    #: URL/documento e versão de onde o valor veio (ex.: Painel Municipal, data da consulta).
+    aderente_fonte: Mapped[str | None] = mapped_column(Text)
     provedor: Mapped[ProvedorFiscal] = mapped_column(
         coluna_enum(ProvedorFiscal, nome="provedor_fiscal"),
         nullable=False,

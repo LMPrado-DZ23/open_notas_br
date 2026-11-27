@@ -299,6 +299,14 @@ async def emitir(
     except emissao_service.ConfiguracaoFiscalAmbigua as exc:
         await db.rollback()
         raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
+    # Mesma razão da linha acima: `RotaNaoPermitida` herda de `ErroDeEmissao`, e o genérico
+    # descartaria a `pendencia` — que é justamente o que o operador precisa ler (§77).
+    except emissao_service.RotaNaoPermitida as exc:
+        await db.commit()  # preserva o evento de erro registrado
+        detalhe = str(exc)
+        if exc.pendencia:
+            detalhe = f"{detalhe}. Pendência: {exc.pendencia}"
+        raise HTTPException(status_code=HTTP_422, detail=detalhe) from exc
     except (ConfiguracaoFiscalAusente, CertificadoAusente, ErroDeEmissao) as exc:
         await db.commit()  # preserva o evento de erro registrado
         raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc

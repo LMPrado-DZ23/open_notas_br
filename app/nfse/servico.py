@@ -43,6 +43,7 @@ from app.nfse.dps import (
     extrair_id,
 )
 from app.nfse.errors import ErroSefin, TipoErroFiscal
+from app.nfse.roteamento import decidir_rota
 from app.nfse.signer import ErroAssinatura, assinar_dps
 
 logger = logging.getLogger(__name__)
@@ -58,6 +59,18 @@ class ErroDeEmissao(Exception):
 
 class ConfiguracaoFiscalAmbigua(ErroDeEmissao):
     """Há mais de uma configuração para o ambiente e nenhuma foi escolhida."""
+
+
+class RotaNaoPermitida(ErroDeEmissao):
+    """A rota da NFS-e não pode ser a nacional para este contribuinte/município (§77).
+
+    Carrega `pendencia`: o pré-requisito exato que falta. Erro de emissão sem essa informação
+    obriga o operador a adivinhar por que a nota não sai.
+    """
+
+    def __init__(self, motivo: str, *, pendencia: str | None = None) -> None:
+        super().__init__(motivo)
+        self.pendencia = pendencia
 
 
 class ConfiguracaoFiscalAusente(ErroDeEmissao):
@@ -317,6 +330,36 @@ async def emitir(
         return existente
 
     config = await _config_do_tenant(sessao, tenant.id, invoice.ambiente, municipio_ibge)
+
+    # 1b) Preflight de rota ANTES de assinar e transmitir (§77).
+    #
+    # Antes disto o sistema sempre tentava o Emissor Nacional: para município cujo parâmetro oficial
+    # diz "não aderente", o erro só aparecia como rejeição E0312 depois de gerar, assinar e enviar.
+    # Bloquear aqui evita transmissão fadada e diz qual pré-requisito falta.
+    decisao = decidir_rota(
+        aderente_emissor_nacional=config.aderente_emissor_nacional,
+        aderente_confirmado=config.aderente_confirmado_em is not None,
+        simples_nacional=config.simples_nacional,
+        optante_mei=config.optante_mei,
+        competencia=invoice.competencia,
+        ambiente=str(config.ambiente),
+    )
+    if not decisao.permitido:
+        logger.warning(
+            "emissao_bloqueada_por_rota",
+            extra={
+                "invoice_id": str(invoice.id),
+                "rota": decisao.rota,
+                "motivo": decisao.motivo,
+                "pendencia": decisao.pendencia,
+            },
+        )
+        raise RotaNaoPermitida(decisao.motivo, pendencia=decisao.pendencia)
+    if not decisao.confirmado:
+        logger.info(
+            "rota_nao_confirmada",
+            extra={"invoice_id": str(invoice.id), "motivo": decisao.motivo},
+        )
 
     registro_cert = await certificados.ativo(sessao, tenant.id)
     if registro_cert is None:
