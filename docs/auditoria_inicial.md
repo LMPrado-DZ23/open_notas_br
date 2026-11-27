@@ -2617,3 +2617,67 @@ entrar.
 | `python -m pip check` | `No broken requirements found.` |
 | `python -m scripts.check_ci` (rápido) | **7/7**, agora com `dependencias` |
 | gate completo | 9/9 |
+
+---
+
+## 51. Métricas: `/metrics` em formato Prometheus, sem dependência, com cardinalidade controlada
+
+**Data:** 2026-11-26. **Fase:** F (observabilidade). **Estado anterior:** inexistente.
+
+### O que havia
+
+`GET /health/circuitos` entregava o estado dos circuitos em **JSON** — útil para diagnóstico, inútil
+para scraping. Não havia `/metrics`, nem biblioteca de métricas, nem traces. O prompt pede para
+distinguir "biblioteca/configuração" de "instrumentação efetiva": aqui não havia nem a biblioteca.
+
+### Por que à mão e não `prometheus-client`
+
+Adicionar dependência exige ADR (regra 11). Para **quatro** métricas, o custo de manter um exporter
+não se paga: o formato de exposição é estável e pequeno (`# HELP`, `# TYPE`, `amostra valor`). O
+mesmo critério já usado no ADR 0002 (só entra dependência quando o custo de não ter supera o de
+manter).
+
+### O que é exposto
+
+| Métrica | Tipo | Rótulos |
+|---|---|---|
+| `opennotas_http_requisicoes_total` | counter | `metodo`, `rota`, `status` |
+| `opennotas_http_duracao_segundos` | histogram | `metodo`, `rota`, `status` |
+| `opennotas_worker_batimento` | gauge | — (0/1) |
+| `opennotas_circuito_estado` | gauge | `circuito` (0 fechado, 1 meio-aberto, 2 aberto) |
+
+Faixas do histograma: 0,05 / 0,1 / 0,2 / 0,3 / 0,5 / 1 / 2 / 5 s (fixas, expostas como comentário
+no payload para quem consulta não precisar abrir o código).
+
+### Cardinalidade: a decisão que mais importa
+
+- **Rótulo de rota é o template** (`/v1/emissoes/{invoice_id}`), nunca o caminho cru. Um label por
+  UUID cresce sem limite e derruba o scraper — é o erro clássico e está travado por teste
+  (`dois_ids_da_mesma_rota_nao_criam_duas_series`).
+- **Nenhum rótulo de tenant.** Além da explosão de cardinalidade, tenant em métrica é dado de
+  cliente exposto em endpoint de infraestrutura. Teste afirma que as palavras `tenant`, `cnpj`,
+  `cpf`, `api_key` e `chave` não aparecem no payload.
+- **`/metrics` não conta a si mesmo** — cada scrape poluiria a série.
+- Circuitos: cardinalidade limitada por (operação x autorizador), não por UF nem por município.
+
+### Estado em memória, como o circuito
+
+O registro é por processo (§47 tem o mesmo limite). Com N instâncias, cada uma expõe a própria
+série e o Prometheus soma na consulta — comportamento normal e documentado, não bug.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_metrics.py` | **11 passed** |
+| `GET /metrics` (cliente ASGI) | 200, `text/plain`, com `opennotas_worker_batimento` e `# TYPE opennotas_circuito_estado gauge` |
+| `/metrics` no OpenAPI | **ausente** (`include_in_schema=False`) — é superfície de scraping, não contrato de cliente |
+
+### O que continua ausente
+
+**Traces** (OpenTelemetry). O log JSON já traz `request_id`, e correlação entre API e worker por
+trace distribuído não existe. Está registrado como lacuna; adicionar OTel é dependência nova com
+peso real (SDK + exporter) e precisa de ADR próprio.
+
+O container da API em execução **não** tem esta mudança (imagem anterior ao commit) — a verificação
+foi feita em processo, pelo cliente ASGI dos testes.

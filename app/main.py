@@ -102,7 +102,24 @@ class MiddlewareRequisicao(BaseHTTPMiddleware):
                 "duracao_ms": round(duracao, 2),
             },
         )
+        _observar_metrica(request, resposta.status_code, duracao / 1000)
         return resposta
+
+
+def _observar_metrica(request: Request, status: int, segundos: float) -> None:
+    """Contabiliza a requisição **sem** abrir cardinalidade.
+
+    O rótulo é o template da rota (`/v1/emissoes/{invoice_id}`), nunca o caminho cru: um label
+    por UUID cresce sem limite e derruba o scraper. Sem template, o rótulo é `desconhecida`.
+    O próprio `/metrics` fica fora da conta, senão cada scrape polui a série.
+    """
+    from app.core.metrics import ROTA_DESCONHECIDA, registro
+
+    caminho = request.url.path
+    if caminho == "/metrics":
+        return
+    rota = getattr(request.scope.get("route"), "path", None) or ROTA_DESCONHECIDA
+    registro.observar(metodo=request.method, rota=rota, status=status, segundos=segundos)
 
 
 @asynccontextmanager
@@ -162,6 +179,46 @@ def criar_app() -> FastAPI:
     # Health no root (usado pelo healthcheck do container) e também sob /v1.
     app.include_router(health.router)
     app.include_router(v1_router, prefix="/v1")
+
+    @app.get("/metrics", include_in_schema=False, tags=["meta"])
+    async def metricas() -> Response:
+        """Exposição no formato do Prometheus (text/plain; version=0.0.4).
+
+        Fora do OpenAPI (`include_in_schema=False`): não é contrato de integração de cliente,
+        é superfície de scraping. Sem rótulo de tenant e com rota em template — ver
+        `app/core/metrics.py`.
+        """
+        from app.core.metrics import FAIXAS_SEGUNDOS, registro
+        from app.core.redis import obter_redis
+        from app.nfse.resiliencia import registro_padrao
+        from app.worker.main import CHAVE_HEARTBEAT
+
+        corpo = registro.renderizar()
+
+        # Batimento do worker como gauge 0/1: permite alertar "worker parado" sem polling.
+        try:
+            vivo = 1 if await obter_redis().get(CHAVE_HEARTBEAT) else 0
+        except Exception:  # Redis fora já aparece na série de requisições e em /health
+            vivo = 0
+        corpo += "# HELP opennotas_worker_batimento 1 se o worker escreveu batimento recente.\n"
+        corpo += "# TYPE opennotas_worker_batimento gauge\n"
+        corpo += f"opennotas_worker_batimento {vivo}\n"
+
+        # Estado dos circuitos: cardinalidade limitada por (operação x autorizador), nunca por
+        # tenant. Lista vazia = nada foi chamado ainda, não "tudo saudável".
+        from app.api.v1.observabilidade import CODIGO_DO_ESTADO
+        from app.core.circuit import Estado
+
+        corpo += "# HELP opennotas_circuito_estado Estado do circuito (0 fechado, 1 meio-aberto, 2 aberto).\n"
+        corpo += "# TYPE opennotas_circuito_estado gauge\n"
+        for nome, estado in sorted(registro_padrao.estados().items()):
+            corpo += f'opennotas_circuito_estado{{circuito="{nome}"}} {CODIGO_DO_ESTADO[Estado(estado)]}\n'
+
+        # Faixas expostas como comentário: o bucket é contrato do histograma, e quem consulta
+        # precisa saber os limites sem abrir o código.
+        corpo += f"# faixas_segundos {','.join(f'{f:g}' for f in FAIXAS_SEGUNDOS)}\n"
+
+        return Response(content=corpo, media_type="text/plain; version=0.0.4; charset=utf-8")
 
     @app.exception_handler(CircuitoAberto)
     async def _circuito_aberto(request: Request, exc: CircuitoAberto) -> JSONResponse:

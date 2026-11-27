@@ -5,6 +5,20 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — `/metrics` em formato Prometheus (sem dependência)
+
+- Não havia métrica nenhuma: só `GET /health/circuitos` em JSON, inútil para scraping. Agora
+  `/metrics` expõe contador e histograma de requisições, batimento do worker e estado dos
+  circuitos.
+- **Cardinalidade controlada por construção**: rótulo de rota é o *template*, nunca o caminho com
+  UUID (teste afirma que dois ids da mesma rota não geram duas séries), e **nenhum rótulo de
+  tenant** (teste proíbe `tenant`, `cnpj`, `cpf`, `api_key`, `chave` no payload).
+- `/metrics` não conta a si mesmo e fica **fora do OpenAPI**: é superfície de scraping, não
+  contrato de cliente.
+- Feito à mão em vez de `prometheus-client`: quatro métricas não pagam uma dependência nova
+  (regra 11 / ADR 0002). 11 testes.
+- **Continua ausente**: traces OpenTelemetry — dependência nova com peso real, exige ADR próprio.
+
 ### Adicionado — `pip check` no gate/CI e ADR 0002 decidindo a varredura de CVE
 
 - O CI não tinha **nada** sobre dependências. Agora tem consistência: `python -m pip check` no
