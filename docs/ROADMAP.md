@@ -351,3 +351,19 @@ oficial, não a arquitetura.
 
 Para reabrir: obter o leiaute publicado (ou o da UF alvo) e implementar como mais
 uma representação no catálogo.
+
+## Pendências de integração (código pronto, fluxo não)
+
+Levantadas em 2026-11-27 (auditoria §59). **Existem, são testadas e ninguém em produção as chama.**
+Ordem sugerida; nenhuma pode ser "concluída" sem ambiente de homologação para validar.
+
+| # | Pendência | O que falta | Por que não foi feito já |
+|---|---|---|---|
+| 1 | Ligar `nfse/drivers_factory` ao `nfse/servico.py` | escolher driver por município; hoje sempre usa o padrão nacional | muda comportamento: município com stub passaria a **recusar** onde hoje emite pelo nacional — precisa homologação |
+| 2 | Rota de consulta de situação do CT-e | endpoint sobre `cte/consulta_situacao.py` | a chamada real de §31 foi por script; criar rota exige contrato e teste de erro |
+| 3 | Rotas de transmissão de CT-e/MDF-e | schema de entrada por documento | criaria superfície que emite documento fiscal sem homologação possível |
+| 4 | Usar `worker/tarefas.py` (retry→DLQ) nos jobs | trocar tratamento manual dos jobs pelo helper | muda retentativa em produção; o webhook já foi ligado à DLQ em §54 |
+| 5 | Traces (ADR 0003) e CVE scan (ADR 0002) | decisão tomada, gatilho definido | dependem de coletor e de política de CI |
+
+Regra: nenhuma destas pode aparecer como "concluída" antes de código **ligado**, teste passando e
+`docs/MATRIZ-COBERTURA.md` atualizado com o nível de prova real.

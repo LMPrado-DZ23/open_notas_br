@@ -5,6 +5,18 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Documentado — inventário de implementações isoladas (código testado, fluxo não)
+
+- Levantamento sistemático em `app/`: 8 módulos só são importados por testes e **não** estão no
+  caminho de execução da API/worker.
+- Os mais relevantes: **NFS-e multi-prefeitura não está no fluxo** (`drivers_factory`, `drivers`
+  e motor ABRASF existem e são testados, mas `nfse/servico.py` sempre usa o padrão nacional);
+  **consulta de situação do CT-e não tem rota** (a chamada real de §31 foi por script); transmissão
+  de CT-e/MDF-e **sem endpoint**; helper de retry→DLQ do worker **não usado pelo worker**.
+- `docs/MATRIZ-COBERTURA.md` corrigida: onde dizia "falta credenciamento" agora diz **"módulo existe,
+  testado, sem rota"** — bloqueio diferente e mais honesto.
+- `docs/ROADMAP.md` ganhou a lista de pendências com o motivo de cada adiamento.
+
 ### Corrigido — rate limit existia e nunca era instalado
 
 - `MiddlewareRateLimit` estava escrito e testado, mas **`criar_app()` não o registrava**: ligar

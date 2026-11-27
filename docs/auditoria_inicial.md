@@ -3097,3 +3097,71 @@ que tem.
 - A chave de cota é o **prefixo** da API key (`api_key[:8]`), não o hash: prefixo é público por
   desenho. Duas chaves com o mesmo prefixo dividiriam cota — improvável, mas é o comportamento.
 - O `retry_after_s` é o da janela fixa, não um cálculo exato do instante de liberação.
+
+---
+
+## 59. Inventário de implementações isoladas (código testado que não está no fluxo)
+
+**Data:** 2026-11-27. **Fase:** A (fecho do item "identificar implementações isoladas").
+
+O objetivo pede explicitamente para identificar o que existe e **não** está integrado. §54 e §58
+acharam dois casos por acidente. Esta seção faz o levantamento sistemático.
+
+### Método
+
+Para cada módulo em `app/`, contei referências dentro de `app/` (excluindo o próprio arquivo) e
+verifiquei quem importa de fato. "Só teste" significa: nenhum caminho de execução da API ou do worker
+passa por ali.
+
+| Módulo | Quem importa em produção | Estado |
+|---|---|---|
+| `app/cte/consulta_situacao.py` | **ninguém** — só `tests/test_cte_consulta_situacao.py` | **isolado** |
+| `app/cte/transmissao.py` | **ninguém** — só `tests/test_transporte_transmissao.py` | **isolado** |
+| `app/mdfe/transmissao.py` | **ninguém** — só o mesmo teste | **isolado** |
+| `app/nfse/drivers_factory.py` | **ninguém** — só testes | **isolado** |
+| `app/nfse/drivers.py` (roteamento) | só `drivers_abrasf.py` e `drivers_factory.py` | **isolado** (cadeia inteira) |
+| `app/nfse/drivers_abrasf.py` (motor ABRASF) | só `drivers_factory.py` | **isolado** |
+| `app/nfse/assinatura_rps.py` | **ninguém** — só `tests/test_nfse_assinatura_rps.py` | **isolado** |
+| `app/worker/tarefas.py` (retry→DLQ) | **ninguém** — só `tests/test_worker_tarefas.py` | **isolado** |
+| `app/core/middleware_ratelimit.py` | `app/main.py` | **integrado em §58** |
+
+### O que isso significa, sem eufemismo
+
+1. **NFS-e multi-prefeitura não está no fluxo.** Existe contrato de driver, roteamento, motor ABRASF e
+   stubs que recusam com motivo — tudo testado — mas `app/nfse/servico.py` **não** escolhe driver:
+   sempre usa o padrão nacional. Com um município ABRASF, a emissão hoje tentaria o padrão nacional em
+   vez de chamar o driver municipal. A camada está pronta para ser ligada; **não está ligada**.
+2. **Consulta de situação do CT-e não é uma capacidade da API.** A chamada real registrada em §31
+   (cStat `236`) foi feita por script, não por rota. O módulo é sólido e testado; não existe endpoint.
+3. **Transmissão de CT-e/MDF-e não tem rota.** Os módulos montam e enviam o envelope, mas nenhum
+   endpoint os chama — coerente com "não transmitir sem credenciamento", porém significa que mesmo
+   com credencial não há caminho pela API.
+4. **O helper de retry→DLQ do worker não é usado pelo worker.** `entregar_webhooks` e
+   `processar_lote` fazem o próprio tratamento; o webhook passou a alimentar a DLQ só porque §54
+   escreveu a chamada à mão. O helper genérico segue sem uso.
+
+### Correções de documentação (o ponto mais importante)
+
+`docs/MATRIZ-COBERTURA.md` dava a entender que "envelope e transporte testados" equivale a
+capacidade pronta. Foi corrigido: as linhas de transmissão de CT-e/MDF-e e de consulta de situação
+agora dizem **"módulo existe, testado, sem rota"**, e não "falta credenciamento" — que é bloqueio
+diferente e mais honesto.
+
+`docs/ROADMAP.md` ganhou a lista de pendências de integração com o que falta, em ordem.
+
+### O que **não** foi feito, e por quê
+
+Ligar a fábrica de drivers ao `servico.py` **muda comportamento**: hoje um município com stub ABRASF
+emite pelo padrão nacional; depois da ligação passaria a **recusar**. Fazer isso sem ambiente de
+homologação para validar seria trocar um erro silencioso por uma indisponibilidade — e o dono do
+projeto autorizou apenas leitura. Fica registrado como próximo passo condicionado a homologação.
+
+Criar rotas de transmissão de CT-e/MDF-e foi descartado neste ciclo: exigiria schema de entrada
+completo por documento e criaria uma superfície que emite documento fiscal sem homologação possível.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| varredura de importações em `app/` | 9 módulos com ≤1 referência interna; 8 confirmados isolados |
+| gate completo | 9/9 |

@@ -70,9 +70,9 @@ status**, não de emissão autorizada.
 |---|---|---|---|
 | Schema, geração, XSD, assinatura | ✅ | testes (`cte/gerador.py`) | local |
 | Consulta de status | ✅ **real** | `cStat 107` (SVRS) · MT exigiu POST, GET dava 500 (§31) | homologação |
-| Consulta de situação por chave | ✅ **real** | `cStat 236` = rejeição fiscal, prova de que a mensagem foi aceita (§31) | homologação |
+| Consulta de situação por chave | ✅ **real, por script** | `cStat 236` (§31) — chamada feita por script, **não** por rota da API (§59) | homologação |
 | Evento (cancelamento) | ✅ | teste de envio e de XML (montagem + `enviar_evento` com `cnpj`) | local |
-| Autorização (`CTeRecepcaoSincV4`) | 🔒 | envelope/transporte testados; falta credenciamento por UF | — |
+| Autorização (`CTeRecepcaoSincV4`) | 🔒 **sem rota** | módulo `cte/transmissao.py` existe e está testado, mas nenhum endpoint o chama (§59) | — |
 | Inutilização | ❌ | **serviço não existe no leiaute 4.00** (404 medido com controles que funcionam) | — |
 | Contingência | ❌ | não implementada | — |
 | PDF (DACTE) | ✅ | teste | local |
@@ -83,7 +83,7 @@ status**, não de emissão autorizada.
 |---|---|---|---|
 | Schema, geração, XSD, assinatura | ✅ | testes (`mdfe/gerador.py`) | local |
 | Consulta de status | ✅ **real** | `cStat 107` (SVRS) | homologação |
-| Autorização (`MDFeRecepcaoSinc`) | 🔒 | envelope/transporte testados; falta credenciamento | — |
+| Autorização (`MDFeRecepcaoSinc`) | 🔒 **sem rota** | módulo existe e está testado, sem endpoint (§59) | — |
 | Encerramento / eventos | 🔒 | mesmo bloqueio | — |
 | Inutilização | ❌ | ausente também no leiaute; o INI de referência não traz a chave | — |
 | PDF (DAMDFE) | ✅ | teste | local |
