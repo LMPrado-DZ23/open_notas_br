@@ -5,6 +5,18 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — exportação dos dados do tenant (portabilidade)
+
+- `GET /v1/me/exportacao`: identificação, configuração fiscal, **metadados** de certificado, URL de
+  webhook e contagem de emissões por status. `?incluir_xml=true&limite=N` acrescenta até N documentos.
+- **Sem XML por padrão** (exportar tudo transformaria conferência em resposta de gigabytes) e **nunca**
+  PFX, senha, hash de chave, segredo de webhook ou token — portabilidade é sobre os dados do cliente,
+  não sobre as credenciais dele. Teste inclui a própria API key literal.
+- 6 testes, com isolamento entre tenants e prova de que a chave não aparece.
+- **Limites:** não é backup (isso é o dump); sem paginação de documentos (corta nos N mais recentes);
+  **exclusão de tenant por API ainda não existe** — e não vou implementar apagamento de documento
+  fiscal sem decisão sobre guarda legal.
+
 ### Adicionado — escopos por chave de API (migração 0014)
 
 - A chave era **tudo-ou-nada no tenant**: não havia como dar só leitura ao ERP e só emissão ao PDV —

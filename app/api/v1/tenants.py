@@ -12,6 +12,7 @@ Duas famílias:
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -152,3 +153,116 @@ async def listar_config_fiscal(
 ) -> list[TenantFiscalConfigOut]:
     configs = await repo.listar_configs(db, tenant.id)
     return [TenantFiscalConfigOut.model_validate(c) for c in configs]
+
+
+@router.get(
+    "/me/exportacao",
+    summary="Exporta os dados do tenant (portabilidade)",
+)
+async def exportar_dados(
+    tenant: Tenant = Depends(tenant_atual),
+    db: AsyncSession = Depends(get_session),
+    incluir_xml: bool = Query(default=False, description="Inclui o XML dos documentos"),
+    limite: int = Query(default=100, ge=1, le=500),
+) -> dict:
+    """Pacote de dados do próprio tenant, para portabilidade e conferência (§76).
+
+    Inclui: identificação, configuração fiscal, metadados de certificado, webhook e contadores por
+    status. O XML só entra com `incluir_xml=true` e até `limite` documentos — exportar tudo por padrão
+    transformaria um pedido de conferência em resposta de gigabytes.
+
+    **Nunca inclui:** PFX, senha, hash de chave, segredo de webhook, token de frete. Portabilidade é
+    sobre os dados do cliente, não sobre as credenciais dele — e credencial sai do cofre, não de uma
+    exportação.
+    """
+    from sqlalchemy import func
+
+    from app.db.models.invoice import FiscalDocument, Invoice
+    from app.db.models.tenant import TenantCertificate, TenantFiscalConfig
+
+    config = (
+        await db.execute(
+            select(TenantFiscalConfig).where(TenantFiscalConfig.tenant_id == tenant.id)
+        )
+    ).scalar_one_or_none()
+
+    certificados = (
+        (
+            await db.execute(
+                select(TenantCertificate).where(TenantCertificate.tenant_id == tenant.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+    contagens = dict(
+        (
+            await db.execute(
+                select(Invoice.status, func.count())
+                .where(Invoice.tenant_id == tenant.id)
+                .group_by(Invoice.status)
+            )
+        ).all()
+    )
+
+    pacote: dict = {
+        "tenant": {
+            "id": str(tenant.id),
+            "slug": tenant.slug,
+            "nome": tenant.nome,
+            "status": str(tenant.status),
+            "criado_em": tenant.created_at.isoformat() if tenant.created_at else None,
+        },
+        "configuracao_fiscal": (
+            {
+                "municipio_ibge": config.municipio_ibge,
+                "uf": config.uf,
+                "ambiente": str(config.ambiente),
+                "serie_dps": config.serie_dps,
+                "aliquota_iss": str(config.aliquota_iss),
+            }
+            if config
+            else None
+        ),
+        "certificados": [
+            {
+                "id": str(c.id),
+                "apelido": c.apelido,
+                "cnpj": c.cnpj,
+                "valido_ate": c.valido_ate.isoformat() if c.valido_ate else None,
+                "fingerprint_sha256": c.fingerprint_sha256,
+                "ativo": c.ativo,
+            }
+            for c in certificados
+        ],
+        "webhook": {"url": tenant.webhook_url},
+        "emissoes_por_status": {str(k): v for k, v in contagens.items()},
+    }
+
+    if incluir_xml:
+        documentos = (
+            (
+                await db.execute(
+                    select(FiscalDocument)
+                    .where(FiscalDocument.tenant_id == tenant.id)
+                    .order_by(FiscalDocument.created_at.desc())
+                    .limit(limite)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        pacote["documentos"] = [
+            {
+                "id": str(d.id),
+                "tipo": str(d.tipo_documento),
+                "chave": d.chave,
+                "protocolo": d.protocolo,
+                "xml_autorizado": d.xml_autorizado,
+            }
+            for d in documentos
+        ]
+        pacote["documentos_limite"] = limite
+
+    return pacote

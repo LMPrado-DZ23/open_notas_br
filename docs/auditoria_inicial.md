@@ -3946,3 +3946,55 @@ provaria a coisa errada (foi o primeiro erro que cometi aqui).
 | migração 0014 | aplica, reverte, **sem drift** |
 | gate completo | **9/9** |
 | contrato + Postman | regenerados |
+
+---
+
+## 76. Exportação dos dados do tenant (portabilidade)
+
+**Data:** 2026-11-27. **Fase:** E / adendo §6 item 10. Era a última lacuna grande do modo hospedado.
+
+### O que foi implementado
+
+`GET /v1/me/exportacao` devolve um pacote JSON com: identificação do tenant, configuração fiscal,
+**metadados** dos certificados (apelido, CNPJ, validade, fingerprint, ativo — nunca o PFX), URL do
+webhook, e contagem de emissões por status. Com `?incluir_xml=true&limite=N` acrescenta até N
+documentos com XML autorizado.
+
+### Decisões que importam
+
+| Decisão | Motivo |
+|---|---|
+| **Sem XML por padrão** | exportar tudo por padrão transforma pedido de conferência em resposta de gigabytes |
+| `limite` de 1 a 500 | teto explícito em vez de "depende do banco do cliente" |
+| **Nunca** PFX, senha, hash de chave, segredo de webhook, token | portabilidade é sobre os dados do cliente, não sobre as credenciais dele — credencial sai do cofre, não de uma exportação |
+| Certificado aparece só como metadado | o cliente precisa saber **qual** certificado existe e até quando vale, não possuir a chave privada de novo pelo export |
+
+### Testes (`tests/test_exportacao_tenant.py`, 6)
+
+| Teste | O que prova |
+|---|---|
+| exporta dados do próprio tenant | slug, UF, certificado, URL de webhook, contadores |
+| sem XML por padrão | `documentos` ausente |
+| nenhum segredo no pacote | proíbe `pfx_selado`, `senha_selada`, `api_key_hash`, `webhook_secret`, `signature` |
+| **a própria API key não aparece** | teste com o valor literal da chave |
+| não traz dado de outro tenant | dois tenants, pacote do segundo não contém o primeiro |
+| XML entra quando pedido | `incluir_xml=true&limite=10` devolve documentos e o limite usado |
+
+### Limite
+
+- **Não é backup.** Backup é o dump do banco (`docs/OPERACAO.md` §2); o pacote é portabilidade de
+  dado de negócio. Restaurar um pacote desses não é caminho suportado e o documento não sugere que seja.
+- Não há paginação de documentos: `limite` corta em N mais recentes, sem cursor. Para histórico
+  completo, dump.
+- **Exclusão do tenant por API continua não existindo.** LGPD/portabilidade pedem também o direito de
+  eliminação; hoje o caminho é `DELETE` no banco pelo operador. É a lacuna seguinte, e ela exige
+  decisão sobre confirmação e sobre o que fazer com documento fiscal que tem guarda legal — não vou
+  implementar apagamento de documento fiscal sem essa definição.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_exportacao_tenant.py` | **6 passed** |
+| gate completo | **9/9** |
+| contrato + Postman | regenerados |

@@ -111,7 +111,7 @@ Detalhe de fail-open × fail-closed e rolagem de chave-mestra: `docs/OPERACAO.md
 | Necessidade | Estado |
 |---|---|
 | Backup/restore | procedimento em `docs/OPERACAO.md` §2–3 (o dump contém documento fiscal e dado de cliente) |
-| Portabilidade | ❌ não há exportação de pacote por tenant |
+| Portabilidade | ✅ `GET /v1/me/exportacao` (§76) — metadados por padrão, XML sob demanda e com limite |
 | Exclusão de dados do cliente | ⚠️ cascata por FK ao remover o tenant; **não há rota** nem procedimento de exclusão física documentado além do `DELETE` no banco |
 | Retenção | ❌ não há expurgo automático; prazo é decisão do operador (não inventar prazo legal) |
 

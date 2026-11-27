@@ -1845,6 +1845,35 @@
           }
         },
         {
+          "name": "Exporta os dados do tenant (portabilidade)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/exportacao",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "exportacao"
+              ]
+            },
+            "description": "Pacote de dados do próprio tenant, para portabilidade e conferência (§76).\n\nInclui: identificação, configuração fiscal, metadados de certificado, webhook e contadores por\nstatus. O XML só entra com `incluir_xml=true` e até `limite` documentos — exportar tudo por padrão\ntransformaria um pedido de conferência em resposta de gigabytes.\n\n**Nunca inclui:** PFX, senha, hash de chave, segredo de webhook, token de frete. Portabilidade é\nsobre os dados do cliente, não sobre as credenciais dele — e credencial sai do cofre, não de uma\nexportação."
+          }
+        },
+        {
           "name": "Gera nova API key e invalida a anterior",
           "request": {
             "method": "POST",

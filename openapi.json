@@ -1358,6 +1358,84 @@
         }
       }
     },
+    "/v1/me/exportacao": {
+      "get": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Exporta os dados do tenant (portabilidade)",
+        "description": "Pacote de dados do próprio tenant, para portabilidade e conferência (§76).\n\nInclui: identificação, configuração fiscal, metadados de certificado, webhook e contadores por\nstatus. O XML só entra com `incluir_xml=true` e até `limite` documentos — exportar tudo por padrão\ntransformaria um pedido de conferência em resposta de gigabytes.\n\n**Nunca inclui:** PFX, senha, hash de chave, segredo de webhook, token de frete. Portabilidade é\nsobre os dados do cliente, não sobre as credenciais dele — e credencial sai do cofre, não de uma\nexportação.",
+        "operationId": "exportar_dados_v1_me_exportacao_get",
+        "parameters": [
+          {
+            "name": "incluir_xml",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Inclui o XML dos documentos",
+              "default": false,
+              "title": "Incluir Xml"
+            },
+            "description": "Inclui o XML dos documentos"
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Exportar Dados V1 Me Exportacao Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/me/certificados": {
       "post": {
         "tags": [
