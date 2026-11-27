@@ -3,6 +3,12 @@
 **Gerado por comando nesta sessão.** Cada número abaixo veio de execução, não de memória.
 Este documento é o entregável bloqueante da Etapa 0: sem ele aprovado, nenhuma fase começa.
 
+> **Referência desta leitura (2026-11-27).** Branch de trabalho `work/auditoria-e-fase-a`, sobre a
+> branch padrão `main` no commit `55351cb`. As seções 1–43 descrevem o repositório **antes** das
+> correções; as seções 44 em diante registram o que mudou, com a data e o defeito que motivou cada
+> mudança. Nenhum número das seções antigas deve ser lido como estado atual — para isso existe
+> `docs/PAINEL.md` (regenerado a cada rodada) e a seção mais recente deste documento.
+
 ## 1. Árvore de arquivos
 
 - **app/db/models/** (6 arquivos): __init__.py, enums.py, frete.py, invoice.py, ops.py, tenant.py
