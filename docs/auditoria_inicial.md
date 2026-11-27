@@ -2979,3 +2979,59 @@ com 61%, **apesar de testes que exercitam os caminhos**. O motivo está no próp
 handlers assíncronos aparece como não coberto. Ou seja: aqui cobertura **subestima** o testado, e
 perseguir o número levaria a escrever teste redundante em vez de corrigir defeito. Registrado para
 que ninguém "conserte" a cobertura quebrando os testes.
+
+---
+
+## 57. Mesma `Idempotency-Key` com corpo diferente devolvia a nota antiga em silêncio
+
+**Data:** 2026-11-27. **Fase:** A (idempotência). **Mudança de comportamento — leia o aviso no fim.**
+
+### O defeito
+
+Reusar a chave com **outro corpo** devolvia `200` com a fatura anterior e `ja_existia: true`.
+Nenhum aviso, nenhum erro. O cliente que pedia R$ 100 recebia de volta a nota de R$ 50 e concluía que
+havia emitido o que pediu.
+
+Em documento fiscal isso não é bug cosmético: é **divergência entre o que foi pedido e o que foi
+escriturado**, descoberta na conciliação — ou nunca.
+
+Não havia teste nem tratamento: `grep` por `divergente` nos testes não retornava nada sobre emissão,
+e o único `409` do arquivo era o de conflito raro de constraint.
+
+### A correção
+
+`_recusar_payload_divergente()` compara o corpo recebido com o `payload` que a própria fatura guardou
+na criação (o mesmo `model_dump(mode="json")` que já era persistido). Sem coluna nova, sem migração.
+
+| Situação | Antes | Agora |
+|---|---|---|
+| chave + **mesmo** corpo | 200 com `ja_existia` | **200 com `ja_existia`** (inalterado) |
+| chave + corpo **diferente** | 200 com a nota antiga | **409** explicando que a chave já foi usada com outro corpo |
+| chave nova | 201 | 201 (inalterado) |
+
+A mensagem orienta o caminho certo sem ecoar dado do cliente: "reenvio idêntico devolve a emissão
+original; para um documento novo, use outra chave".
+
+### Aviso de compatibilidade
+
+Isto **muda o comportamento de `/v1`** num caso específico. A decisão foi não versionar porque o
+comportamento anterior não era contrato — era resultado errado. Quem hoje reusa chave com corpo
+diferente está, na melhor hipótese, com bug de cliente; na pior, emitindo documento trocado.
+Para clientes que só repetem o mesmo pedido (o caso normal), nada muda.
+
+### Testes (`tests/test_idempotencia_concorrencia.py`, +2)
+
+| Teste | O que prova |
+|---|---|
+| corpo diferente vira 409 | 201 → 409, e a fatura original segue única |
+| corpo idêntico continua 200 | `ja_existia: true` e mesmo `invoice_id` |
+
+### Limites
+
+- A comparação é de **corpo normalizado**, não de intenção: dois corpos equivalentes escritos de
+  formas diferentes (campo opcional explícito como `null` vs ausente) precisam gerar o mesmo
+  `model_dump`, e é isso que o teste protege. Campo novo com default diferente quebraria a igualdade
+  e devolveria 409 num reenvio legítimo — risco aceito e documentado.
+- Não há janela de expiração da chave: a fatura antiga nunca "expira", então a chave vale para sempre
+  para aquele tenant. É coerente com retenção fiscal, mas significa que reusar chave antiga nunca
+  emitirá documento novo.

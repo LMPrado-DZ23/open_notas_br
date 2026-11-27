@@ -107,6 +107,30 @@ def _trava_de_idempotencia(tenant_id: uuid.UUID, chave: str) -> int:
     return int.from_bytes(resumo, "big", signed=True)
 
 
+def _recusar_payload_divergente(existente: Invoice, dados: BaseModel) -> None:
+    """Mesma `Idempotency-Key` com corpo diferente é **409**, não 200 silencioso.
+
+    Reutilizar a chave com outro pedido e receber de volta a nota anterior é o pior desfecho
+    possível: o cliente acha que emitiu R$ 100 e o documento que existe é de R$ 50 — e num
+    documento fiscal isso é divergência de escrituração, não bug cosmético.
+
+    A comparação usa o `payload` que a própria fatura guardou na criação (`model_dump(mode="json")`),
+    então não precisa de coluna nova nem de migração. Corpo idêntico continua devolvendo **200** com
+    `ja_existia: true`, que é o comportamento que o cliente que repete espera.
+    """
+    original = existente.payload or {}
+    atual = dados.model_dump(mode="json")
+    if original == atual:
+        return
+    raise HTTPException(
+        status_code=HTTP_409,
+        detail=(
+            "esta `Idempotency-Key` já foi usada com um corpo diferente. "
+            "Reenvio idêntico devolve a emissão original; para um documento novo, use outra chave."
+        ),
+    )
+
+
 async def _buscar_por_idempotencia(
     db: AsyncSession, tenant_id: uuid.UUID, chave: str
 ) -> Invoice | None:
@@ -191,6 +215,7 @@ async def emitir(
 
     existente = await _buscar_por_idempotencia(db, tenant.id, chave)
     if existente is not None:
+        _recusar_payload_divergente(existente, dados)
         documento = await _documento_da_fatura(db, existente)
         if existente.status is StatusFatura.AUTORIZADA and documento is not None:
             corpo = _emissao_out(existente, documento, ja_existia=True)

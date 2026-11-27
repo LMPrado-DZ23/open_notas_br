@@ -152,3 +152,45 @@ class TestSimultaneidade:
             )
         ).scalar_one()
         assert total == 1, "duas faturas para o mesmo Idempotency-Key"
+
+
+class TestPayloadDivergente:
+    """Mesma `Idempotency-Key`, corpo diferente: 409, não 200 silencioso (§57).
+
+    Sem isto, o cliente que pede R$ 100 com a chave de um pedido de R$ 50 recebia de volta a nota
+    de R$ 50 com `ja_existia: true` — e acharia que emitiu o que pediu. Em documento fiscal, isso é
+    divergência de escrituração.
+    """
+
+    async def test_corpo_diferente_vira_409(self, cliente, pronto, sessao_db) -> None:
+        cabecalho = {**pronto["cabecalho"], "Idempotency-Key": "divergente-0001"}
+
+        primeira = await cliente.post("/v1/emissoes", json=CORPO, headers=cabecalho)
+        assert primeira.status_code == 201, primeira.text
+
+        outro = {**CORPO, "valor": "99.00", "descricao": "Outro servico, mesmo pedido"}
+        segunda = await cliente.post("/v1/emissoes", json=outro, headers=cabecalho)
+
+        assert segunda.status_code == 409, segunda.text
+        assert "corpo diferente" in segunda.json()["detail"]
+
+        # E a fatura original continua sendo a única, com o valor original.
+        total = (
+            await sessao_db.execute(
+                select(func.count())
+                .select_from(Invoice)
+                .where(Invoice.idempotency_key == "divergente-0001")
+            )
+        ).scalar_one()
+        assert total == 1
+
+    async def test_corpo_identico_continua_200(self, cliente, pronto) -> None:
+        cabecalho = {**pronto["cabecalho"], "Idempotency-Key": "identico-0001"}
+
+        primeira = await cliente.post("/v1/emissoes", json=CORPO, headers=cabecalho)
+        segunda = await cliente.post("/v1/emissoes", json=CORPO, headers=cabecalho)
+
+        assert primeira.status_code == 201
+        assert segunda.status_code == 200
+        assert segunda.json()["ja_existia"] is True
+        assert primeira.json()["invoice_id"] == segunda.json()["invoice_id"]

@@ -5,6 +5,21 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Alterado (correção com mudança de comportamento) — mesma `Idempotency-Key` com corpo diferente agora é 409
+
+- Antes: reusar a chave com **outro corpo** devolvia `200` com a fatura anterior e `ja_existia: true`.
+  Quem pedia R$ 100 recebia a nota de R$ 50 e concluía que emitiu o que pediu — divergência entre o
+  pedido e o que foi escriturado.
+- Agora: corpo diferente → **409** com orientação ("reenvio idêntico devolve a emissão original; para
+  documento novo, use outra chave"). Corpo idêntico continua **200** com `ja_existia`, e chave nova
+  continua **201**.
+- Sem coluna nova e sem migração: compara com o `payload` que a fatura já guardava.
+- **Aviso:** muda o comportamento de `/v1` neste caso. Não houve versionamento porque o
+  comportamento anterior não era contrato — era resultado errado.
+- Limites declarados: comparação é de corpo normalizado (campo opcional explícito como `null` vs
+  ausente precisa gerar o mesmo dump) e a chave não expira — reusar chave antiga nunca emite documento
+  novo.
+
 ### Documentado — ADR 0003 decide não instalar OpenTelemetry agora
 
 - Traces distribuídos nunca existiram, mas a lacuna não tinha **decisão registrada** — lacuna sem
