@@ -2458,3 +2458,58 @@ sem passar por `executar_com_circuito`.
 O circuito **não** substitui retry: retry é do cliente/worker; aqui só se decide "nem tente".
 Rejeição fiscal definitiva não vira falha de circuito transitório — `registrar_falha` só é chamado
 para `ErroTransitorio`, que é o que o `executar` classifica.
+
+---
+
+## 48. Performance do caminho síncrono em mock: medido, no alvo, sem folga
+
+**Data:** 2026-11-26. **Fase:** F. Alvo de produto declarado no prompt: **p95 < 300 ms** para a parte
+síncrona **em mock**.
+
+### Instrumento
+
+`scripts/benchmark_mock.py` — emissão real de NFS-e pelo caminho HTTP completo, em processo
+(`httpx.ASGITransport`, sem abrir porta, sem rede), com `NFSE_ADAPTER=mock`, PostgreSQL local,
+certificado A1 autoassinado gerado em memória e **assinatura XMLDSig real** (o dublê substitui só
+a SEFAZ, não a assinatura). Banco de **teste**, limpo antes; não toca o banco de desenvolvimento.
+
+### Resultado medido
+
+| Execução | n | p50 | p95 | p99 | max |
+|---|---|---|---|---|---|
+| aquecimento 5 | 30 | **211,1 ms** | **289,9 ms** | 291,3 ms | 291,3 ms |
+| aquecimento 10 | 60 | **172,7 ms** | **285,5 ms** | 300,6 ms | 429,1 ms |
+
+- **Alvo atingido** para p95 (285,5 ms ≤ 300 ms) nas duas execuções.
+- **Sem folga**: p99 já passa de 300 ms e o máximo chegou a 429 ms. O limite está a ~5% do alvo.
+- O custo dominante é a assinatura XMLDSig com RSA-2048, não o banco: o p50 alto acompanha a
+  variância do processo de assinatura.
+
+### O que este número NÃO é
+
+Não é tempo de autorização fiscal. Numa emissão real entram resolução DNS, TCP, mTLS, WAF da
+SEFAZ, fila do autorizador e o processamento dele. O alvo de 300 ms só faz sentido neste recorte, e
+o script imprime essa ressalva junto do número para o resultado não ser lido fora de contexto.
+
+### Incidente durante a medição (registrado, não escondido)
+
+A **primeira** execução do script foi para a **borda real** da SEFIN: o script não definia
+`NFSE_ADAPTER` e o padrão do projeto é `sefin` (`docker-compose.yml:24`). A resposta foi **403**
+— certificado autoassinado não aceito — e **nenhum documento foi emitido**: a recusa acontece na
+borda, antes de qualquer processamento fiscal.
+
+Correção aplicada na mesma hora, em duas camadas:
+
+1. `os.environ["NFSE_ADAPTER"] = "mock"` no topo do script, antes de importar `app.*`;
+2. guarda dura `recusa_por_adaptador(adaptador)` que aborta com código 2 se o adaptador não for o
+   dublê — testada em `tests/test_benchmark_mock.py` (3 casos, incluindo "importar o script força
+   mock no ambiente").
+
+Fica registrado porque é o mesmo tipo de erro que a §43 tentou prevenir na `demo_e2e`: **o padrão do
+projeto é o adaptador real**, e qualquer script que não o force explicitamente pode falar com a
+SEFAZ.
+
+### Limite
+
+Medição em uma máquina Windows, um processo, sem carga concorrente. Não é teste de carga e não
+inclui pico de fila. Reprodução: `python -m scripts.benchmark_mock --n 60 --warmup 10`.

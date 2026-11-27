@@ -5,6 +5,20 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — performance do caminho síncrono medida (alvo de produto: p95 < 300 ms em mock)
+
+- `scripts/benchmark_mock.py`: emissão de NFS-e pelo HTTP completo, em processo (`ASGITransport`,
+  sem rede), `NFSE_ADAPTER=mock`, PostgreSQL de teste, assinatura XMLDSig **real**.
+- Medido: **p95 285,5 ms** (n=60) e **289,9 ms** (n=30); p50 172,7/211,1 ms. Alvo atingido, mas
+  **sem folga** — p99 já passa de 300 ms e o máximo chegou a 429 ms.
+- O custo dominante é a assinatura RSA-2048, não o banco.
+- **Incidente registrado**: a primeira execução foi para a borda real da SEFIN (script não definia
+  `NFSE_ADAPTER`; o padrão do projeto é `sefin`). Recusada com 403 por certificado autoassinado,
+  **nenhum documento emitido**. Corrigido com env explícito + guarda `recusa_por_adaptador`,
+  testada em `tests/test_benchmark_mock.py`.
+- `docs/auditoria_inicial.md` §48 traz condições, números e o limite ("não é tempo de autorização
+  fiscal").
+
 ### Adicionado — circuito em cancelamento e evento (não só na emissão)
 
 - Cancelamento e evento falam com a **mesma** SEFIN Nacional e não passavam pelo circuit breaker:
