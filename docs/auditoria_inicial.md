@@ -3272,3 +3272,52 @@ contaminada e **não deve ser citada**.
 | `python -m scripts.gerar_painel` | painel regenerado: rotas 58, tabelas 15, migrations 11, testes 1468 |
 | `pytest tests` (isolado) | `exit=0` — verde |
 | `scripts.check_ci --tudo` (isolado) | **9/9** |
+
+---
+
+## 62. O worker herdava o teto de 60 s — risco criado por §60, fechado aqui
+
+**Data:** 2026-11-27. **Fase:** F. Corrige um risco que **eu** introduzi na rodada anterior.
+
+### O problema (autoinfligido)
+
+§60 aplicou `statement_timeout` de 60 s no `criar_engine()`. O worker usa o **mesmo** engine. Um lote
+de emissões dura minutos: com o teto da API, o Postgres cancelaria a consulta **no meio do lote**,
+deixando documentos processados pela metade — pior que falhar antes de começar.
+
+Estava registrado como "limite declarado" em §60. Limite declarado não é correção: se eu podia
+fechar, deveria fechar na mesma rodada.
+
+### A correção
+
+| Peça | O que faz |
+|---|---|
+| `DB_STATEMENT_TIMEOUT_WORKER_MS` (600 000) | teto próprio do worker, 10 min |
+| `criar_engine(..., statement_timeout_ms=...)` | parâmetro explícito; o padrão continua sendo o da API |
+| `obter_sessionmaker_worker()` | engine e pool **separados**, do processo do worker |
+| `dispose_engine()` / `reset_engine()` | descartam/limpam os **dois** engines |
+
+`entregar_webhooks` e `processar_lote` passaram a usar a fábrica do worker. Nenhuma rota da API mudou.
+
+### Testes (`tests/test_db_timeouts.py`, +3)
+
+| Teste | O que prova |
+|---|---|
+| configuração | teto do worker > teto da API |
+| `SHOW statement_timeout` na fábrica do worker | **600 000 ms** no servidor |
+| `SHOW statement_timeout` na fábrica da API | **60 000 ms** no servidor |
+
+### Achado de teste
+
+A primeira versão comparava string: esperava `"10min"` e recebeu… `"1min"` no caso da API — o
+Postgres escolhe a unidade mais legível (60 000 ms → `1min`, 600 000 ms → `10min`). Troquei por
+`_em_ms()`, que normaliza `min`/`s`/`ms` para milissegundos. Comparar formatação de `SHOW` é frágil por
+construção.
+
+### Limite residual
+
+- Dois pools agora (API e worker). Em processo único de desenvolvimento, isso é 2 × `pool_size`
+  conexões se o worker rodar no mesmo processo — no desenho real são processos distintos.
+- O teto de 10 min é escolha, não medição: não há lote real medido que justifique outro número.
+- Se algum dia o worker rodar no mesmo processo da API (`arq` embutido), a separação continua válida
+  porque são engines distintos — mas a soma de conexões precisa ser conferida no cálculo do Postgres.

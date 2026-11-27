@@ -5,6 +5,18 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido — worker herdava o teto de 60 s e podia abortar lote no meio
+
+- Risco introduzido pelo próprio `statement_timeout` de §60: o worker usa o mesmo engine, e um lote
+  de emissões dura minutos. O Postgres cancelaria a consulta **no meio do lote**, deixando documentos
+  processados pela metade.
+- Agora o worker tem engine e pool próprios, com `DB_STATEMENT_TIMEOUT_WORKER_MS` (600 000 ms).
+  `criar_engine()` ganhou o parâmetro; `dispose_engine()`/`reset_engine()` cuidam dos dois engines;
+  `entregar_webhooks` e `processar_lote` usam a fábrica do worker. Nenhuma rota da API mudou.
+- 3 testes, provando no servidor: worker **600 000 ms**, API **60 000 ms**.
+- Achado de teste: comparar a string de `SHOW statement_timeout` é frágil — o Postgres devolve
+  `1min`/`10min`, não `60s`/`600s`. Normalização por unidade (`_em_ms`) no lugar da comparação textual.
+
 ### Corrigido — painel contradizia a auditoria (correção no gerador, não no arquivo)
 
 - `docs/PAINEL.md` tinha tabelas narrativas fixas em `scripts/gerar_painel.py` que nunca acompanharam

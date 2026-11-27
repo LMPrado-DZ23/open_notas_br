@@ -55,10 +55,10 @@ async def entregar_webhooks(ctx: dict[str, Any]) -> dict[str, int]:
     Job de fila, e não `POST` dentro da requisição: endpoint do cliente lento não
     pode segurar a resposta da emissão.
     """
-    from app.db.session import obter_sessionmaker
+    from app.db.session import obter_sessionmaker_worker
     from app.webhooks.service import processar_pendentes
 
-    async with obter_sessionmaker()() as sessao:
+    async with obter_sessionmaker_worker()() as sessao:
         contagem = await processar_pendentes(sessao)
         await sessao.commit()
     logger.info("job_webhooks", extra={"contagem": contagem})
@@ -74,7 +74,7 @@ async def processar_lote(ctx: dict[str, Any], lote_id: str) -> str:
     from app.core.config import get_settings as settings_local
     from app.db.models.ops import BatchJob
     from app.db.models.tenant import Tenant
-    from app.db.session import obter_sessionmaker
+    from app.db.session import obter_sessionmaker_worker
     from app.nfse.factory import montar_adapter
 
     configuracao = settings_local()
@@ -83,7 +83,7 @@ async def processar_lote(ctx: dict[str, Any], lote_id: str) -> str:
     # caía sempre na SEFIN de homologação e sem mTLS (ver app/nfse/factory.py).
     adapter: Any = montar_adapter(configuracao)
 
-    async with obter_sessionmaker()() as sessao:
+    async with obter_sessionmaker_worker()() as sessao:
         job = await sessao.get(BatchJob, uuid.UUID(lote_id))
         if job is None:
             return f"lote {lote_id} não encontrado"

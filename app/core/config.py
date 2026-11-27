@@ -61,6 +61,9 @@ class Settings(BaseSettings):
     #: Transação ociosa é desperdício de conexão: depois disto o Postgres derruba a sessão em vez
     #: de deixá-la presa (falha de aplicação vira erro claro, não silêncio).
     db_idle_tx_timeout_ms: int = 120_000
+    #: Teto do **worker**. Um lote de emissões dura minutos; herdar o teto da API (60 s) abortaria o
+    #: lote no meio, deixando documentos processados pela metade.
+    db_statement_timeout_worker_ms: int = 600_000
     #: Recicla conexões depois deste tempo. `pool_pre_ping` cobre queda silenciosa, mas reciclar
     #: evita carregar conexão velha por horas atrás de firewall/PgBouncer.
     db_pool_recycle_s: int = 1_800
