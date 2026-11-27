@@ -2349,3 +2349,63 @@ exatamente o que aconteceu com `ruff format --check` no passado (§8).
 
 `mypy` sem `--strict`; `disallow_untyped_defs` não está ligado. Zero erros significa "sem erro nas
 regras atuais", não "código totalmente tipado".
+
+---
+
+## 46. Secret scanning no gate e no CI (sem dependência nova)
+
+**Data:** 2026-11-26. **Fase:** F (prontidão) — lacuna explícita do prompt de missão.
+
+### O que faltava
+
+O projeto tem uma regra dura — nunca versionar API key, certificado, PFX/PEM, token ou senha — e
+**nenhuma verificação automática** a sustentava. O CI tinha lint, testes com cobertura, migrations e
+contrato; não tinha varredura de segredo. A regra dependia de disciplina, e disciplina não é gate.
+
+### Por que não `gitleaks`/`trufflehog`
+
+O prompt proíbe dependência nova sem ADR (regra 11). As duas ferramentas resolveriam, mas são
+binários externos que precisariam ser baixados e versionados no CI. O que este projeto precisa
+detectar é um conjunto pequeno e estável de formas — cabe em `scripts/verificar_segredos.py`
+(biblioteca padrão apenas).
+
+### Regras implementadas
+
+| Regra | O que pega |
+|---|---|
+| `chave_privada` | bloco `-----BEGIN … PRIVATE KEY-----` |
+| `token_github` | `ghp_`, `gho_`, `ghu_`, `ghs_`, `ghr_` + 30 caracteres |
+| `token_openai` | `sk-` + 32 caracteres |
+| `chave_aws` | `AKIA` + 16 caracteres maiúsculos/dígitos |
+| `pfx_embutido` | PKCS#12 em literal base64 |
+| `senha_literal` | `senha_db = "…"`, `api_key = "…"`, `token = "…"` (aceita sufixo) |
+
+### Três decisões que os testes fixam
+
+1. **O scanner não ecoa o segredo.** O achado é `caminho:linha: tipo`. Imprimir o valor
+   transformaria o log do CI num segundo vazamento — que é exatamente o erro que se quer evitar.
+2. **Uma regra por linha, da mais específica para a mais genérica.** `token = "ghp_…"` casa com
+   `token_github` **e** com `senha_literal`; reportar duas vezes polui sem informar.
+3. **`tests/` e `docs/` ficam fora apenas da regra `senha_literal`.** Fixtures usam
+   `"senha-de-teste"` de propósito. Chave privada e token continuam proibidos em qualquer caminho —
+   e há teste afirmando isso.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `python -m scripts.verificar_segredos` | `nenhum segredo em 479 arquivo(s) verificado(s)` |
+| `pytest tests/test_verificar_segredos.py` | **11 passed** |
+| `python -m scripts.check_ci` (rápido) | **6/6**, agora com `segredos` |
+| teste com segredo plantado | detecta; e a saída do comando **não** contém o valor |
+
+O teste de detecção é o que dá valor ao resultado no repositório: um scanner que só passa no estado
+atual pode estar cego. Cada padrão tem caso positivo com valor sintético, e o caso negativo (texto
+limpo) está coberto.
+
+### Limite honesto
+
+Varredura de **conteúdo**, não de histórico do git. Um segredo removido em commit posterior
+continua exposto no histórico — o relatório diz isso ao falhar ("estar no histórico já conta como
+exposto"), mas o projeto não tem ferramenta de reescrita de histórico, e reescrever `main` exigiria
+autorização explícita do dono.

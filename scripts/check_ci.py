@@ -34,6 +34,9 @@ CHECAGENS: tuple[Checagem, ...] = (
     # 93 erros acumularam, três deles defeitos de execução (um mandava emissão real para a
     # SEFIN de homologação). Zero erros hoje; entrar no gate é o que impede o retorno.
     Checagem("tipagem", [sys.executable, "-m", "mypy", "app", "src"]),
+    # Regra dura do projeto (nunca versionar chave/senha/PEM) não tinha verificação nenhuma:
+    # dependia de disciplina. Este scanner varre o índice do git e não ecoa o valor achado.
+    Checagem("segredos", [sys.executable, "-m", "scripts.verificar_segredos"]),
     Checagem(
         "contrato openapi",
         [sys.executable, "-m", "pytest", "tests/test_openapi_sincronizado.py", "-q"],

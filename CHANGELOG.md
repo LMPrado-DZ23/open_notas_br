@@ -5,6 +5,18 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — secret scanning no gate e no CI (sem dependência nova)
+
+- A regra "nunca versionar chave/senha/PEM" não tinha **nenhuma** verificação automática. Agora
+  `scripts/verificar_segredos.py` varre o índice do git (biblioteca padrão) e procura bloco PEM,
+  token GitHub/OpenAI/AWS, PKCS#12 em literal e senha literal.
+- O relatório traz **caminho, linha e tipo** — nunca o valor encontrado: log de CI não pode virar
+  segundo vazamento. Há teste afirmando isso.
+- `tests/` e `docs/` são dispensados **apenas** da regra de senha literal (fixtures usam
+  `"senha-de-teste"` de propósito); chave privada e token continuam proibidos em qualquer caminho.
+- Gate local agora 8/8 com `--tudo` (6/6 rápido) e CI com passo `Secret scanning`.
+- Medido: `nenhum segredo em 479 arquivo(s)`; 11 testes novos.
+
 ### Adicionado — `mypy` no gate e no CI; 93 → 0 erros
 
 - `mypy` estava configurado no `pyproject.toml` desde o início e **nunca** rodava: 93 erros

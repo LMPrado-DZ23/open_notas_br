@@ -71,6 +71,11 @@ jobs:
       - name: Tipagem (mypy)
         run: mypy app src
 
+      # Regra dura: nenhum segredo versionado. O scanner nao ecoa o valor encontrado, so
+      # caminho/linha/tipo — relatorio de CI nao pode virar segundo vazamento.
+      - name: Secret scanning
+        run: python -m scripts.verificar_segredos
+
       - name: Testes com cobertura
         run: pytest --cov=app --cov=notasbr --cov-report=term-missing
 
