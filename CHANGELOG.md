@@ -5,6 +5,19 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — rotação da chave-mestra com re-selagem verificada
+
+- Trocar `MASTER_ENCRYPTION_KEY` tornava ilegível **tudo** que estava selado (A1, segredo de
+  webhook, credenciais municipais, tokens de frete). Não existia re-selagem.
+- `scripts/rotacionar_chave_mestra.py`: abre cada envelope com a chave antiga usando o **mesmo
+  `aad`** e re-sela com a nova, em **uma transação**, **verificando antes do commit**.
+- Garantias: falha limpa (nada gravado) se a chave antiga não for a que selou o dado; recusa chave
+  ausente/malformada/igual; chaves só por variável de ambiente (nunca em argumento, que aparece em
+  `ps`); relatório com contagens, sem conteúdo nem chave.
+- 11 testes, incluindo "nova abre, antiga não" (prova de re-selagem) e "`aad` amarra ao tenant".
+- `docs/OPERACAO.md` §5.2 atualizado: o texto que dizia "não existe re-selagem" agora traz o
+  procedimento; o caminho manual (reenviar A1) fica como último recurso.
+
 ### Adicionado — matriz de cobertura fiscal e runbook de operação
 
 - `docs/MATRIZ-COBERTURA.md`: por documento e operação, com **nível de prova** explícito

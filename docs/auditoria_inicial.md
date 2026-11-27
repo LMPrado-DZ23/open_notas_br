@@ -2733,3 +2733,70 @@ está no runbook com o procedimento correto (reenvio), em vez de descoberto em p
 | gate completo | 9/9 (docs não alteram código) |
 
 Ambos os documentos estão linkados no README.
+
+---
+
+## 53. Rotação da chave-mestra: re-selagem implementada (a lacuna de §52 fechada)
+
+**Data:** 2026-11-26. **Fase:** A/F. §52 registrou a limitação; esta seção a corrige.
+
+### O problema medido em §52
+
+Trocar `MASTER_ENCRYPTION_KEY` tornava ilegível **todo** material selado — certificado A1, segredo
+de webhook, credenciais municipais, tokens do Melhor Envio. Não havia função de re-selagem (grep por
+`rotacionar|rotation|resselar` em `app/core` = zero). O runbook só podia recomendar reenvio manual.
+
+### O que foi implementado
+
+`scripts/rotacionar_chave_mestra.py` — núcleo testável (`rotacionar`, `verificar`) + CLI
+(`executar`). Para cada linha: abre com a chave antiga usando o **mesmo `aad`** com que foi selada e
+re-sela com a nova. O `aad` **não muda** — só a chave.
+
+| Tabela | Campos | `aad` |
+|---|---|---|
+| `tenant_certificates` | `pfx_selado`, `senha_selada` | `tenant:<id>` |
+| `tenants` | `webhook_secret_selado` | `tenant:<id>` |
+| `credenciais_municipais` | usuário, senha, token | `tenant:<id>` + `|` + `codigo_ibge` |
+| `frete_credenciais` | `access_token_selado`, `refresh_token_selado` | `tenant:<id>` |
+
+### Garantias impostas pelo código
+
+1. **Uma transação.** Metade migrado é pior que nada migrado.
+2. **Verifica antes de commitar.** `verificar()` reabre cada envelope com a chave nova; qualquer
+   falha faz `rollback` e nada é gravado.
+3. **Falha limpa com chave antiga errada.** Se um envelope não abrir, a mensagem diz que a chave
+   não é a que selou aquele dado, e o banco fica intacto.
+4. **Recusa** chave ausente, malformada (não base64, ≠ 32 bytes) e chave nova igual à antiga.
+5. **Chaves por variável de ambiente**, nunca por argumento de linha de comando — argumento aparece
+   em `ps` e no histórico do shell.
+6. **Não imprime conteúdo nem chave**, só contagens.
+
+### Testes (`tests/test_rotacionar_chave_mestra.py`, 11)
+
+| Teste | O que prova |
+|---|---|
+| nova abre, antiga não | houve re-selagem de verdade, não reescrita |
+| `verificar` conta os campos | 4 campos no cenário (pfx + senha + webhook + frete) |
+| chave antiga errada | `ErroDeCriptografia` e **nada gravado** (o selo original continua válido) |
+| chave nova igual | recusa |
+| `aad` amarra ao tenant | blob não abre com `aad` de outro tenant, antes e depois da rotação |
+| CLI sem variáveis | código 2 com mensagem |
+
+Cenário de teste usa chaves fixas (`\x01`…, `\x02`…) e material fictício — nenhum PFX real.
+
+### O que continua manual
+
+O serviço precisa ser reiniciado com a chave nova depois do script. Não há orquestração
+automática: rodar com a chave antiga ainda no ambiente deixaria processos antigos lendo com a chave
+velha e falhando na decifragem.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_rotacionar_chave_mestra.py` | **11 passed** |
+| `mypy app src` | zero erros |
+| gate completo | 9/9 |
+
+`docs/OPERACAO.md` §5.2 foi atualizado: o texto que dizia "não existe re-selagem" agora descreve o
+procedimento, mantendo o caminho manual como último recurso.

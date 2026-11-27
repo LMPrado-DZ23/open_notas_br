@@ -83,12 +83,23 @@ downgrade de uma tabela criada é irreversível para o conteúdo.
 ### 5.2 Chave-mestra (`MASTER_ENCRYPTION_KEY`)
 
 - Protege certificados, segredos de webhook e credenciais municipais.
-- **Não existe re-selagem automática.** Verificado: não há função de rotação que reabre e regrava
-  os segredos com uma chave nova (`grep` por `rotacionar|rotation|resselar` não encontra nada em
-  `app/core`).
-- **Consequência prática:** trocar a chave torna ilegível todo material já selado. O procedimento
-  correto é: (a) trocar a chave, (b) **reenviar** os certificados A1 e regravar os segredos de
-  webhook/credenciais municipais de cada tenant, (c) confirmar com uma emissão em mock.
+**Re-selagem existe desde 2026-11-26** (`scripts/rotacionar_chave_mestra.py`, auditoria §53). Ela
+reabre cada envelope com a chave antiga — usando o **mesmo `aad`** com que foi selado — e sela de
+novo com a nova, em uma transação, verificando tudo antes do commit.
+
+```bash
+MASTER_ENCRYPTION_KEY=<antiga> \
+MASTER_ENCRYPTION_KEY_NOVA=<nova> \
+python -m scripts.rotacionar_chave_mestra
+# depois: atualizar MASTER_ENCRYPTION_KEY do serviço para a nova e reiniciar
+```
+
+Cobre certificados A1 (`pfx_selado` + `senha_selada`), segredo de webhook do tenant, credenciais
+municipais (usuário/senha/token) e tokens do Melhor Envio. Se qualquer envelope não abrir com a
+chave antiga informada, **nada é gravado** — significa que a chave não é a que selou aquele dado.
+
+**Antes de 2026-11-26 não havia re-selagem**: quem já operava com a versão anterior precisava
+reenviar A1 e regravar segredos à mão. Esse caminho continua válido como último recurso.
 - Em produção, `master_key()` **recusa subir** sem a variável; em teste/desenvolvimento usa chave
   derivada de constante pública e loga aviso (`master_key_ausente_usando_chave_de_desenvolvimento`).
 
