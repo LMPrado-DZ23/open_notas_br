@@ -7,10 +7,10 @@
 
 | Métrica | Valor |
 |---|---|
-| Rotas | 59 |
+| Rotas | 60 |
 | Tabelas ORM | 16 |
-| Migrations | 12 (head `0012`) |
-| Testes aprovados | 1497 |
+| Migrations | 13 (head `0013`) |
+| Testes aprovados | 1503 |
 | Municípios no seed | 5571 (IBGE, 27 UFs) |
 | Postgres de teste | porta 55434, db `notasbr` |
 

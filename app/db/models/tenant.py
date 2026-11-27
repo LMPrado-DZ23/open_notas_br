@@ -55,6 +55,11 @@ class Tenant(Base, MixinId, MixinTimestamps):
     api_key_prefix: Mapped[str] = mapped_column(String(16), nullable=False)
     api_key_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     api_key_rotacionada_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    #: Quando a chave atual deixa de valer por tempo (`NULL` = sem prazo).
+    api_key_expira_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    #: Quando a chave foi **revogada** (vazamento, desligamento). Revogar grava um hash aleatório
+    #: inutilizável, então a chave antiga deixa de casar até na busca do próprio dono.
+    api_key_revogada_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     # Endpoint e segredo de webhook de saída. O segredo é selado (AES-256-GCM).
     webhook_url: Mapped[str | None] = mapped_column(String(500))

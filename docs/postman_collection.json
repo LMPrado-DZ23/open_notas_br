@@ -49,6 +49,37 @@
             },
             "description": "Marca o item para replay.\n\n`tenant_id` é **explícito** e obrigatório: operação de admin atravessa tenants por\nnatureza, e deixar implícito esconderia qual tenant está sendo afetado. O serviço\ncontinua exigindo o tenant certo, então o isolamento não é burlado — ele é declarado.\n\nNão executa a tarefa: quem reexecuta é o worker. Aqui se decide se o replay é\nlegítimo (o serviço recusa replay duplo e item descartado)."
           }
+        },
+        {
+          "name": "Revoga a API key de um tenant (operação de plataforma)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/tenants/{tenant_id}/revogar-chave",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "tenants",
+                "{tenant_id}",
+                "revogar-chave"
+              ]
+            },
+            "description": "Mata a credencial sem emitir outra (adendo §5).\n\nQuem usa: operador diante de vazamento ou desligamento. O tenant fica **sem acesso** até que\noutra chave seja emitida — comportamento correto para credencial comprometida, e diferente de\nrotação, que já devolve a nova ao dono.\n\n`404` quando o admin não está habilitado (ADR 0001: quem não deve saber que a rota existe não\ndescobre pelo código de erro)."
+          }
         }
       ]
     },

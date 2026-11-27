@@ -9,8 +9,9 @@ Duas invariantes que este módulo protege:
 
 from __future__ import annotations
 
+import secrets
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,6 +43,14 @@ class TenantSuspenso(ErroDeTenant):
 
 class CredencialInvalida(ErroDeTenant):
     """API key desconhecida."""
+
+
+class CredencialExpirada(ErroDeTenant):
+    """API key válida, mas fora do prazo. Distinta de inválida: o dono precisa saber que expirou."""
+
+
+class CredencialRevogada(ErroDeTenant):
+    """API key revogada (vazamento, desligamento). Não volta a valer por rotação."""
 
 
 async def criar_tenant(sessao: AsyncSession, dados: TenantCreate) -> tuple[Tenant, str, str | None]:
@@ -105,21 +114,59 @@ async def autenticar(sessao: AsyncSession, api_key: str) -> Tenant:
     if tenant.status is not StatusTenant.ATIVO:
         raise TenantSuspenso("conta suspensa")
 
+    agora = datetime.now(UTC)
+    if tenant.api_key_revogada_em is not None:
+        raise CredencialRevogada("API key revogada")
+    expira = tenant.api_key_expira_em
+    if expira is not None:
+        # Comparação com fuso: o banco devolve aware, mas o teste pode gravar naive.
+        if expira.tzinfo is None:
+            expira = expira.replace(tzinfo=UTC)
+        if agora >= expira:
+            raise CredencialExpirada("API key expirada")
+
     return tenant
 
 
-async def rotacionar_chave(sessao: AsyncSession, tenant_id: uuid.UUID) -> tuple[Tenant, str]:
-    """Gera nova API key e invalida a anterior."""
+async def rotacionar_chave(
+    sessao: AsyncSession, tenant_id: uuid.UUID, *, dias_validade: int | None = None
+) -> tuple[Tenant, str]:
+    """Gera nova API key e invalida a anterior.
+
+    `dias_validade` define prazo (None = sem prazo). A rotação **limpa a revogação**: chave nova é
+    credencial nova, e manter o carimbo de revogação faria a chave recém-emitida nascer morta.
+    """
     tenant = await repo.por_id(sessao, tenant_id)
     if tenant is None:
         raise ErroDeTenant(f"tenant {tenant_id} não encontrado")
 
     chave_completa, prefixo, chave_hash = gerar_api_key()
+    agora = datetime.now(UTC)
     tenant.api_key_prefix = prefixo
     tenant.api_key_hash = chave_hash
-    tenant.api_key_rotacionada_em = datetime.now(UTC)
+    tenant.api_key_rotacionada_em = agora
+    tenant.api_key_revogada_em = None
+    tenant.api_key_expira_em = agora + timedelta(days=dias_validade) if dias_validade else None
     await sessao.flush()
     return tenant, chave_completa
+
+
+async def revogar_chave(sessao: AsyncSession, tenant_id: uuid.UUID) -> Tenant:
+    """Mata a chave atual sem emitir outra.
+
+    O hash vira valor aleatório: a chave antiga deixa de casar em **qualquer** busca, inclusive na
+    do próprio dono. Consequência deliberada: o tenant fica sem acesso até que o operador (ou o
+    suporte, no modo hospedado) emita outra — é o comportamento correto para chave vazada.
+    """
+    tenant = await repo.por_id(sessao, tenant_id)
+    if tenant is None:
+        raise ErroDeTenant(f"tenant {tenant_id} não encontrado")
+
+    tenant.api_key_hash = secrets.token_hex(32)
+    tenant.api_key_revogada_em = datetime.now(UTC)
+    tenant.api_key_expira_em = None
+    await sessao.flush()
+    return tenant
 
 
 async def definir_config_fiscal(

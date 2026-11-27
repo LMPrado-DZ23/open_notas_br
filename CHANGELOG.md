@@ -5,6 +5,25 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — expiração e revogação de API key (migração 0013)
+
+- A chave vivia **para sempre** e não havia como matá-la sem emitir outra — insuficiente para operar
+  credencial de terceiro.
+- Migração **0013**: `api_key_expira_em` e `api_key_revogada_em` (upgrade, downgrade, `alembic check`
+  sem drift).
+- Autenticação recusa **expirada** (`401 credencial expirada; rotacione...`) e **revogada**.
+- `rotacionar-chave` aceita `dias_validade` e **limpa** o carimbo de revogação — chave nova não nasce
+  morta.
+- `POST /v1/admin/tenants/{id}/revogar-chave` (X-Admin-Key). **Revogar substitui o hash por valor
+  aleatório**: a chave não volta a valer por flip de flag, e o carimbo fica como auditoria. Efeito
+  aceito: chave revogada responde igual a desconhecida — troquei mensagem específica por
+  irreversibilidade.
+- 6 testes, incluindo revogação sem afetar vizinho e rotação com prazo.
+- **Achado:** a rota nasceu como `/v1/admin/admin/...` (o router já tem `prefix="/admin"`); o teste
+  pegou como 404.
+- **Limite:** revogar deixa o tenant sem acesso até alguém emitir outra chave (banco no auto-hospedado,
+  suporte no modo hospedado).
+
 ### Adicionado — auditoria de uso do certificado (migração 0012)
 
 - Era impossível responder "este A1 foi usado para quê, e quando?" — pergunta obrigatória ao operar

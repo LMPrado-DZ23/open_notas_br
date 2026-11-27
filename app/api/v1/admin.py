@@ -72,3 +72,32 @@ async def reprocessar_dlq(
         "status": str(item.status),
         "tentativas": item.tentativas,
     }
+
+
+@router.post(
+    "/tenants/{tenant_id}/revogar-chave",
+    status_code=204,
+    dependencies=[Depends(exigir_admin)],
+    summary="Revoga a API key de um tenant (operação de plataforma)",
+)
+async def revogar_chave_do_tenant(
+    tenant_id: uuid.UUID,
+    db: AsyncSession = Depends(get_session),
+) -> None:
+    """Mata a credencial sem emitir outra (adendo §5).
+
+    Quem usa: operador diante de vazamento ou desligamento. O tenant fica **sem acesso** até que
+    outra chave seja emitida — comportamento correto para credencial comprometida, e diferente de
+    rotação, que já devolve a nova ao dono.
+
+    `404` quando o admin não está habilitado (ADR 0001: quem não deve saber que a rota existe não
+    descobre pelo código de erro).
+    """
+    from app.tenants import service as tenant_service
+
+    try:
+        await tenant_service.revogar_chave(db, tenant_id)
+        await db.commit()
+    except tenant_service.ErroDeTenant as exc:
+        await db.rollback()
+        raise HTTPException(status_code=404, detail="tenant não encontrado") from exc

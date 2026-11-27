@@ -62,8 +62,8 @@ Lista honesta, verificada no código (detalhe em `docs/ONBOARDING-HOSPEDADO.md`)
 | Lacuna | Estado |
 |---|---|
 | Escopos por credencial de API | **não implementado** — a chave dá acesso total ao tenant |
-| Expiração de chave de API | **não implementada** |
-| Revogação de chave sem emitir outra | **não implementada** (rotação substitui; revogar exige rotacionar) |
+| Expiração de chave de API | ✅ implementada (§73) — prazo definido na rotação |
+| Revogação de chave sem emitir outra | ✅ implementada (§73) — rota de admin, hash substituído |
 | Auditoria de uso do certificado | **não implementada** (não há registro de "quem usou qual A1, quando, para quê") |
 | Exclusão/exportação de tenant pela API | **não implementada** (só cascata por FK) |
 | Múltiplos usuários por tenant, papéis | **não implementado** — o modelo é um tenant, uma chave |

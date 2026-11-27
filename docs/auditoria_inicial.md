@@ -3773,3 +3773,61 @@ impede o *build* de chamar o real: a guarda é da suíte de testes.
 | `alembic upgrade head` / `downgrade 0011` / `check` | aplica, reverte e **sem drift** |
 | gate completo | **9/9** |
 | contrato + coleção Postman | regenerados (rota nova incluída) |
+
+---
+
+## 73. Expiração e revogação de API key (migração 0013)
+
+**Data:** 2026-11-27. **Fase:** A / modo hospedado (adendo §4–§5). Fecha duas lacunas do
+`docs/ONBOARDING-HOSPEDADO.md` §2.
+
+### O que faltava
+
+A chave vivia **para sempre** e não havia como matá-la sem emitir outra. Para operar credencial de
+terceiro isso é insuficiente: vazamento exige revogação, e política de segurança exige prazo.
+
+### Implementado
+
+| Peça | Onde |
+|---|---|
+| Colunas `api_key_expira_em` e `api_key_revogada_em` | migração **0013** (upgrade, downgrade e `alembic check` sem drift) |
+| Verificação na autenticação | `tenant_service.autenticar` recusa chave expirada e revogada |
+| Rotação com prazo | `rotacionar_chave(..., dias_validade=30)`; **limpa** o carimbo de revogação |
+| Revogação sem substituição | `revogar_chave()` + `POST /v1/admin/tenants/{id}/revogar-chave` (X-Admin-Key) |
+
+### Decisão de segurança: revogar troca o hash
+
+A revogação grava um hash **aleatório** no lugar do anterior. Consequência: a chave revogada não casa
+em nenhuma busca — nem na do próprio dono — e **não volta a valer** por flip de flag no banco. O
+carimbo `api_key_revogada_em` fica como trilha de auditoria.
+
+Efeito colateral aceito: quem apresenta chave revogada recebe `401 credencial inválida`, indistinto de
+chave desconhecida. A alternativa (manter o hash e só checar a flag) daria mensagem mais específica e
+uma porta de retorno — troquei mensagem por irreversibilidade.
+
+**Chave expirada** é diferente: o hash continua válido, então a resposta é
+`401 credencial expirada; rotacione para obter outra`. O dono precisa saber que é prazo, não erro de
+digitação.
+
+### Testes (`tests/test_chave_expira_revoga.py`, 6)
+
+| Teste | O que prova |
+|---|---|
+| expirada → 401 com "expirada" | mensagem distinta da inválida |
+| chave válida continua 200 | contraprova |
+| revogada → 401 e carimbo gravado | revogação persiste; hash mudou |
+| revogar exige admin | sem `ADMIN_HABILITADO` a rota responde **404** (ADR 0001) |
+| revogação não afeta vizinho | isolamento entre tenants |
+| rotação com prazo limpa revogação | chave nova não nasce morta; a antiga continua morta |
+
+### Achado de implementação (registrado)
+
+A rota nasceu como `/v1/admin/admin/tenants/...`: o router de admin **já tem** `prefix="/admin"` e eu
+repeti o prefixo no decorador. O teste pegou como **404**; corrigido para
+`/v1/admin/tenants/{id}/revogar-chave`.
+
+### Limite
+
+Revogar deixa o tenant **sem acesso** até alguém emitir outra chave. No auto-hospedado isso é acesso ao
+banco; no modo hospedado é o suporte. Não existe rota de "emitir chave para outro tenant" — a decisão
+de quem pode fazer isso é de operação, não de código, e ficou fora.

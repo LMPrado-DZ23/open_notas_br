@@ -17,7 +17,12 @@ from app.core.config import Settings, get_settings
 from app.db.models.tenant import Tenant
 from app.db.session import get_session
 from app.tenants import service as tenant_service
-from app.tenants.service import CredencialInvalida, TenantSuspenso
+from app.tenants.service import (
+    CredencialExpirada,
+    CredencialInvalida,
+    CredencialRevogada,
+    TenantSuspenso,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +54,20 @@ async def tenant_atual(
         ) from exc
     except TenantSuspenso as exc:
         raise HTTPException(status_code=HTTP_403, detail="conta suspensa") from exc
+    except CredencialRevogada as exc:
+        # O portador da chave precisa saber que ela foi revogada: sem isso ele insiste em retry
+        # eterno com credencial morta. Não é pista para quem sonda — quem tem a chave já a tem.
+        raise HTTPException(
+            status_code=HTTP_401,
+            detail="credencial revogada; emita outra antes de continuar",
+            headers={"WWW-Authenticate": "ApiKey"},
+        ) from exc
+    except CredencialExpirada as exc:
+        raise HTTPException(
+            status_code=HTTP_401,
+            detail="credencial expirada; rotacione para obter outra",
+            headers={"WWW-Authenticate": "ApiKey"},
+        ) from exc
 
 
 async def exigir_admin(
