@@ -4771,3 +4771,27 @@ Correção: `*.xsd -text` e `data/xsd_manifest.json -text`, com o motivo escrito
 regra antiga foi removida. Verificado: hash do arquivo no worktree (`fe45e525…`) igual ao registrado no
 manifesto, e `--check` → **115 conferem**. O byte do repositório passa a ser o byte publicado, que é o que
 a integridade deve comparar.
+
+### 89.1 Dois leiautes — um valida, o outro é defeituoso no artefato publicado
+
+O Adendo 3 exige validação nos **dois leiautes** para `PASS` em REQ-1. Executei com os dois pacotes
+oficiais versionados e o resultado separou responsabilidades:
+
+| Pacote | `TSSerieDPS` | Consequência |
+|---|---|---|
+| 24/11/2026 (NT 009) | `[0-9]{1,4}\|[0-8][0-9]{4}` | valida (DPS gerada aceita) |
+| 09/02/2026 (anterior) | `^0{0,4}\d{1,5}$` | **rejeita qualquer `serie`** |
+
+Causa: no dialeto de regex do **XML Schema**, `^` e `$` **não são âncoras** — são caracteres literais. Um
+`xs:pattern` com `^...$` só casaria com valor que contivesse literalmente esses caracteres. Portanto
+**nenhum** valor de `serie` (nem `1`, nem `00001`) passa no pacote de fevereiro, e não existe ajuste no
+gerador que satisfaça um schema assim.
+
+Prova em `tests/test_dps_dois_leiautes.py::test_pacote_anterior_rejeita_qualquer_serie`: tenta quatro
+valores de `serie` e exige que **zero** sejam aceitos. O teste falha se o pacote for corrigido — momento em
+que a validação do leiaute anterior deve ser reativada.
+
+**Consequência para REQ-1**: continua **PARTIAL**, não `PASS`. O que existe: pacote preservado com hash,
+fixtures byte-idênticas, leiaute NT 009 validado de ponta a ponta, regra de `indDest` documentada e testada,
+não-regressão coberta. O que falta: validação do leiaute anterior, **impossível com o artefato publicado**
+— bloqueio do órgão, não do projeto.
