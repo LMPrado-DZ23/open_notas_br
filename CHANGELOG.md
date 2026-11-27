@@ -5,6 +5,20 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido — webhook que esgotava tentativas não entrava na DLQ
+
+- Ao esgotar as 5 tentativas, a entrega só virava `FALHOU` na tabela: ninguém era avisado e não
+  havia caminho de replay. Agora entra na fila morta com `fila="webhook"` e
+  `payload={entrega_id, tipo_evento, url_destino}` — **sem** copiar o payload do cliente, que já
+  vive em `webhook_deliveries`.
+- Idempotente: item `PENDENTE` existente para a mesma entrega impede duplicata, então reprocessar
+  `entregar` à mão não enche a fila morta.
+- Replay usa o caminho já existente e autenticado (`POST /v1/admin/dlq/{id}/replay`, ADR 0001), com
+  a mesma recusa de replay duplo.
+- 3 testes novos. Um registro honesto: a primeira versão do teste falhou por falta de segredo no
+  cenário (a entrega já nascia `FALHOU` antes de tentar) — armadilha que produz teste verde sem
+  prova; corrigida no fixture.
+
 ### Adicionado — rotação da chave-mestra com re-selagem verificada
 
 - Trocar `MASTER_ENCRYPTION_KEY` tornava ilegível **tudo** que estava selado (A1, segredo de

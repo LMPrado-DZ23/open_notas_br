@@ -372,3 +372,112 @@ class TestIsolamento:
         entregas = await cliente.get("/v1/me/webhook/entregas", headers=cabecalho(outro.json()))
         assert entregas.status_code == 200
         assert entregas.json() == []
+
+
+class TestDLQAoEsgotar:
+    """Entrega que esgota tentativas vai para a fila morta (§54).
+
+    Antes disto a entrega ficava só como `FALHOU` na tabela: o dado estava lá, mas ninguém era
+    avisado e não existia caminho de replay. O item da DLQ guarda o **id da entrega**, não o
+    payload do cliente — copiar payload duplicaria dado fiscal.
+    """
+
+    async def _entrega(self, cliente, sessao_db, tenant: dict[str, Any]):
+        from app.db.models.ops import StatusWebhook, WebhookDelivery
+        from app.db.models.tenant import Tenant
+        from sqlalchemy import select
+
+        # Sem segredo configurado, `entregar` retorna **antes** de tentar entregar: a entrega
+        # nasceria FALHA por falta de segredo, não por esgotar tentativas. O primeiro passo do
+        # teste tem de ser configurar o endpoint.
+        configurado = await cliente.post(
+            "/v1/me/webhook",
+            json={"url": "https://destino.invalid/hook"},
+            headers=cabecalho(tenant),
+        )
+        assert configurado.status_code == 200, configurado.text
+
+        tenant_db = (
+            await sessao_db.execute(select(Tenant).where(Tenant.slug == "hook-tenant"))
+        ).scalar_one()
+        entrega = WebhookDelivery(
+            tenant_id=tenant_db.id,
+            tipo_evento="nfse.autorizada",
+            url_destino="https://destino.invalid/hook",
+            payload={"chave": "x" * 44},
+            status=StatusWebhook.PENDENTE,
+        )
+        sessao_db.add(entrega)
+        await sessao_db.commit()
+        return entrega
+
+    async def test_falha_repetida_cria_item_unico_na_dlq(self, cliente, tenant, sessao_db) -> None:
+        from app.db.models.dlq import ItemDLQ
+        from app.db.models.ops import StatusWebhook
+        from app.webhooks import service as webhook_service
+        from sqlalchemy import select
+
+        entrega = await self._entrega(cliente, sessao_db, tenant)
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(500)
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+            for _ in range(webhook_service.MAX_TENTATIVAS):
+                await webhook_service.entregar(sessao_db, entrega, cliente=http)
+                await sessao_db.commit()
+
+        assert entrega.status is StatusWebhook.FALHOU
+
+        itens = (
+            (await sessao_db.execute(select(ItemDLQ).where(ItemDLQ.tenant_id == entrega.tenant_id)))
+            .scalars()
+            .all()
+        )
+        assert len(itens) == 1, "uma entrega esgotada = um item na fila morta"
+        assert itens[0].fila == "webhook"
+        assert itens[0].payload["entrega_id"] == str(entrega.id)
+        assert itens[0].tentativas == webhook_service.MAX_TENTATIVAS
+
+    async def test_nao_duplica_ao_reprocessar_entrega_que_falhou(
+        self, cliente, tenant, sessao_db
+    ) -> None:
+        from app.db.models.dlq import ItemDLQ
+        from app.webhooks import service as webhook_service
+        from sqlalchemy import func, select
+
+        entrega = await self._entrega(cliente, sessao_db, tenant)
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(500)
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+            for _ in range(webhook_service.MAX_TENTATIVAS):
+                await webhook_service.entregar(sessao_db, entrega, cliente=http)
+            # Reprocessar uma entrega já esgotada não pode encher a fila de duplicatas.
+            await webhook_service.entregar(sessao_db, entrega, cliente=http)
+            await sessao_db.commit()
+
+        total = await sessao_db.scalar(
+            select(func.count()).select_from(ItemDLQ).where(ItemDLQ.tenant_id == entrega.tenant_id)
+        )
+        assert total == 1
+
+    async def test_sucesso_nao_cria_item_na_dlq(self, cliente, tenant, sessao_db) -> None:
+        from app.db.models.dlq import ItemDLQ
+        from app.webhooks import service as webhook_service
+        from sqlalchemy import func, select
+
+        entrega = await self._entrega(cliente, sessao_db, tenant)
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200)
+
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as http:
+            await webhook_service.entregar(sessao_db, entrega, cliente=http)
+            await sessao_db.commit()
+
+        total = await sessao_db.scalar(
+            select(func.count()).select_from(ItemDLQ).where(ItemDLQ.tenant_id == entrega.tenant_id)
+        )
+        assert total == 0

@@ -2800,3 +2800,56 @@ velha e falhando na decifragem.
 
 `docs/OPERACAO.md` §5.2 foi atualizado: o texto que dizia "não existe re-selagem" agora descreve o
 procedimento, mantendo o caminho manual como último recurso.
+
+---
+
+## 54. Webhook que esgotava tentativas não ia para a DLQ
+
+**Data:** 2026-11-27. **Fase:** A/E (integração de DLQ ao fluxo real).
+
+### O defeito
+
+`app/webhooks/service.py::_registrar_falha` marcava a entrega como `FALHOU` ao esgotar as 5
+tentativas e limpava `proxima_tentativa`. Fim. O registro ficava na tabela, mas **ninguém era
+avisado** e **não havia caminho de replay**. O prompt pede "webhooks com ... DLQ, replay seguro" e a
+DLQ existia (`app/worker/dlq.py`, com `preparar_replay` recusando replay duplo) — só nunca era
+alimentada por webhook: o único produtor era o helper de tarefas do worker.
+
+### A correção
+
+`entregar()` passou a chamar `_guardar_na_dlq()` quando a entrega termina em `FALHOU`:
+
+- `fila="webhook"`, item com `payload = {entrega_id, tipo_evento, url_destino}` — **não** copia o
+  payload do cliente: ele já está em `webhook_deliveries`, e duplicar dado fiscal é pior que
+  referenciá-lo;
+- `erro` recebe o último motivo, `tentativas` o número executado;
+- **idempotente**: se já existe item `PENDENTE` para a mesma entrega, não cria outro — reprocessar
+  `entregar` à mão não deve encher a fila morta de duplicatas;
+- log de erro `webhook_esgotou_tentativas` (sem payload, sem segredo), para alerta.
+
+O item é reparável pelo caminho já existente e autenticado: `POST /v1/admin/dlq/{id}/replay`
+(`X-Admin-Key`, ADR 0001), com a mesma recusa de replay duplo.
+
+### O teste que quase mentiu
+
+A primeira versão do teste falhou por um motivo que **não** era o código: o tenant do cenário não
+tinha segredo de webhook configurado, então `entregar` retornava **antes** de tentar entregar —
+a entrega já nascia `FALHOU` por falta de segredo. O teste "passava" na asserção de status e
+reprovava na de DLQ. Corrigido configurando `POST /v1/me/webhook` no início do cenário. Fica
+registrado porque é o tipo de armadilha que produz teste verde sem prova.
+
+### Testes (`tests/test_webhooks.py`, +3)
+
+| Teste | O que prova |
+|---|---|
+| falha repetida cria **um** item | esgotou → DLQ com `fila="webhook"`, `entrega_id` e `tentativas=5` |
+| reprocessar não duplica | chamar `entregar` de novo numa entrega esgotada não cria segundo item |
+| sucesso não cria item | entrega 2xx não polui a fila morta |
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_webhooks.py` | **24 passed** |
+| gate completo | 9/9 |
+| `mypy app src` | zero erros |
