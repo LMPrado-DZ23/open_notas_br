@@ -2409,3 +2409,52 @@ Varredura de **conteúdo**, não de histórico do git. Um segredo removido em co
 continua exposto no histórico — o relatório diz isso ao falhar ("estar no histórico já conta como
 exposto"), mas o projeto não tem ferramenta de reescrita de histórico, e reescrever `main` exigiria
 autorização explícita do dono.
+
+---
+
+## 47. Circuit breaker: onde estava ligado, onde não estava, e o limite de estado
+
+**Data:** 2026-11-26. **Fase:** A (integrar de fato os componentes de resiliência).
+
+### Estado encontrado
+
+`CircuitBreaker` existia e estava ligado **apenas** à emissão síncrona
+(`POST /v1/emissoes` → `emitir_com_circuito`, coberto por `tests/test_circuito_na_emissao.py`).
+Cancelamento e evento falam com a **mesma** SEFIN Nacional e **não** passavam pelo circuito: com o
+autorizador fora, cada requisição queimava timeout próprio.
+
+### O que foi feito
+
+- `app/nfse/injecao.py`: `executar_com_circuito(registro, uf=, operacao=, acao=)` — genérico;
+  `emitir_com_circuito` passou a delegar nele (mesma API pública, sem quebra).
+- Chaves separadas por operação: `sefaz:NACIONAL:autorizacao`, `sefaz:NACIONAL:cancelamento`,
+  `sefaz:NACIONAL:evento`. Uma rejeição de cancelamento não abre o circuito de emissão.
+- `app/api/v1/emissoes.py`: as rotas de cancelamento e de evento passam pelo circuito. O handler
+  global de `CircuitoAberto` já respondia **503 com `Retry-After`** e `problem+json` — nada novo de
+  mapeamento de erro.
+
+### Testes (4 novos, em `tests/test_circuito_na_emissao.py`)
+
+| Teste | O que prova |
+|---|---|
+| chaves distintas por operação | cancelamento não abre emissão |
+| circuito aberto impede cancelamento | a SEFIN **não** é chamada |
+| circuito aberto impede evento | idem |
+| estado é por processo | dois registros não compartilham nada |
+
+### Limite que fica registrado (não corrigido)
+
+`RegistroCircuitos` é **em memória, por processo** — está escrito no docstring do próprio módulo.
+Consequência medida: com N processos de API, cada um tem contador próprio e o limite efetivo é
+`N × limite_falhas`. Compartilhar exige estado em Redis; a dependência já existe (é usada para rate
+limit e DLQ), mas mover o circuito para lá é mudança de comportamento em caminho quente e fica
+como decisão pendente — não como "implementado".
+
+O worker (lotes) também não usa o circuito: a emissão em lote herda o cliente montado pelo serviço,
+sem passar por `executar_com_circuito`.
+
+### Fora do escopo desta seção
+
+O circuito **não** substitui retry: retry é do cliente/worker; aqui só se decide "nem tente".
+Rejeição fiscal definitiva não vira falha de circuito transitório — `registrar_falha` só é chamado
+para `ErroTransitorio`, que é o que o `executar` classifica.

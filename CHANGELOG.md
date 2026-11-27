@@ -5,6 +5,19 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — circuito em cancelamento e evento (não só na emissão)
+
+- Cancelamento e evento falam com a **mesma** SEFIN Nacional e não passavam pelo circuit breaker:
+  com o autorizador fora, cada requisição queimava timeout próprio. Agora passam.
+- `executar_com_circuito(registro, uf=, operacao=, acao=)` substitui o wrapper específico de
+  emissão; `emitir_com_circuito` delega nele (API pública preservada).
+- Chaves separadas por operação (`:autorizacao`, `:cancelamento`, `:evento`): rejeição de
+  cancelamento não abre o circuito de emissão. O handler global de `CircuitoAberto` já respondia
+  503 com `Retry-After` e `problem+json`.
+- 4 testes novos, incluindo um que **documenta o limite**: o registro de circuitos é em memória,
+  por processo — com N processos o limite efetivo é N × `limite_falhas`. Mover para Redis fica
+  registrado como decisão pendente, não como implementado.
+
 ### Adicionado — secret scanning no gate e no CI (sem dependência nova)
 
 - A regra "nunca versionar chave/senha/PEM" não tinha **nenhuma** verificação automática. Agora

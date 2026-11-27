@@ -43,7 +43,13 @@ from app.nfse.adapter import SefinMockAdapter
 from app.nfse.errors import ErroSefin
 from app.nfse.evento import MOTIVOS_CANCELAMENTO
 from app.nfse.eventos_tipos import TIPOS_DO_CONTRIBUINTE, TIPOS_EVENTO, ErroDeEventoCatalogo
-from app.nfse.injecao import UF_NACIONAL, emitir_com_circuito
+from app.nfse.injecao import (
+    OPERACAO_CANCELAMENTO,
+    OPERACAO_EVENTO,
+    UF_NACIONAL,
+    emitir_com_circuito,
+    executar_com_circuito,
+)
 from app.nfse.resiliencia import registro_padrao
 from app.nfse.schemas import DocumentoOut, EmissaoDetalheOut, EmissaoIn, EmissaoOut
 from app.nfse.servico import (
@@ -459,14 +465,19 @@ async def cancelar_emissao(
     adaptador = SefinMockAdapter(invoice.ambiente) if settings.nfse_adapter == "mock" else None
 
     try:
-        resposta = await cancelamento_service.cancelar(
-            db,
-            tenant,
-            invoice,
-            c_motivo=dados.c_motivo,
-            x_motivo=dados.x_motivo,
-            adapter=adaptador,
-            settings=settings,
+        resposta = await executar_com_circuito(
+            registro_padrao,
+            uf=UF_NACIONAL,
+            operacao=OPERACAO_CANCELAMENTO,
+            acao=lambda: cancelamento_service.cancelar(
+                db,
+                tenant,
+                invoice,
+                c_motivo=dados.c_motivo,
+                x_motivo=dados.x_motivo,
+                adapter=adaptador,
+                settings=settings,
+            ),
         )
         await db.commit()
     except cancelamento_service.DocumentoNaoAutorizado as exc:
@@ -584,14 +595,19 @@ async def registrar_evento(
     adaptador = SefinMockAdapter(invoice.ambiente) if settings.nfse_adapter == "mock" else None
 
     try:
-        resposta = await eventos_service.registrar(
-            db,
-            tenant,
-            invoice,
-            codigo=dados.codigo,
-            campos=dados.campos,
-            adapter=adaptador,
-            settings=settings,
+        resposta = await executar_com_circuito(
+            registro_padrao,
+            uf=UF_NACIONAL,
+            operacao=OPERACAO_EVENTO,
+            acao=lambda: eventos_service.registrar(
+                db,
+                tenant,
+                invoice,
+                codigo=dados.codigo,
+                campos=dados.campos,
+                adapter=adaptador,
+                settings=settings,
+            ),
         )
         await db.commit()
     except eventos_service.TipoReservado as exc:
