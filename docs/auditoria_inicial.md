@@ -4795,3 +4795,51 @@ que a validação do leiaute anterior deve ser reativada.
 fixtures byte-idênticas, leiaute NT 009 validado de ponta a ponta, regra de `indDest` documentada e testada,
 não-regressão coberta. O que falta: validação do leiaute anterior, **impossível com o artefato publicado**
 — bloqueio do órgão, não do projeto.
+
+---
+
+## Fecho da revisão — 27/11/2026, HEAD `1bd80a3`
+
+Estado final desta continuação, com o que foi **executado** (não herdado):
+
+| Item | Valor |
+|---|---|
+| Branch / HEAD | `work/auditoria-e-fase-a` / `1bd80a3` |
+| Base | `main` = `55351cb` (intocada) |
+| Commits à frente | **52** |
+| Diff | **144 arquivos**, +40.528 / −6.075 |
+| PR #1 | `OPEN`, `MERGEABLE` |
+| CI | `success` em `1bd80a3` |
+| Testes coletados | **1571** |
+| Gate | 10/10 + suíte |
+| Manifesto de fontes | **15**, todos os hashes conferem |
+| Manifesto de XSD | **115** conferem (agora com bytes preservados) |
+
+### O que mudou desde o relatório de §88
+
+1. **XSD oficial adotado** (pacote de 24/11/2026): fixtures byte-idênticas ao publicado, manifesto
+   regenerado, gerador corrigido (`indDest` em `infDPS`, fora de `IBSCBS`).
+2. **Duas `xfail(strict)` extintas** — viraram três testes positivos, incluindo comparação por hash.
+3. **Defeito do pacote anterior provado**: `^`/`$` literais no dialeto XSD impedem validar `serie` no
+   leiaute de fevereiro; teste fixa isso e falha se o órgão corrigir.
+4. **CI consertada duas vezes**: normalização CRLF→LF (`-text` em `*.xsd`) e regravação dos blobs com os
+   bytes publicados.
+5. **Erro meu corrigido**: `finNFse` em vez de `finNFSe` na constante de marcadores — a guarda de §80
+   detectava minha digitação, não o gap.
+
+### Matriz final
+
+| REQ | Estado | Evidência |
+|---|---|---|
+| REQ-1 XSD NT-009 + `indDest` | **PARTIAL** | pacote + hash + fixtures idênticas + NT009 validado + regra de `indDest` testada; falta validar o leiaute anterior (artefato defeituoso) |
+| REQ-2 condomínios | **BLOCKED** | grupos no XSD, regras só na Release 3 (07/12/2026) |
+| REQ-3 Anexo VIII | **BLOCKED** | documento obtido; fonte diz que não há regras de negócio nele |
+| REQ-4 procuração | **PARTIAL** / **BLOCKED** | fluxo confirmado no FAQ v1.5; sem API de vigência/revogação; `00233` não citado |
+| REQ-5 multitenant | **PARTIAL** | isolamento testado; falta `procurador` e vínculo certificado↔estabelecimento |
+
+### Riscos que permanecem
+
+1. Leiaute anterior não validável com o pacote publicado (defeito do artefato).
+2. Condomínios, Anexo VIII e representação em XML dependem de publicação oficial futura.
+3. Autorização NF-e/CT-e/MDF-e e NFC-e dependem de credenciamento/CSC do contribuinte.
+4. Produção fiscal: **zero notas**. Homologação: uma NFS-e autorizada documentada (§15).
