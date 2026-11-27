@@ -4702,3 +4702,58 @@ ausente=0`), sem caminho absoluto de disco. `docs/REQUISITOS-FONTES.md` — matr
 
 Não fez merge, não alterou `main`, não enviou mensagem externa, não reivindicou homologação nem produção.
 A decisão de merge continua com o mantenedor.
+
+---
+
+## 89. Adoção do XSD oficial de 24/11/2026 — o gap de §82 foi fechado
+
+**Data:** 2026-11-27. **Fase:** C/F. Executa a recomendação de §88 e fecha o maior risco técnico aberto.
+
+### O que foi feito
+
+1. Fixtures de `tests/fixtures/schemas/nfse-1.01/` **substituídos** pelos arquivos do pacote oficial
+   `esquemas-xsd-producao-restrita-20261124.zip` (sha256 `1ca83c1a7929f6d5…`), extraído de
+   `sources/oficiais`.
+2. `data/xsd_manifest.json` regenerado: **115 schemas** conferem.
+3. Gerador corrigido em `app/nfse/dps.py`:
+   - `indDest` passou a ser emitido em **`infDPS`**, depois de `toma` e antes de `dest`/`serv`, com o
+     domínio oficial (`0` = destinatário é o tomador; `1` = difere);
+   - `indDest` e `dest` **removidos de dentro do grupo `IBSCBS`** — ali o schema oficial recusa o
+     elemento e invalida a DPS inteira (`TCRTCInfoIBSCBS` não tem esses campos).
+4. Duas guardas `xfail(strict=True)` substituídas por **três testes positivos**:
+   - fixtures **byte a byte** iguais ao pacote oficial (compara SHA-256 arquivo por arquivo);
+   - XSD declara `finNFSe`, `vAjusteBC`, `indDest`;
+   - `indDest` existe uma vez em `infDPS` e **não** dentro de `IBSCBS`.
+
+### Causa raiz do que §82 media
+
+O fixture antigo era uma cópia **adaptada**: aceitava `finNFSe` e `indDest` em posições que o schema
+publicado não aceita. A suíte provava conformidade com o schema modificado. Com o pacote oficial, o
+gerador foi obrigado a se ajustar de verdade — e ajustou-se.
+
+### Erro meu encontrado nesta rodada
+
+A guarda 1 de §80 falhava por **typo na constante**: `MARCADORES_NT009` tinha `finNFse` (minúsculo) em vez
+de `finNFSe`, então a busca nunca casava. O teste parecia "detectar o gap" quando na verdade detectava
+minha própria digitação. Corrigido ao reescrever o arquivo; a comparação agora é por hash, não por regex.
+
+### Verificação desta rodada
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_schema_dps.py` | **5 passed** (antes: 3 falhando contra o oficial) |
+| `pytest tests/test_eventos_tipos.py`, `test_evento_cancelamento.py` | **69 passed** |
+| `pytest tests/test_leiaute_nt009_guard.py` | **3 passed** (sem `xfail`) |
+| `gerar_manifesto_xsd --apply` → `--check` | **115 conferem** |
+| `check_ci` (rápido) | **9/9** |
+| `check_ci --tudo` (rodada anterior à correção de lint) | 10 de 11; lint quebrado por `×` em comentário — corrigido |
+
+### O que continua fora
+
+Adotar o schema **não** implementa os grupos de condomínio: `condominios`, `gCobranca`, `gDetCobranca` e
+`unidades` existem no XSD, mas as **regras de negócio do item 2.15 só entram na Release 3** (Produção
+Restrita prevista 07/12/2026, conforme comunicado oficial). O estado de REQ-2 permanece **BLOCKED** para a
+regra.
+
+`indDest` derivado automaticamente só no caso modelado (destinatário = tomador, ou `dest` informado). Não
+há regra oficial publicada que exija `1` em outros cenários, e não foi inventada.

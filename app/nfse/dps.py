@@ -371,9 +371,9 @@ def _ibscbs(pai: ET.Element, entrada: DpsInput, nt009: bool) -> None:
     _opt(grupo, "indFinal", ibs.ind_final)
     _sub(grupo, "cIndOp", ibs.c_ind_op)
     _opt(grupo, "tpOper", ibs.tp_oper)
-    _sub(grupo, "indDest", ibs.ind_dest)
-    if ibs.destinatario is not None:
-        _pessoa(grupo, "dest", ibs.destinatario)
+    # `indDest` e `dest` **não** pertencem a este grupo: no leiaute oficial
+    # (`TCRTCInfoIBSCBS` x `infDPS`) eles ficam em `infDPS`, depois de `toma`. Emiti-los aqui
+    # fazia o XSD oficial recusar a DPS inteira — e o fixture antigo, adaptado, aceitava.
 
     valores = _sub(grupo, "valores")
     trib = _sub(valores, "trib")
@@ -413,6 +413,19 @@ def construir_dps(entrada: DpsInput) -> ET.Element:
     _prestador(inf, entrada.prestador)
     if entrada.tomador is not None:
         _pessoa(inf, "toma", entrada.tomador)
+
+    # `indDest` é **obrigatório** na NT-009 e vem depois do grupo `toma`, antes de `dest` e `serv`
+    # (Anexo I / `tiposComplexos_v1.01.xsd`, elemento sem `minOccurs`). Domínio oficial:
+    #   0 = destinatário é o próprio tomador/adquirente;
+    #   1 = destinatário difere do adquirente (outra pessoa ou estabelecimento).
+    # Sem grupo `dest`, a resposta correta é 0; com destinatário informado, 1 — salvo valor explícito.
+    if nt009:
+        ind_dest = (entrada.ibscbs.ind_dest if entrada.ibscbs else None) or (
+            "1" if entrada.ibscbs and entrada.ibscbs.destinatario is not None else "0"
+        )
+        _sub(inf, "indDest", ind_dest)
+        if entrada.ibscbs is not None and entrada.ibscbs.destinatario is not None:
+            _pessoa(inf, "dest", entrada.ibscbs.destinatario)
 
     servico = _sub(inf, "serv")
     local = _sub(servico, "locPrest")
