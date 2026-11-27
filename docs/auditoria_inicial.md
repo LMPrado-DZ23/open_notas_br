@@ -4757,3 +4757,17 @@ regra.
 
 `indDest` derivado automaticamente só no caso modelado (destinatário = tomador, ou `dest` informado). Não
 há regra oficial publicada que exija `1` em outros cenários, e não foi inventada.
+
+### Corrigido — CI quebrada por normalização de fim de linha nos XSD
+
+O commit que adotou o pacote oficial passou no gate local e **falhou no CI**: 10 schemas apareceram como
+"alterado" sem ninguém tocar neles.
+
+Causa: `.gitattributes` já tinha `tests/fixtures/schemas/** text eol=lf`, e os pacotes oficiais publicam os
+`.xsd` com **CRLF**. O manifesto era gerado no Windows sobre os bytes publicados (CRLF) e o checkout do CI
+(Linux) entregava LF — hash diferente, mesmo conteúdo.
+
+Correção: `*.xsd -text` e `data/xsd_manifest.json -text`, com o motivo escrito no próprio arquivo. A
+regra antiga foi removida. Verificado: hash do arquivo no worktree (`fe45e525…`) igual ao registrado no
+manifesto, e `--check` → **115 conferem**. O byte do repositório passa a ser o byte publicado, que é o que
+a integridade deve comparar.
