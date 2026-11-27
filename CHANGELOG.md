@@ -5,6 +5,22 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido (crítico) — emissão concorrente com a mesma `Idempotency-Key` devolvia 500
+
+- Duas requisições **simultâneas** com a mesma chave passavam as duas pela checagem, as duas
+  inseriam, e a segunda batia na constraint. Havia tratamento de `IntegrityError`, mas a
+  recuperação estourava com `MissingGreenlet` → **500** num caminho que deve devolver 200 com a
+  fatura existente.
+- A hipótese antiga ("problema do harness no `pool_pre_ping`") foi **testada e descartada**: pool,
+  `sessionmaker` e middleware funcionam sob concorrência; só a emissão falhava.
+- Correção: `pg_advisory_xact_lock` derivado de `sha256(tenant_id:chave)` **antes** da checagem —
+  evita a corrida em vez de remendar o estrago. Escopo por chave, liberado no commit; tenants e
+  chaves distintas seguem em paralelo.
+- Teste `TestSimultaneidade` com `asyncio.gather`: antes `[201, MissingGreenlet]`, agora
+  `[200, 201]` e **uma** fatura.
+- Limite declarado: a trava é PostgreSQL (o projeto é Postgres-only) e a serialização por chave
+  pode esperar a latência do autorizador quando a emissão síncrona está dentro da transação.
+
 ### Corrigido — webhook que esgotava tentativas não entrava na DLQ
 
 - Ao esgotar as 5 tentativas, a entrega só virava `FALHOU` na tabela: ninguém era avisado e não

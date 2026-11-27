@@ -2853,3 +2853,68 @@ registrado porque é o tipo de armadilha que produz teste verde sem prova.
 | `pytest tests/test_webhooks.py` | **24 passed** |
 | gate completo | 9/9 |
 | `mypy app src` | zero erros |
+
+---
+
+## 55. Concorrência real na idempotência: 500 em vez de 200, e a trava que resolve
+
+**Data:** 2026-11-27. **Fase:** A (isolamento/idempotência). Correção de defeito **crítico**.
+
+### Como apareceu
+
+`tests/test_idempotencia_concorrencia.py` dizia, desde a primeira versão, que o caso
+**simultâneo** não estava provado: o teste levantava `MissingGreenlet` e a hipótese registrada era
+"problema do harness de teste no `pool_pre_ping`". Hipótese nunca verificada — e estava errada.
+
+Protocolo seguido: reproduzir antes de concluir.
+
+| Experimento | Resultado |
+|---|---|
+| duas conexões concorrentes com `pool_pre_ping=True` (script isolado) | **ok** — pool não é a causa |
+| duas sessões concorrentes com o `sessionmaker` do app | **ok** — factory não é a causa |
+| duas requisições HTTP concorrentes em `/health` | **ok** — middleware não é a causa |
+| duas requisições concorrentes em `/v1/emissoes` com a mesma chave | **`MissingGreenlet`** |
+
+### Causa raiz
+
+Não era o pool, nem o teste: era a **corrida de idempotência**.
+
+1. As duas requisições passam pela checagem `_buscar_por_idempotencia` — nenhuma vê a outra, porque
+   a primeira ainda não commitou.
+2. As duas inserem. A segunda viola `uq_invoices_tenant_idempotency_key`.
+3. O código **tem** tratamento de `IntegrityError`, mas o erro chega embrulhado pelo driver asyncpg;
+   a recuperação (`rollback` + nova consulta) é executada num ponto em que o driver já perdeu o
+   contexto de greenlet, e o que o cliente recebe é `MissingGreenlet` → **500**.
+
+O caminho que deveria devolver **200 com a fatura existente** devolvia erro. Cliente em rede
+instável repete; repetição é exatamente o cenário.
+
+### Correção
+
+`pg_advisory_xact_lock` derivado de `sha256(tenant_id:chave)` **antes** da checagem de existência:
+
+- a segunda requisição **espera** a primeira terminar a transação e então encontra a fatura →
+  200, uma fatura só;
+- a trava é de transação (liberada no commit/rollback) e o escopo é a **chave**, não a tabela:
+  tenants diferentes e chaves diferentes seguem em paralelo;
+- colisão de hash apenas serializa dois pedidos distintos — não corrompe;
+- o tratamento de `IntegrityError` **permanece** como rede de segurança.
+
+### Teste
+
+`TestSimultaneidade` com `asyncio.gather` de duas emissões usando a mesma `Idempotency-Key`:
+afirma que **nenhuma** resposta é exceção, que os códigos são exatamente `[200, 201]` e que existe
+**uma** fatura no banco. Antes da correção: `[201, MissingGreenlet]`.
+
+O docstring do arquivo foi reescrito: o caso agora está provado e o histórico está registrado — em
+vez de "não provado, talvez seja o harness".
+
+### Limite honesto
+
+- A trava é **PostgreSQL**. O projeto é Postgres-only (asyncpg), então não há regressão hoje; num
+  banco diferente esta proteção não existiria.
+- A serialização é por chave: dois pedidos com a mesma chave, um espera o outro. Com a emissão
+  síncrona chamando a SEFAZ dentro da transação, a espera pode chegar à latência do autorizador
+  (segundos, não milissegundos).
+- O caminho `IntegrityError` continua sem teste que o force a acontecer (a trava o torna
+  inalcançável no fluxo normal). Ele existe como defesa, não como caminho exercitado.

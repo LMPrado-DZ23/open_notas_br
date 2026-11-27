@@ -7,6 +7,7 @@ para lote; a semântica de idempotência é a mesma e já está implementada.
 
 from __future__ import annotations
 
+import hashlib
 import uuid
 from datetime import date
 
@@ -21,7 +22,7 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -95,6 +96,17 @@ def _emissao_out(
     )
 
 
+def _trava_de_idempotencia(tenant_id: uuid.UUID, chave: str) -> int:
+    """Identificador de 64 bits (com sinal) para `pg_advisory_xact_lock`.
+
+    Derivado de (tenant, chave) por SHA-256: duas chaves diferentes caem em travas diferentes, e
+    o mesmo par sempre cai na mesma. Colisão é teoricamente possível e apenas serializa dois
+    pedidos distintos — não corrompe nada.
+    """
+    resumo = hashlib.sha256(f"{tenant_id}:{chave}".encode()).digest()[:8]
+    return int.from_bytes(resumo, "big", signed=True)
+
+
 async def _buscar_por_idempotencia(
     db: AsyncSession, tenant_id: uuid.UUID, chave: str
 ) -> Invoice | None:
@@ -160,6 +172,23 @@ async def emitir(
             status_code=HTTP_422,
             detail="a chave de idempotência deve ter de 8 a 128 caracteres",
         )
+
+    # Serializa o par (tenant, chave) DENTRO da transação, antes de olhar se a fatura existe.
+    #
+    # Sem isto, duas requisições simultâneas com a mesma `Idempotency-Key` passam as duas pela
+    # checagem (nenhuma vê a outra ainda), as duas tentam inserir, e a segunda bate na constraint
+    # `uq_invoices_tenant_idempotency_key`. O tratamento de `IntegrityError` existe, mas o erro
+    # chega embrulhado pelo driver e a recuperação estourava com `MissingGreenlet` — o cliente
+    # recebia 500 num caminho que deveria ser 200 (auditoria §55). Segurar o par antes da leitura
+    # evita a corrida em vez de remendar o estrago.
+    #
+    # `pg_advisory_xact_lock` é liberado no commit/rollback e o escopo é a chave, não a tabela:
+    # duas emissões de tenants diferentes (ou de chaves diferentes) seguem em paralelo.
+    await db.execute(
+        text("select pg_advisory_xact_lock(:chave)"),
+        {"chave": _trava_de_idempotencia(tenant.id, chave)},
+    )
+
     existente = await _buscar_por_idempotencia(db, tenant.id, chave)
     if existente is not None:
         documento = await _documento_da_fatura(db, existente)
