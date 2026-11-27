@@ -4427,3 +4427,61 @@ Nenhum dos dois "relaxa expectativa": os dois quebram quando a situação mudar,
 Adotar a NT 009 exige o **pacote oficial dela (2026-11-24)**. Sem esse pacote não se decide se o campo
 `finNFSe` está correto, nem se `serie` deve ser zero-padded, nem se o catálogo de eventos precisa de 59
 dígitos. Escrever isso por inferência seria inventar leiaute — o que o Adendo 3 proíbe.
+
+---
+
+## 83. Integridade de XSD: a biblioteca existia, ninguém a chamava (e eu dupliquei antes de ver)
+
+**Data:** 2026-11-27. **Fase:** F. Item da missão §3: "manifesto SHA-256 de XSD, comparação de arquivo
+ausente/adulterado/não manifestado e configuração WARN/STRICT".
+
+### Primeiro, o erro que eu cometi
+
+Comecei escrevendo `scripts/verificar_xsd.py` e `tests/test_integridade_xsd.py` — **sem procurar** se
+isso já existia. Existia, completo:
+
+| Peça | Onde |
+|---|---|
+| `verificar()`, `sha256()`, `gerar_manifesto()`, `ModoVerificacao` (WARN/STRICT) | `app/core/schemas.py` |
+| Manifesto versionado com **113 schemas** (NFS-e, NF-e, CT-e, MDF-e) | `data/xsd_manifest.json` |
+| Gerador | `scripts/gerar_manifesto_xsd.py` |
+| Testes (13) | `tests/test_schemas_integridade.py` |
+
+Pior: o `MANIFEST.sha256` que meu script gerou dentro do diretório de fixtures fez o teste **existente**
+falhar (ele reporta arquivo não manifestado — corretamente). Removi a duplicação inteira. Registro aqui
+porque a regra 4 é explícita e eu a violei por não ter procurado antes.
+
+### O que a medição então mostrou
+
+A funcionalidade estava completa… e **desligada**:
+
+- `app/core/schemas.verificar` **não era chamado em parte alguma de `app/`**;
+- `scripts/check_ci.py` **não tinha** checagem de integridade;
+- o gerador só tinha dry-run e `--apply` — **nada falhava** se um schema divergisse.
+
+Ou seja: exatamente o padrão que a missão manda identificar — implementação isolada que não chega ao
+fluxo. A documentação do módulo chegava a declarar "hash conferido no boot"; não havia boot nenhum
+chamando.
+
+### Correção mínima, sem duplicar
+
+1. **`--check` no gerador existente** (`scripts/gerar_manifesto_xsd.py`): sai **1** quando há schema
+   novo, removido ou alterado, e **0** quando os 113 conferem. O dry-run continua saindo 0.
+2. **Checagem no gate** (`scripts/check_ci.py`): vira o 10º check, com saída `[OK] 113 schema(s)
+   conferem com o manifesto`.
+3. **Passo no workflow de CI**: mesma verificação, para não depender do gate local.
+
+### Verificação executada
+
+| Comando | Resultado |
+|---|---|
+| `python -m scripts.gerar_manifesto_xsd --check` | `[OK] 113 schema(s) conferem com o manifesto`, exit 0 |
+| `scripts.check_ci` (rápido) | 10 checks, todos `[OK]`, incluindo `integridade dos XSD` |
+| `pytest tests/test_schemas_integridade.py` | **13 passed** (voltou a passar após remover meu arquivo intruso) |
+| `yaml.safe_load` no workflow | estrutura válida, com o passo novo |
+
+### O que continua valendo
+
+- O manifesto cobre os 4 diretórios de schema; qualquer troca passa a **falhar** o gate e a CI.
+- Isso **não** diz que os schemas são oficiais. O da NFS-e é de fonte secundária e foi adaptado (§82); a
+  integridade que se prova aqui é "o arquivo é o que foi registrado", não "o arquivo é o publicado".

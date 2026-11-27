@@ -3,6 +3,7 @@
 Uso:
     python -m scripts.gerar_manifesto_xsd            # mostra o diff
     python -m scripts.gerar_manifesto_xsd --apply    # grava
+    python -m scripts.gerar_manifesto_xsd --check    # falha (exit 1) se divergir — usado no gate
 """
 
 from __future__ import annotations
@@ -24,6 +25,14 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="grava o manifesto (sem esta flag, só mostra o que mudaria)",
     )
+    # `--check` existe porque a verificação de integridade estava completa em `app/core/schemas.py`
+    # mas **ninguém a chamava**: nem o app, nem o gate. Schema trocado passava despercebido — e de fato
+    # o fixture da NFS-e estava adaptado (§82). Este modo é o que transforma a biblioteca em controle.
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="não grava; sai 1 se o manifesto divergir do disco (uso em CI/gate)",
+    )
     args = parser.parse_args(argv)
 
     novo = gerar_manifesto(RAIZ_SCHEMAS)
@@ -44,6 +53,16 @@ def main(argv: list[str] | None = None) -> int:
     ):
         for item in itens[:10]:
             print(f"  {rotulo}: {item}")
+
+    if args.check:
+        if adicionados or removidos or alterados:
+            print(
+                "\n[FALHOU] manifesto diverge: schemas trocados, removidos ou não registrados. "
+                "Se a mudança é intencional, rode --apply e revise o diff do manifesto no commit."
+            )
+            return 1
+        print(f"\n[OK] {len(novo)} schema(s) conferem com o manifesto")
+        return 0
 
     if not args.apply:
         print("\n(dry-run) use --apply para gravar")

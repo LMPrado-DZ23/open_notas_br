@@ -710,3 +710,16 @@ condomínio. O manual ADN v1.1 (2026-11-03) tem 5 páginas e nenhum dos termos p
   versionado** e falha hoje por `finNFSe` — quando as duas passarem a passar, a suíte **quebra** para
   forçar revisão da decisão.
 - Nada foi "corrigido" por inferência: adotar NT 009 exige o pacote oficial (REQ-1, **BLOCKED**).
+
+### Corrigido — verificação de integridade de XSD estava desligada
+
+- A funcionalidade existia completa (`app/core/schemas.py`, `data/xsd_manifest.json` com **113 schemas**,
+  gerador, 13 testes) e **ninguém a chamava**: nem `app/`, nem o gate, nem a CI. O gerador não tinha modo
+  de falha (só dry-run e `--apply`).
+- **Erro meu, registrado:** antes de procurar, escrevi um `scripts/verificar_xsd.py` duplicado e um
+  `MANIFEST.sha256` que fez o teste existente falhar. Removi a duplicação inteira.
+- Correção mínima no que já existia: `--check` no `gerar_manifesto_xsd.py` (exit 1 se divergir), 10º
+  check no `check_ci` e passo equivalente no workflow de CI.
+- Verificado: `[OK] 113 schema(s) conferem`; gate 10/10; `test_schemas_integridade` 13 passed.
+- Limite declarado: prova-se "o arquivo é o que foi registrado", **não** que ele seja o oficial — o XSD da
+  NFS-e é de fonte secundária e foi adaptado (§82).

@@ -44,6 +44,12 @@ CHECAGENS: tuple[Checagem, ...] = (
         "contrato openapi",
         [sys.executable, "-m", "pytest", "tests/test_openapi_sincronizado.py", "-q"],
     ),
+    # Integridade dos XSD: a biblioteca existia em `app/core/schemas.py` e **ninguém a chamava** —
+    # nem o app, nem o gate. Schema trocado passava; e o fixture da NFS-e estava adaptado (§82).
+    Checagem(
+        "integridade dos XSD",
+        [sys.executable, "-m", "scripts.gerar_manifesto_xsd", "--check"],
+    ),
     Checagem(
         "schema da DPS",
         [sys.executable, "-m", "pytest", "tests/test_schema_dps.py", "-q"],

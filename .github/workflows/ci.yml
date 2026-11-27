@@ -89,6 +89,12 @@ jobs:
       - name: Dependencias consistentes (pip check)
         run: python -m pip check
 
+      # A verificação de integridade dos XSD existia em `app/core/schemas.py` com testes, mas
+      # **ninguém a executava** — nem o app, nem o gate, nem este workflow. Schema trocado passava
+      # despercebido, e o fixture da NFS-e estava adaptado (§82). Aqui ela vira controle de CI.
+      - name: Integridade dos XSD (manifesto SHA-256)
+        run: python -m scripts.gerar_manifesto_xsd --check
+
       - name: Testes com cobertura
         run: pytest --cov=app --cov=notasbr --cov-report=term-missing
 
