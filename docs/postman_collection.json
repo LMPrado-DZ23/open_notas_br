@@ -1,0 +1,2283 @@
+{
+  "info": {
+    "_postman_id": "40750dfd-1cc6-5acc-9273-9169885d70ec",
+    "name": "open_notas_br",
+    "description": "Coleção gerada por `python -m scripts.gerar_postman` a partir de `openapi.json`.\nNão edite à mão: `--check` reprova quando diverge do contrato.\nOs corpos são esqueletos derivados do schema (string vazia, zero) — preencha com dado real. Variáveis: `base_url` e `api_key`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8081"
+    },
+    {
+      "key": "api_key",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "admin",
+      "item": [
+        {
+          "name": "Reprocessar Dlq",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/dlq/{item_id}/replay",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "dlq",
+                "{item_id}",
+                "replay"
+              ]
+            },
+            "description": "Marca o item para replay.\n\n`tenant_id` é **explícito** e obrigatório: operação de admin atravessa tenants por\nnatureza, e deixar implícito esconderia qual tenant está sendo afetado. O serviço\ncontinua exigindo o tenant certo, então o isolamento não é burlado — ele é declarado.\n\nNão executa a tarefa: quem reexecuta é o worker. Aqui se decide se o replay é\nlegítimo (o serviço recusa replay duplo e item descartado)."
+          }
+        },
+        {
+          "name": "Revoga a API key de um tenant (operação de plataforma)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/admin/tenants/{tenant_id}/revogar-chave",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "admin",
+                "tenants",
+                "{tenant_id}",
+                "revogar-chave"
+              ]
+            },
+            "description": "Mata a credencial sem emitir outra (adendo §5).\n\nQuem usa: operador diante de vazamento ou desligamento. O tenant fica **sem acesso** até que\noutra chave seja emitida — comportamento correto para credencial comprometida, e diferente de\nrotação, que já devolve a nova ao dono.\n\n`404` quando o admin não está habilitado (ADR 0001: quem não deve saber que a rota existe não\ndescobre pelo código de erro)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "apuracao",
+      "item": [
+        {
+          "name": "Consolida a competência (só documentos autorizados)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/apuracoes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "apuracoes"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"competencia\": \"2026-11\",\n  \"provedor\": \"man\",\n  \"ambiente\": \"homologacao\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Lista as apurações do tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/apuracoes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "apuracoes"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Detalhe da apuração, com avisos e alíquota usada",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/apuracoes/{apuracao_id}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "apuracoes",
+                "{apuracao_id}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Gera a guia da apuração com o provedor configurado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/apuracoes/{apuracao_id}/guia",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "apuracoes",
+                "{apuracao_id}",
+                "guia"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "auditoria",
+      "item": [
+        {
+          "name": "Listar Por Trace",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/tax/audit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "tax",
+                "audit"
+              ]
+            },
+            "description": "Todos os cálculos de um `trace_id`. Lista, porque o mesmo trace pode cobrir\nmais de um cálculo (produto e serviço na mesma operação)."
+          }
+        },
+        {
+          "name": "Obter Laudo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/tax/audit/{registro_id}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "tax",
+                "audit",
+                "{registro_id}"
+              ]
+            },
+            "description": "Devolve o laudo completo. Laudo de outro tenant responde 404, não 403."
+          }
+        },
+        {
+          "name": "Verificar Laudo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/tax/audit/{registro_id}/integridade",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "tax",
+                "audit",
+                "{registro_id}",
+                "integridade"
+              ]
+            },
+            "description": "Recalcula os hashes do que está gravado.\n\n`integra` falso significa que o conteúdo foi alterado direto no banco: o laudo\nexiste, mas não corresponde mais ao cálculo original."
+          }
+        }
+      ]
+    },
+    {
+      "name": "certificados",
+      "item": [
+        {
+          "name": "Envia o certificado A1 (.pfx/.p12) e sela no cofre",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/certificados",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "certificados"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Lista os certificados do tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/certificados",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "certificados"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Diagnóstico do certificado ativo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/certificados/saude",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "certificados",
+                "saude"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Remove o certificado do cofre",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/certificados/{certificado_id}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "certificados",
+                "{certificado_id}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Ativa um certificado (desativa os demais)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/certificados/{certificado_id}/ativar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "certificados",
+                "{certificado_id}",
+                "ativar"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Histórico de uso do certificado (auditoria)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/certificados/{certificado_id}/usos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "certificados",
+                "{certificado_id}",
+                "usos"
+              ]
+            },
+            "description": "Quem usou este A1, quando e para qual operação (§71).\n\n`404` quando o certificado não é do tenant: a existência de um id de outro cliente não é\ninformação que este endpoint deva revelar.\n\nO registro traz operação, ambiente, sucesso e o **tipo** do erro — nunca mensagem, nunca\nsegredo, nunca XML. É auditoria de uso, não cópia da operação."
+          }
+        }
+      ]
+    },
+    {
+      "name": "cnpj",
+      "item": [
+        {
+          "name": "Consulta e enriquece um CNPJ (cache + fontes públicas)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cnpj/{cnpj}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cnpj",
+                "{cnpj}"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "consulta",
+      "item": [
+        {
+          "name": "Autopreenche endereço a partir do CEP",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/cep/{cep}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "cep",
+                "{cep}"
+              ]
+            },
+            "description": "Consulta ViaCEP e, se preciso, BrasilAPI. Resultado fica em cache."
+          }
+        }
+      ]
+    },
+    {
+      "name": "credenciais",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/credenciais-municipais",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "credenciais-municipais"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Salvar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/credenciais-municipais",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "credenciais-municipais"
+              ]
+            },
+            "description": "Cria ou atualiza. Só aceita município que existe no cadastro.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo_ibge\": \"\",\n  \"inscricao_municipal\": \"\",\n  \"usuario_ws\": \"\",\n  \"senha_ws\": \"\",\n  \"token_ws\": \"\",\n  \"serie_rps_padrao\": \"1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Desativar",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/credenciais-municipais/{codigo_ibge}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "credenciais-municipais",
+                "{codigo_ibge}"
+              ]
+            },
+            "description": "Desativa. Não apaga: a credencial continua ligada às notas já emitidas."
+          }
+        }
+      ]
+    },
+    {
+      "name": "emissao",
+      "item": [
+        {
+          "name": "Emite a NFS-e de um serviço (idempotente por idempotency_key)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/emissoes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "emissoes"
+              ]
+            },
+            "description": "Emite a NFS-e de forma idempotente.\n\nA chave aceita dois lugares por compatibilidade: o header `Idempotency-Key`\n(contrato novo, recomendado) e o campo `idempotency_key` do body (clientes\nexistentes). Se os dois vierem e divergirem, **o header vence** — header é o\ncontrato explícito, e escolher o body permitiria que um cliente com proxy que\ninjeta header mudasse a chave sem perceber. Se nenhum vier, 422: sem chave não\nhá como garantir que um reenvio não duplique a nota.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotency_key\": \"dz23-venda-8842\",\n  \"valor\": 0,\n  \"descricao\": \"\",\n  \"competencia\": \"\",\n  \"tomador_documento\": \"\",\n  \"tomador_nome\": \"\",\n  \"tomador_email\": \"\",\n  \"referencia_externa\": \"\",\n  \"origem\": \"api\",\n  \"ambiente\": \"homologacao\",\n  \"municipio_ibge\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Lista as emissões do tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/emissoes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "emissoes"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Motivos de cancelamento aceitos pelo leiaute",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/emissoes/cancelamento/motivos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "emissoes",
+                "cancelamento",
+                "motivos"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Tipos de evento que o contribuinte pode registrar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/emissoes/eventos/disponiveis",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "emissoes",
+                "eventos",
+                "disponiveis"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Catálogo dos 16 tipos de evento da NFS-e (do XSD oficial)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/emissoes/eventos/tipos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "emissoes",
+                "eventos",
+                "tipos"
+              ]
+            },
+            "description": "Estrutura de cada tipo de evento, com os campos que o schema exige.\n\nA descrição fixa (`xDesc`) é do leiaute, não sugestão: quem monta evento com\ntexto próprio tem o pedido recusado. Aqui ela vem pronta."
+          }
+        },
+        {
+          "name": "Consulta uma emissão, com o XML autorizado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/emissoes/{invoice_id}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "emissoes",
+                "{invoice_id}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Cancela a NFS-e autorizada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/emissoes/{invoice_id}/cancelamento",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "emissoes",
+                "{invoice_id}",
+                "cancelamento"
+              ]
+            },
+            "description": "Cancela emitindo evento assinado.\n\nSó documento autorizado pode ser cancelado, e o autor do evento é o CNPJ do\ncertificado ativo — quem assina responde pelo pedido.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"c_motivo\": \"1\",\n  \"x_motivo\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Gera o DANFSe (PDF) localmente a partir do XML autorizado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/emissoes/{invoice_id}/danfse",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "emissoes",
+                "{invoice_id}",
+                "danfse"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Registra um evento do catálogo na NFS-e",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/emissoes/{invoice_id}/eventos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "emissoes",
+                "{invoice_id}",
+                "eventos"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"202201\",\n  \"campos\": {}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Representação impressa do documento (DANFE simplificado, DANFSe)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/emissoes/{invoice_id}/representacao",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "emissoes",
+                "{invoice_id}",
+                "representacao"
+              ]
+            },
+            "description": "Escolhe a representação pelo tipo do documento.\n\nPedir representação inexistente devolve 422 com a lista do que existe — nunca\num PDF incompleto, que pareceria válido."
+          }
+        }
+      ]
+    },
+    {
+      "name": "frete",
+      "item": [
+        {
+          "name": "Calcula o frete do carrinho pelo CEP do cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/fretes/cotacao",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "fretes",
+                "cotacao"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cep_destino\": \"01001-000\",\n  \"cep_origem\": \"\",\n  \"itens\": [\n    {}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Revoga a autorização do Melhor Envio neste tenant",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/fretes/credencial",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "fretes",
+                "credencial"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Callback do OAuth: troca o código e guarda o token cifrado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/fretes/oauth/callback",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "fretes",
+                "oauth",
+                "callback"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "URL para o lojista autorizar o Melhor Envio",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/fretes/oauth/iniciar",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "fretes",
+                "oauth",
+                "iniciar"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Situação da autorização",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/fretes/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "fretes",
+                "status"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "health",
+      "item": [
+        {
+          "name": "Circuitos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/health/circuitos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "health",
+                "circuitos"
+              ]
+            },
+            "description": "Estado atual de cada circuito.\n\nLista vazia significa \"nada foi chamado ainda\", **não** \"tudo saudável\" — um circuito\nsó existe depois do primeiro uso. Deixar isso explícito evita a leitura errada de que\nausência de dados é ausência de problema."
+          }
+        }
+      ]
+    },
+    {
+      "name": "integracoes",
+      "item": [
+        {
+          "name": "Brizu: atendimento pago vira NFS-e",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/integracoes/brizu/atendimentos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "integracoes",
+                "brizu",
+                "atendimentos"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "DZ23: venda/fatura paga vira NFS-e",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/integracoes/dz23/vendas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "integracoes",
+                "dz23",
+                "vendas"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "lotes",
+      "item": [
+        {
+          "name": "Importa CSV de emissões e cria o lote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/lotes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "lotes"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Lista os lotes do tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/lotes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "lotes"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Detalhe do lote com relatório linha a linha",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/lotes/{lote_id}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "lotes",
+                "{lote_id}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Configura a URL de webhook e devolve o segredo uma única vez",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/webhook",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "webhook"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"\",\n  \"rotacionar_segredo\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Mostra a URL configurada (sem expor o segredo)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/webhook",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "webhook"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Lista as entregas de webhook do tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/webhook/entregas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "webhook",
+                "entregas"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "meta",
+      "item": [
+        {
+          "name": "Readiness: banco e Redis respondem",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Liveness: o processo está de pé",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health/live",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health",
+                "live"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Readiness: banco e Redis respondem",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "health"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Liveness: o processo está de pé",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/health/live",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "health",
+                "live"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Versão do serviço e do contrato",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/version",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "version"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Versão do serviço e do contrato",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/version",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "version"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "municipios",
+      "item": [
+        {
+          "name": "Listar",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/municipios",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "municipios"
+              ]
+            },
+            "description": "Lista paginada com filtros. `total` é o total do filtro, não da página."
+          }
+        },
+        {
+          "name": "Obter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/municipios/{codigo_ibge}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "municipios",
+                "{codigo_ibge}"
+              ]
+            },
+            "description": "Requisitos de emissão do município, para o cliente se preparar."
+          }
+        }
+      ]
+    },
+    {
+      "name": "representacao",
+      "item": [
+        {
+          "name": "Lista as representações impressas disponíveis",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/representacoes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "representacoes"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Gera DANFE ou etiquetas a partir do XML autorizado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/representacoes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "representacoes"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "tenants",
+      "item": [
+        {
+          "name": "Dados do tenant autenticado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Cria ou atualiza a configuração fiscal de um município",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/config-fiscal",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "config-fiscal"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"municipio_ibge\": \"\",\n  \"municipio_nome\": \"\",\n  \"uf\": \"\",\n  \"aderente_emissor_nacional\": false,\n  \"provedor\": \"nacional\",\n  \"ambiente\": \"homologacao\",\n  \"regime_tributario\": 1,\n  \"simples_nacional\": true,\n  \"optante_mei\": false,\n  \"aliquota_iss\": 0,\n  \"serie_dps\": \"1\",\n  \"proximo_numero_dps\": 1,\n  \"inscricao_municipal\": \"\",\n  \"cnae_principal\": \"\",\n  \"codigo_tributacao_nacional\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Lista as configurações fiscais do tenant",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/config-fiscal",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "config-fiscal"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Exporta os dados do tenant (portabilidade)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/exportacao",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "exportacao"
+              ]
+            },
+            "description": "Pacote de dados do próprio tenant, para portabilidade e conferência (§76).\n\nInclui: identificação, configuração fiscal, metadados de certificado, webhook e contadores por\nstatus. O XML só entra com `incluir_xml=true` e até `limite` documentos — exportar tudo por padrão\ntransformaria um pedido de conferência em resposta de gigabytes.\n\n**Nunca inclui:** PFX, senha, hash de chave, segredo de webhook, token de frete. Portabilidade é\nsobre os dados do cliente, não sobre as credenciais dele — e credencial sai do cofre, não de uma\nexportação."
+          }
+        },
+        {
+          "name": "Gera nova API key e invalida a anterior",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/rotacionar-chave",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "rotacionar-chave"
+              ]
+            },
+            "description": "Gera nova chave e define prazo/escopos, se pedido (§73, §75).\n\nCorpo é opcional: sem ele, o comportamento antigo continua (chave sem prazo e sem restrição).",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cria um tenant e devolve a API key (uma única vez)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/tenants",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "tenants"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"barbearia-centro\",\n  \"nome\": \"Barbearia Centro LTDA\",\n  \"email_contato\": \"\",\n  \"webhook_url\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Lista tenants (administrativo)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/tenants",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "tenants"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "transporte",
+      "item": [
+        {
+          "name": "Gera e assina um CT-e (não transmite)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/transportes/cte",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "transportes",
+                "cte"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": 0,\n  \"serie\": 0,\n  \"chave\": \"\",\n  \"emitente\": {},\n  \"destinatario\": {},\n  \"papel_tomador\": {},\n  \"valor_total\": 0,\n  \"peso\": 0,\n  \"produto\": \"\",\n  \"data_emissao\": \"\",\n  \"rntrc\": \"\",\n  \"chaves_documentos\": [\n    \"\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Gera e assina um MDF-e (não transmite)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/transportes/mdfe",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "transportes",
+                "mdfe"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": 0,\n  \"serie\": 0,\n  \"chave\": \"\",\n  \"emitente\": {},\n  \"uf_inicio\": \"\",\n  \"uf_fim\": \"\",\n  \"municipios_carregamento\": [\n    {}\n  ],\n  \"valor_carga\": 0,\n  \"peso\": 0,\n  \"data_emissao\": \"\",\n  \"descargas\": [\n    {}\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consulta o status do serviço de CT-e ou MDF-e (não emite)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/transportes/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "transportes",
+                "status"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "tributacao",
+      "item": [
+        {
+          "name": "Alíquotas de referência de IBS/CBS por ano",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/tax/aliquotas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "tax",
+                "aliquotas"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Alíquota de referência de um ano específico",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/tax/aliquotas/{ano}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "tax",
+                "aliquotas",
+                "{ano}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Catálogo de classificação tributária do IBS/CBS (cClassTrib)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/tax/classificacoes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "tax",
+                "classificacoes"
+              ]
+            },
+            "description": "O catálogo é **versionado**: o mesmo código tem descrições diferentes em\nanos diferentes. Informe `ano` para obter a versão vigente na competência."
+          }
+        },
+        {
+          "name": "Procedência e tamanho do catálogo de classificações",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/tax/classificacoes/catalogo",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "tax",
+                "classificacoes",
+                "catalogo"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Consulta uma classificação pelo código",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/tax/classificacoes/{codigo}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "tax",
+                "classificacoes",
+                "{codigo}"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Simula CBS e IBS de uma NFS-e com parâmetros explícitos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/tax/simular",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "tax",
+                "simular"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor_servico\": 0,\n  \"desconto_incondicional\": \"0.00\",\n  \"reembolso_repasse\": \"0.00\",\n  \"deducao_reducao\": \"0.00\",\n  \"iss\": \"0.00\",\n  \"pis\": \"0.00\",\n  \"cofins\": \"0.00\",\n  \"ano_fato_gerador\": 2026,\n  \"aliquota_cbs\": 0,\n  \"aliquota_ibs\": 0,\n  \"mei\": false,\n  \"optante_pendente\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

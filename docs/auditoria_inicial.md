@@ -3,6 +3,12 @@
 **Gerado por comando nesta sessão.** Cada número abaixo veio de execução, não de memória.
 Este documento é o entregável bloqueante da Etapa 0: sem ele aprovado, nenhuma fase começa.
 
+> **Referência desta leitura (2026-11-27).** Branch de trabalho `work/auditoria-e-fase-a`, sobre a
+> branch padrão `main` no commit `55351cb`. As seções 1–43 descrevem o repositório **antes** das
+> correções; as seções 44 em diante registram o que mudou, com a data e o defeito que motivou cada
+> mudança. Nenhum número das seções antigas deve ser lido como estado atual — para isso existe
+> `docs/PAINEL.md` (regenerado a cada rodada) e a seção mais recente deste documento.
+
 ## 1. Árvore de arquivos
 
 - **app/db/models/** (6 arquivos): __init__.py, enums.py, frete.py, invoice.py, ops.py, tenant.py
@@ -2152,3 +2158,2688 @@ acontece; com `mock` ele afirma que o fluxo chega ao `POST /v1/tenants`.
 `validar_ambiente_de_execucao` já impede `ENVIRONMENT=production` com `mock`. O caso inverso —
 ambiente de desenvolvimento apontando para o serviço **real** — não é erro de configuração: é o
 padrão do `docker-compose.yml`. Por isso a guarda ficou no script que emite, não na configuração.
+---
+
+## 44. Reconciliação de fontes e baseline (2026-11-26)
+
+**Commit de referência:** `55351cb` (base) · trabalho em `work/auditoria-e-fase-a`.
+**Método:** medição no ambiente local, não cópia de números anteriores.
+
+### 44.1 Comparação de fontes
+
+| Fonte | Situação medida |
+|---|---|
+| ZIP de referência | **não foi fornecido nesta sessão**. Não há `.zip` no workspace nem caminho informado. Registro a ausência em vez de inventar comparação. |
+| Branch padrão do GitHub | `main`, confirmada por `gh repo view --json defaultBranchRef` → `main` |
+| HEAD local | `55351cb` = `git rev-parse origin/main` → `55351cbc1f02…` (idênticos) |
+| Árvore de trabalho | limpa antes das mudanças (`git status --short` vazio) |
+
+**Conclusão:** trabalho feito sobre o estado atual do repositório, que coincide com a branch padrão
+no SHA `55351cb`. Se o ZIP existir, ele deve ser comparado contra este SHA; sem o arquivo, qualquer
+afirmação de divergência seria invenção.
+
+### 44.2 Baseline medido nesta data
+
+| Métrica | Valor | Comando |
+|---|---|---|
+| Testes aprovados | **1405** | `pytest -q` (suíte completa) |
+| Cobertura | **87,98%** (10 427 statements, 1 253 sem cobertura) | `pytest --cov=app --cov=notasbr` |
+| Limite de cobertura | 80% — atingido | idem |
+| Rotas OpenAPI | **58** | `len(criar_app().openapi()["paths"])` |
+| Tabelas ORM / migrations | 15 / 11 | `scripts/gerar_painel.py` |
+| Lint / formatação | limpos | `ruff check`, `ruff format --check` |
+| CI | 2 jobs (`Testes e lint`, `Contrato e schemas oficiais`) | `.github/workflows/ci.yml` |
+| `alembic check` | sem drift | `python -m alembic check` |
+| Tipagem (mypy) | **93 erros em 43 arquivos** | `python -m mypy app src` |
+
+### 44.3 Divergências encontradas entre documentação e código
+
+| Documento afirma | Código mostra | Ação |
+|---|---|---|
+| `docs/PAINEL.md` dizia 57 rotas / 1319 testes | 58 / 1405 | painel é gerado; regenerado |
+| `tests/test_transporte_rotas.py` dizia caminho feliz "pendente" | nenhuma rota de emissão testada com certificado | coberto em §42 |
+| §23 diz NFC-e ausente por CSC | confirmado: `app/nfe/gerador.py:58` fixa `mod="55"` | mantido, com decisão registrada |
+| Auditoria não mencionava defeito da rota de status | `AttributeError` real | corrigido em §41 |
+
+### 44.4 Defeito crítico novo: emissão real podia ir para homologação
+
+**Evidência.** `mypy` apontou `Argument 1 to "SefinNacionalClient" has incompatible type "Settings";
+expected "AmbienteFiscal"` em três lugares. Leitura confirmou:
+
+- `app/api/v1/lotes.py:101` → `SefinNacionalClient(settings)`
+- `app/api/v1/integracoes.py:67` → idem
+- `app/worker/main.py:84` → idem
+
+`SefinNacionalClient.__init__` recebe `ambiente: AmbienteFiscal` e faz
+`sefin_url(ambiente)`; `sefin_url` decide por `ambiente is AmbienteFiscal.PRODUCAO`
+(`app/nfse/constants.py:79-81`). Qualquer objeto que não seja o enum — inclusive `Settings` —
+cai em **homologação**, sem exceção e sem log.
+
+**Consequência.** Emissão por lote e pelas rotas de integração usava a SEFIN de homologação em
+qualquer ambiente; além disso o cliente era montado sem certificado, então o mTLS falhava. O
+caminho correto (`app/nfse/servico.py:353`) monta `SefinNacionalClient(config.ambiente,
+certificado, …)` com o ambiente do **tenant** e o A1 dele — e era justamente o que essas três
+cópias burlavam ao injetar `adapter`.
+
+**Causa raiz.** Decisão de adapter duplicada em três módulos, sem contrato de tipos.
+
+**Correção.** `app/nfse/factory.py: montar_adapter(settings) -> SefinAdapter | None` — devolve o
+dublê só quando `NFSE_ADAPTER=mock`; `None` no caminho real, para o serviço montar o cliente com
+ambiente e certificado do tenant. As três cópias passaram a chamar a fábrica.
+
+**Testes.** `tests/test_nfse_factory_ambiente.py` (7): dublê/`None`, a armadilha
+`sefin_url(Settings) == SEFIN_HOMOLOGACAO`, `sefin_url(AmbienteFiscal.PRODUCAO) == SEFIN_PRODUCAO`,
+e guarda estrutural de que os três módulos não voltem a instanciar `SefinNacionalClient`.
+
+**Limite do que foi medido.** O defeito foi provado por tipos e por leitura; não houve emissão real
+em nenhum ambiente nesta correção.
+
+### 44.5 Reconciliação das alegações (estado por item)
+
+| Alegação | Estado medido | Prova |
+|---|---|---|
+| Drivers NFS-e multi-prefeitura | **parcial**: existe `app/nfse/drivers/` com padrão nacional; não há driver municipal homologado | §9–§12 |
+| `municipios_nfse`, `credenciais_municipais`, `webservices_sefaz` | **implementado e testado** (AAD por tenant+finalidade) | §24, `test_credenciais_rota.py` |
+| NF-e transmissão | **parcial**: geração+assinatura+XSD; envio depende de credenciamento | §26, §37 |
+| CT-e / MDF-e | **parcial**: geração+assinatura+XSD+status real medido; autorização não transmitida | §31, §42 |
+| NFC-e | **ausente por bloqueio duplo**: `mod` fixo e CSC | §23 |
+| `CalculoAudit` | **implementado e testado** | §15 |
+| RFC 7807 / rate limit / CB / DLQ | **implementado e testado** | §39 |
+| Hash SHA-256 de XSD | **implementado**, com fontes oficiais e secundárias distinguidas | §40 |
+| `Idempotency-Key` | **implementado e testado** (11 testes) | §38 |
+| mypy no CI | **ausente**: 93 erros, não bloqueia merge | medido acima |
+
+### 44.6 Plano priorizado
+
+| # | Item | Depende de | Critério de aceite |
+|---|---|---|---|
+| A1 | ~~Emissão real em homologação por `Settings`~~ | — | **feito**: fábrica + 7 testes |
+| A2 | mypy no CI sem bloquear: reduzir a zero por módulo, começando por `app/nfse` e `app/api` | A1 | `mypy app` exit 0 |
+| A3 | Cobertura mínima por pacote (não só global) | — | `fail_under` por módulo |
+| B1 | Driver municipal NFS-e | fonte oficial + credencial | 1 provedor com URL, leiaute, XSD e teste |
+| C1 | NF-e autorização real | credenciamento SEFAZ-GO | `cStat 100` em homologação |
+| C2 | NFC-e | CSC por UF | QR Code + `infNFeSupl` válidos |
+| F1 | Métricas Prometheus | — | `/metrics` com labels sem tenant |
+
+### 44.7 Riscos conhecidos e bloqueios externos
+
+- **Sem credenciamento SEFAZ-GO**: nenhuma NF-e autorizada; `NFeAutorizacao4` não exercitado.
+- **Sem CSC**: NFC-e não implementável sem inventar QR Code.
+- **Inutilização CT-e/MDF-e**: não existe serviço 4.00 (404 medido com controles que funcionam).
+- **OAuth Melhor Envio**: pendente de autorização do usuário.
+- **mypy não verde**: 93 erros; impede adicionar tipagem ao gate sem trabalho prévio.
+
+atualizado por dsh em 2026-11-26
+
+
+---
+
+## 45. Tipagem: 93 → 0 erros, com dois defeitos de execução no caminho
+
+**Data:** 2026-11-26. **Fase:** A (fundação) e F (prontidão).
+
+### O problema de processo
+
+`mypy` estava configurado no `pyproject.toml` desde o começo e **nunca** rodava: nem no gate local
+(`scripts/check_ci.py`), nem no CI. Resultado medido antes desta seção: **93 erros em 43 arquivos**.
+Verificação declarada e não executada é pior que ausência de verificação — dá a impressão de
+cobertura de tipos que não existe.
+
+### Triagem (não foi limpeza cosmética)
+
+| Grupo | Qtd | Natureza |
+|---|---|---|
+| `library stubs not installed` (`lxml`, `reportlab`) | 53 | ruído de terceiro |
+| `arg-type` / `assignment` / `call-arg` | 22 | mistura de defeito real e anotação |
+| `unused-ignore` | 6 | `# type: ignore` com código errado ou obsoleto |
+| outros (`index`, `dict-item`, `operator`, `attr-defined`) | 12 | anotação |
+
+**Dois defeitos de execução** apareceram na triagem — nenhum deles seria encontrado por teste,
+porque os caminhos não tinham teste:
+
+1. **`app/cte/evento.py::enviar_evento` chamava `montar_evento` sem `cnpj`**, parâmetro
+   keyword-only obrigatório → `TypeError` em qualquer envio de evento de CT-e. Havia teste de
+   *montagem*, nenhum de *envio*. Corrigido com `cnpj` obrigatório e teste novo que confere o XML
+   realmente enviado (`TestEnvio`).
+
+2. **`app/nfse/adapter.py`: o `Protocol` declarava `registrar_evento(chave, xml)`**, mas as duas
+   implementações (cliente real e dublê) aceitam `operacao`. O comentário do dublê afirmava que o
+   campo existia no `Protocol` — era falso. Protocol alinhado à implementação real.
+
+Além disso, `app/core/config.py::reset_ephemeral_key()` atribuía um global que ninguém lia e
+prometia "descartar a chave efêmera" — **não existe chave efêmera**: a chave de desenvolvimento é
+constante derivada, de propósito (API e worker são processos separados). O método foi removido e o
+teste que o chamava foi renomeado para dizer o que de fato prova.
+
+### O que mudou para chegar a zero
+
+- `pyproject.toml`: exceção de stubs para `lxml` e `reportlab` (não é dependência nova — regra 11).
+- `app/core/circuit.py`: `_relogio` era `object`; agora `Callable[[], float]` — três `type: ignore`
+  errados saíram junto.
+- `src/notasbr/regras/tributos.py`: `_grupo_icms` devolvia `object | None`; agora `ET.Element | None`.
+- `app/core/config.py`, `app/nfse/servico.py`, `app/nfse/errors.py`: variáveis com nome próprio em
+  vez de reúso de variável já estreitada.
+- `app/catalogo/__init__.py`: `vistos` é chave de **4** elementos (uf, modelo, ambiente, servico).
+- `app/api/v1/representacoes.py`, `app/api/v1/cnpj.py`: anotação da interface comum.
+- `app/nfse/signer.py`, `app/nfe/assinatura.py`: `type: ignore[dict-item]` documentado para o
+  namespace default (chave `None`), que a tipagem do signxml não modela.
+- `src/notasbr/regras/assinatura.py`: `x509_cert` passa PEM `str` em vez de `bytes`.
+- `app/nfse/eventos_tipos.py`: `RESTRICOES` virou `dict[str, RestricaoCampo]` (TypedDict), no lugar
+  de `dict[str, object]` que fazia `int(object)`/`join(object)`.
+- `app/nfse/documento_autorizado.py` (**novo**): `DocumentoAutorizado` carrega `documento` + `chave`
+  já estreitada. Antes, `cancelamento` e `eventos` garantiam `chave` em tempo de execução e
+  seguiam usando `documento.chave` tipado como `str | None`; o invariante existia só na cabeça de
+  quem leu. Agora está no tipo.
+- Guarda nova: certificado sem CNPJ no titular passa a falhar **antes** de qualquer chamada, em
+  cancelamento e em evento (`"o certificado A1 ativo não identifica CNPJ no titular"`).
+
+### Resultado
+
+| Antes | Depois |
+|---|---|
+| 93 erros / 43 arquivos | **0 erros / 173 arquivos** |
+
+Comando: `python -m mypy app src` → `Success: no issues found in 173 source files`.
+
+### Fechamento do gate
+
+`mypy` entrou em dois lugares, na mesma mudança:
+
+- `scripts/check_ci.py` (gate local, hook de pré-commit): checagem `tipagem`;
+- `.github/workflows/ci.yml`, job `testes`: passo `Tipagem (mypy)`.
+
+Sem isso, a redução de 93 para 0 seria um evento único que voltaria a degradar — que foi
+exatamente o que aconteceu com `ruff format --check` no passado (§8).
+
+### Limite honesto
+
+`mypy` sem `--strict`; `disallow_untyped_defs` não está ligado. Zero erros significa "sem erro nas
+regras atuais", não "código totalmente tipado".
+
+---
+
+## 46. Secret scanning no gate e no CI (sem dependência nova)
+
+**Data:** 2026-11-26. **Fase:** F (prontidão) — lacuna explícita do prompt de missão.
+
+### O que faltava
+
+O projeto tem uma regra dura — nunca versionar API key, certificado, PFX/PEM, token ou senha — e
+**nenhuma verificação automática** a sustentava. O CI tinha lint, testes com cobertura, migrations e
+contrato; não tinha varredura de segredo. A regra dependia de disciplina, e disciplina não é gate.
+
+### Por que não `gitleaks`/`trufflehog`
+
+O prompt proíbe dependência nova sem ADR (regra 11). As duas ferramentas resolveriam, mas são
+binários externos que precisariam ser baixados e versionados no CI. O que este projeto precisa
+detectar é um conjunto pequeno e estável de formas — cabe em `scripts/verificar_segredos.py`
+(biblioteca padrão apenas).
+
+### Regras implementadas
+
+| Regra | O que pega |
+|---|---|
+| `chave_privada` | bloco `-----BEGIN … PRIVATE KEY-----` |
+| `token_github` | `ghp_`, `gho_`, `ghu_`, `ghs_`, `ghr_` + 30 caracteres |
+| `token_openai` | `sk-` + 32 caracteres |
+| `chave_aws` | `AKIA` + 16 caracteres maiúsculos/dígitos |
+| `pfx_embutido` | PKCS#12 em literal base64 |
+| `senha_literal` | `senha_db = "…"`, `api_key = "…"`, `token = "…"` (aceita sufixo) |
+
+### Três decisões que os testes fixam
+
+1. **O scanner não ecoa o segredo.** O achado é `caminho:linha: tipo`. Imprimir o valor
+   transformaria o log do CI num segundo vazamento — que é exatamente o erro que se quer evitar.
+2. **Uma regra por linha, da mais específica para a mais genérica.** `token = "ghp_…"` casa com
+   `token_github` **e** com `senha_literal`; reportar duas vezes polui sem informar.
+3. **`tests/` e `docs/` ficam fora apenas da regra `senha_literal`.** Fixtures usam
+   `"senha-de-teste"` de propósito. Chave privada e token continuam proibidos em qualquer caminho —
+   e há teste afirmando isso.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `python -m scripts.verificar_segredos` | `nenhum segredo em 479 arquivo(s) verificado(s)` |
+| `pytest tests/test_verificar_segredos.py` | **11 passed** |
+| `python -m scripts.check_ci` (rápido) | **6/6**, agora com `segredos` |
+| teste com segredo plantado | detecta; e a saída do comando **não** contém o valor |
+
+O teste de detecção é o que dá valor ao resultado no repositório: um scanner que só passa no estado
+atual pode estar cego. Cada padrão tem caso positivo com valor sintético, e o caso negativo (texto
+limpo) está coberto.
+
+### Limite honesto
+
+Varredura de **conteúdo**, não de histórico do git. Um segredo removido em commit posterior
+continua exposto no histórico — o relatório diz isso ao falhar ("estar no histórico já conta como
+exposto"), mas o projeto não tem ferramenta de reescrita de histórico, e reescrever `main` exigiria
+autorização explícita do dono.
+
+---
+
+## 47. Circuit breaker: onde estava ligado, onde não estava, e o limite de estado
+
+**Data:** 2026-11-26. **Fase:** A (integrar de fato os componentes de resiliência).
+
+### Estado encontrado
+
+`CircuitBreaker` existia e estava ligado **apenas** à emissão síncrona
+(`POST /v1/emissoes` → `emitir_com_circuito`, coberto por `tests/test_circuito_na_emissao.py`).
+Cancelamento e evento falam com a **mesma** SEFIN Nacional e **não** passavam pelo circuito: com o
+autorizador fora, cada requisição queimava timeout próprio.
+
+### O que foi feito
+
+- `app/nfse/injecao.py`: `executar_com_circuito(registro, uf=, operacao=, acao=)` — genérico;
+  `emitir_com_circuito` passou a delegar nele (mesma API pública, sem quebra).
+- Chaves separadas por operação: `sefaz:NACIONAL:autorizacao`, `sefaz:NACIONAL:cancelamento`,
+  `sefaz:NACIONAL:evento`. Uma rejeição de cancelamento não abre o circuito de emissão.
+- `app/api/v1/emissoes.py`: as rotas de cancelamento e de evento passam pelo circuito. O handler
+  global de `CircuitoAberto` já respondia **503 com `Retry-After`** e `problem+json` — nada novo de
+  mapeamento de erro.
+
+### Testes (4 novos, em `tests/test_circuito_na_emissao.py`)
+
+| Teste | O que prova |
+|---|---|
+| chaves distintas por operação | cancelamento não abre emissão |
+| circuito aberto impede cancelamento | a SEFIN **não** é chamada |
+| circuito aberto impede evento | idem |
+| estado é por processo | dois registros não compartilham nada |
+
+### Limite que fica registrado (não corrigido)
+
+`RegistroCircuitos` é **em memória, por processo** — está escrito no docstring do próprio módulo.
+Consequência medida: com N processos de API, cada um tem contador próprio e o limite efetivo é
+`N × limite_falhas`. Compartilhar exige estado em Redis; a dependência já existe (é usada para rate
+limit e DLQ), mas mover o circuito para lá é mudança de comportamento em caminho quente e fica
+como decisão pendente — não como "implementado".
+
+O worker (lotes) também não usa o circuito: a emissão em lote herda o cliente montado pelo serviço,
+sem passar por `executar_com_circuito`.
+
+### Fora do escopo desta seção
+
+O circuito **não** substitui retry: retry é do cliente/worker; aqui só se decide "nem tente".
+Rejeição fiscal definitiva não vira falha de circuito transitório — `registrar_falha` só é chamado
+para `ErroTransitorio`, que é o que o `executar` classifica.
+
+---
+
+## 48. Performance do caminho síncrono em mock: medido, no alvo, sem folga
+
+**Data:** 2026-11-26. **Fase:** F. Alvo de produto declarado no prompt: **p95 < 300 ms** para a parte
+síncrona **em mock**.
+
+### Instrumento
+
+`scripts/benchmark_mock.py` — emissão real de NFS-e pelo caminho HTTP completo, em processo
+(`httpx.ASGITransport`, sem abrir porta, sem rede), com `NFSE_ADAPTER=mock`, PostgreSQL local,
+certificado A1 autoassinado gerado em memória e **assinatura XMLDSig real** (o dublê substitui só
+a SEFAZ, não a assinatura). Banco de **teste**, limpo antes; não toca o banco de desenvolvimento.
+
+### Resultado medido
+
+| Execução | n | p50 | p95 | p99 | max |
+|---|---|---|---|---|---|
+| aquecimento 5 | 30 | **211,1 ms** | **289,9 ms** | 291,3 ms | 291,3 ms |
+| aquecimento 10 | 60 | **172,7 ms** | **285,5 ms** | 300,6 ms | 429,1 ms |
+
+- **Alvo atingido** para p95 (285,5 ms ≤ 300 ms) nas duas execuções.
+- **Sem folga**: p99 já passa de 300 ms e o máximo chegou a 429 ms. O limite está a ~5% do alvo.
+- O custo dominante é a assinatura XMLDSig com RSA-2048, não o banco: o p50 alto acompanha a
+  variância do processo de assinatura.
+
+### O que este número NÃO é
+
+Não é tempo de autorização fiscal. Numa emissão real entram resolução DNS, TCP, mTLS, WAF da
+SEFAZ, fila do autorizador e o processamento dele. O alvo de 300 ms só faz sentido neste recorte, e
+o script imprime essa ressalva junto do número para o resultado não ser lido fora de contexto.
+
+### Incidente durante a medição (registrado, não escondido)
+
+A **primeira** execução do script foi para a **borda real** da SEFIN: o script não definia
+`NFSE_ADAPTER` e o padrão do projeto é `sefin` (`docker-compose.yml:24`). A resposta foi **403**
+— certificado autoassinado não aceito — e **nenhum documento foi emitido**: a recusa acontece na
+borda, antes de qualquer processamento fiscal.
+
+Correção aplicada na mesma hora, em duas camadas:
+
+1. `os.environ["NFSE_ADAPTER"] = "mock"` no topo do script, antes de importar `app.*`;
+2. guarda dura `recusa_por_adaptador(adaptador)` que aborta com código 2 se o adaptador não for o
+   dublê — testada em `tests/test_benchmark_mock.py` (3 casos, incluindo "importar o script força
+   mock no ambiente").
+
+Fica registrado porque é o mesmo tipo de erro que a §43 tentou prevenir na `demo_e2e`: **o padrão do
+projeto é o adaptador real**, e qualquer script que não o force explicitamente pode falar com a
+SEFAZ.
+
+### Limite
+
+Medição em uma máquina Windows, um processo, sem carga concorrente. Não é teste de carga e não
+inclui pico de fila. Reprodução: `python -m scripts.benchmark_mock --n 60 --warmup 10`.
+
+---
+
+## 49. Readiness passa a reportar o worker (e o teste de contrato parou de mentir)
+
+**Data:** 2026-11-26. **Fase:** F (health/readiness) + A (contrato).
+
+### Lacuna 1: `/health` não sabia do worker
+
+O worker **já** tinha batimento em Redis (`app/worker/main.py`, `CHAVE_HEARTBEAT` com TTL de 120 s)
+e healthcheck próprio para o Docker (`app/worker/healthcheck.py`). O que faltava era a **API**
+reportar isso: um operador olhando `/health` via `ok` com o worker morto — e webhooks/retentativas
+parados.
+
+Implementado em `app/api/v1/health.py`:
+
+- campo `worker: {ok, ultimo_batimento, detalhe}` na resposta de `/health`;
+- lê a **mesma** chave que o worker escreve (uma fonte só, sem constante duplicada);
+- Redis inacessível ⇒ `ok: false` com o motivo, nunca sucesso silencioso;
+- **política explícita**: `READINESS_EXIGE_WORKER` (padrão `false`). API e worker escalam
+  separado; uma API sem worker ainda serve leitura e consulta. A flag decide apenas se o estado do
+  worker **reprova** a readiness (503). Reportar ≠ reprovar, e a diferença está documentada em
+  `.env.example`.
+
+Ajuste de injeção: `saude()` passou a receber `settings` por `Depends(get_settings)` em vez de
+chamar `get_settings()` direto. Sem isso o `dependency_overrides` não tinha efeito — foi o próprio
+teste da flag que revelou.
+
+### Lacuna 2: o teste de contrato comparava só `paths`
+
+`tests/test_openapi_sincronizado.py` afirmava que o `openapi.json` versionado estava sincronizado,
+mas comparava **apenas** `paths`. Medido: o app tinha o schema `EstadoWorker` e o arquivo não —
+divergência real que o teste aprovava. `paths` iguais, `components` diferentes.
+
+- Teste novo `test_schemas_tambem_estao_sincronizados` compara `components` (foi executado
+  **vermelho** antes da correção, o que prova que detecta o drift).
+- `openapi.json` regenerado (+40 linhas: `EstadoWorker` e o campo `worker`).
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_fase1_health.py` | 10 passed (3 novos: sem batimento, com batimento, flag ligando o 503) |
+| `pytest tests/test_openapi_sincronizado.py` | 4 passed (1 novo) |
+| `pytest tests/test_configuracao_documentada.py` | 9 passed (`.env.example` cobre a variável nova) |
+| `mypy app src` | zero erros |
+| gate completo | 8/8 |
+
+### Limite
+
+O batimento prova que o **laço** do worker está vivo, não que cada tipo de job está saudável.
+Fila travada com worker vivo ainda aparece como `ok` — diagnóstico por tipo de job exige métrica,
+que continua ausente (§50 em diante).
+
+---
+
+## 50. Análise de dependências: consistência agora, CVE decidida com gatilho
+
+**Data:** 2026-11-26. **Fase:** F (CI/CD e dependências). **ADR:** `docs/adr/0002-dependencias.md`.
+
+### O que o CI não cobria
+
+O CI tinha testes, cobertura, lint, tipagem, migrations, contrato e secret scanning. Não tinha
+**nada** sobre dependências. O prompt pede "análise de dependências" — e o nome cobre duas coisas
+que não são a mesma:
+
+| Verificação | O que responde | Custo |
+|---|---|---|
+| **Consistência** | o instalado satisfaz o declarado? há conflito de versão? | offline, determinístico |
+| **Vulnerabilidade (CVE)** | alguma dependência tem advisory publicado? | exige base de advisories + rede |
+
+### Implementado
+
+`python -m pip check` entrou no gate local (`scripts/check_ci.py`) e no CI. Offline, zero
+dependência nova, falha determinística. Pega o erro real de ambiente: extra faltando, pin
+incompatível, instalação parcial.
+
+Medido: `No broken requirements found.`
+
+### Decidido, não implementado: `pip-audit`
+
+`pip-audit` é a ferramenta certa para CVE e **não** foi adicionada agora. Motivos registrados no
+ADR 0002: introduz dependência nova (regra 11), depende de base externa (resultado muda sem mudança
+no commit, reprovando CI por fato alheio) e advisory sem versão corrigida exige `--ignore-vuln`
+justificado. **Gatilho para adotar**: quando existir ambiente publicado (homologação/produção) ou
+distribuição do pacote a terceiros — antes disso, CI intermitente custa mais do que entrega.
+
+Alternativas avaliadas e não escolhidas: `safety` (comercial no modo completo), `dependabot` e
+`renovate` (cuidam de atualizar, não de barrar merge por CVE, e exigem configuração no GitHub, fora
+do repositório).
+
+### Risco residual (explícito, não coberto)
+
+**CVE em dependência não é detectada hoje.** Isso está registrado como lacuna conhecida — não como
+cobertura. Quem for publicar precisa rodar `pip-audit` antes; o ADR deixa o passo pronto para
+entrar.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `python -m pip check` | `No broken requirements found.` |
+| `python -m scripts.check_ci` (rápido) | **7/7**, agora com `dependencias` |
+| gate completo | 9/9 |
+
+---
+
+## 51. Métricas: `/metrics` em formato Prometheus, sem dependência, com cardinalidade controlada
+
+**Data:** 2026-11-26. **Fase:** F (observabilidade). **Estado anterior:** inexistente.
+
+### O que havia
+
+`GET /health/circuitos` entregava o estado dos circuitos em **JSON** — útil para diagnóstico, inútil
+para scraping. Não havia `/metrics`, nem biblioteca de métricas, nem traces. O prompt pede para
+distinguir "biblioteca/configuração" de "instrumentação efetiva": aqui não havia nem a biblioteca.
+
+### Por que à mão e não `prometheus-client`
+
+Adicionar dependência exige ADR (regra 11). Para **quatro** métricas, o custo de manter um exporter
+não se paga: o formato de exposição é estável e pequeno (`# HELP`, `# TYPE`, `amostra valor`). O
+mesmo critério já usado no ADR 0002 (só entra dependência quando o custo de não ter supera o de
+manter).
+
+### O que é exposto
+
+| Métrica | Tipo | Rótulos |
+|---|---|---|
+| `opennotas_http_requisicoes_total` | counter | `metodo`, `rota`, `status` |
+| `opennotas_http_duracao_segundos` | histogram | `metodo`, `rota`, `status` |
+| `opennotas_worker_batimento` | gauge | — (0/1) |
+| `opennotas_circuito_estado` | gauge | `circuito` (0 fechado, 1 meio-aberto, 2 aberto) |
+
+Faixas do histograma: 0,05 / 0,1 / 0,2 / 0,3 / 0,5 / 1 / 2 / 5 s (fixas, expostas como comentário
+no payload para quem consulta não precisar abrir o código).
+
+### Cardinalidade: a decisão que mais importa
+
+- **Rótulo de rota é o template** (`/v1/emissoes/{invoice_id}`), nunca o caminho cru. Um label por
+  UUID cresce sem limite e derruba o scraper — é o erro clássico e está travado por teste
+  (`dois_ids_da_mesma_rota_nao_criam_duas_series`).
+- **Nenhum rótulo de tenant.** Além da explosão de cardinalidade, tenant em métrica é dado de
+  cliente exposto em endpoint de infraestrutura. Teste afirma que as palavras `tenant`, `cnpj`,
+  `cpf`, `api_key` e `chave` não aparecem no payload.
+- **`/metrics` não conta a si mesmo** — cada scrape poluiria a série.
+- Circuitos: cardinalidade limitada por (operação x autorizador), não por UF nem por município.
+
+### Estado em memória, como o circuito
+
+O registro é por processo (§47 tem o mesmo limite). Com N instâncias, cada uma expõe a própria
+série e o Prometheus soma na consulta — comportamento normal e documentado, não bug.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_metrics.py` | **11 passed** |
+| `GET /metrics` (cliente ASGI) | 200, `text/plain`, com `opennotas_worker_batimento` e `# TYPE opennotas_circuito_estado gauge` |
+| `/metrics` no OpenAPI | **ausente** (`include_in_schema=False`) — é superfície de scraping, não contrato de cliente |
+
+### O que continua ausente
+
+**Traces** (OpenTelemetry). O log JSON já traz `request_id`, e correlação entre API e worker por
+trace distribuído não existe. Está registrado como lacuna; adicionar OTel é dependência nova com
+peso real (SDK + exporter) e precisa de ADR próprio.
+
+O container da API em execução **não** tem esta mudança (imagem anterior ao commit) — a verificação
+foi feita em processo, pelo cliente ASGI dos testes.
+
+---
+
+## 52. Dois entregáveis operacionais: matriz de cobertura e runbook
+
+**Data:** 2026-11-26. **Fase:** F. Ambos estavam na lista do objetivo e não existiam.
+
+### `docs/MATRIZ-COBERTURA.md`
+
+Matriz por documento e operação, com **nível de prova** explícito em cada célula: `✅ teste`
+(mock determinístico), `✅ real` (chamada medida ao autorizador), `🔒 bloqueado` (falta credencial),
+`❌ ausente`. A legenda diz, no topo, que `✅ teste` **não** é homologação.
+
+Achado ao montar a matriz: o banco de desenvolvimento tem `1` fatura `authorized` e `2` documentos
+com `xml_autorizado`, mas **`0` com `protocolo`** — e mistura execuções em mock com chamadas reais.
+Portanto **não serve como prova de autorização**; está escrito assim na matriz, em vez de virar
+"emissão homologada".
+
+### `docs/OPERACAO.md`
+
+Runbook com o que o operador executa, verificado no código:
+
+| Tema | Fato verificado |
+|---|---|
+| Backup | o banco contém **documento fiscal e dados de cliente**; o dump precisa do mesmo cuidado |
+| Chave-mestra | **não** está no banco; backup sem ela é inútil (PFX selado não abre) |
+| Rotação de chave-mestra | **não existe re-selagem** (grep por `rotacionar|rotation|resselar` em `app/core` = zero) → trocar a chave exige reenviar A1 e regravar segredos |
+| Rollback | 11 migrations, **todas** com `downgrade()`; downgrade de tabela criada **dropa dado** |
+| Rate limit | **fail-open** por desenho (`ratelimit.py`): storage fora ⇒ permite |
+| Readiness | **fail-closed**: 503 sem banco/Redis; worker só reprova com `READINESS_EXIGE_WORKER=true` |
+| Circuito | **fail-closed**: 503 sem chamar a SEFAZ |
+| DLQ replay | `X-Admin-Key`; rota responde **404** quando `ADMIN_HABILITADO=false` |
+| Retenção | **não há expurgo automático**; prazo legal é decisão do operador, não do sistema |
+
+O runbook inclui o que **não** existe (HA, PITR, rotação automática, exclusão de tenant por API) —
+lacuna declarada, não promessa.
+
+### Descoberta que muda o veredito de "pronto"
+
+A ausência de re-selagem significa que **trocar `MASTER_ENCRYPTION_KEY` invalida todos os
+certificados e segredos já gravados**. Isso não é bug de código, é limitação de operação — e agora
+está no runbook com o procedimento correto (reenvio), em vez de descoberto em produção.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| leitura de `alembic/versions` | 11/11 com `downgrade()` |
+| `docker compose exec postgres psql …` | `fiscal_documents`: 2, com `xml_autorizado` 2, com `protocolo` **0** |
+| gate completo | 9/9 (docs não alteram código) |
+
+Ambos os documentos estão linkados no README.
+
+---
+
+## 53. Rotação da chave-mestra: re-selagem implementada (a lacuna de §52 fechada)
+
+**Data:** 2026-11-26. **Fase:** A/F. §52 registrou a limitação; esta seção a corrige.
+
+### O problema medido em §52
+
+Trocar `MASTER_ENCRYPTION_KEY` tornava ilegível **todo** material selado — certificado A1, segredo
+de webhook, credenciais municipais, tokens do Melhor Envio. Não havia função de re-selagem (grep por
+`rotacionar|rotation|resselar` em `app/core` = zero). O runbook só podia recomendar reenvio manual.
+
+### O que foi implementado
+
+`scripts/rotacionar_chave_mestra.py` — núcleo testável (`rotacionar`, `verificar`) + CLI
+(`executar`). Para cada linha: abre com a chave antiga usando o **mesmo `aad`** com que foi selada e
+re-sela com a nova. O `aad` **não muda** — só a chave.
+
+| Tabela | Campos | `aad` |
+|---|---|---|
+| `tenant_certificates` | `pfx_selado`, `senha_selada` | `tenant:<id>` |
+| `tenants` | `webhook_secret_selado` | `tenant:<id>` |
+| `credenciais_municipais` | usuário, senha, token | `tenant:<id>` + `|` + `codigo_ibge` |
+| `frete_credenciais` | `access_token_selado`, `refresh_token_selado` | `tenant:<id>` |
+
+### Garantias impostas pelo código
+
+1. **Uma transação.** Metade migrado é pior que nada migrado.
+2. **Verifica antes de commitar.** `verificar()` reabre cada envelope com a chave nova; qualquer
+   falha faz `rollback` e nada é gravado.
+3. **Falha limpa com chave antiga errada.** Se um envelope não abrir, a mensagem diz que a chave
+   não é a que selou aquele dado, e o banco fica intacto.
+4. **Recusa** chave ausente, malformada (não base64, ≠ 32 bytes) e chave nova igual à antiga.
+5. **Chaves por variável de ambiente**, nunca por argumento de linha de comando — argumento aparece
+   em `ps` e no histórico do shell.
+6. **Não imprime conteúdo nem chave**, só contagens.
+
+### Testes (`tests/test_rotacionar_chave_mestra.py`, 11)
+
+| Teste | O que prova |
+|---|---|
+| nova abre, antiga não | houve re-selagem de verdade, não reescrita |
+| `verificar` conta os campos | 4 campos no cenário (pfx + senha + webhook + frete) |
+| chave antiga errada | `ErroDeCriptografia` e **nada gravado** (o selo original continua válido) |
+| chave nova igual | recusa |
+| `aad` amarra ao tenant | blob não abre com `aad` de outro tenant, antes e depois da rotação |
+| CLI sem variáveis | código 2 com mensagem |
+
+Cenário de teste usa chaves fixas (`\x01`…, `\x02`…) e material fictício — nenhum PFX real.
+
+### O que continua manual
+
+O serviço precisa ser reiniciado com a chave nova depois do script. Não há orquestração
+automática: rodar com a chave antiga ainda no ambiente deixaria processos antigos lendo com a chave
+velha e falhando na decifragem.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_rotacionar_chave_mestra.py` | **11 passed** |
+| `mypy app src` | zero erros |
+| gate completo | 9/9 |
+
+`docs/OPERACAO.md` §5.2 foi atualizado: o texto que dizia "não existe re-selagem" agora descreve o
+procedimento, mantendo o caminho manual como último recurso.
+
+---
+
+## 54. Webhook que esgotava tentativas não ia para a DLQ
+
+**Data:** 2026-11-27. **Fase:** A/E (integração de DLQ ao fluxo real).
+
+### O defeito
+
+`app/webhooks/service.py::_registrar_falha` marcava a entrega como `FALHOU` ao esgotar as 5
+tentativas e limpava `proxima_tentativa`. Fim. O registro ficava na tabela, mas **ninguém era
+avisado** e **não havia caminho de replay**. O prompt pede "webhooks com ... DLQ, replay seguro" e a
+DLQ existia (`app/worker/dlq.py`, com `preparar_replay` recusando replay duplo) — só nunca era
+alimentada por webhook: o único produtor era o helper de tarefas do worker.
+
+### A correção
+
+`entregar()` passou a chamar `_guardar_na_dlq()` quando a entrega termina em `FALHOU`:
+
+- `fila="webhook"`, item com `payload = {entrega_id, tipo_evento, url_destino}` — **não** copia o
+  payload do cliente: ele já está em `webhook_deliveries`, e duplicar dado fiscal é pior que
+  referenciá-lo;
+- `erro` recebe o último motivo, `tentativas` o número executado;
+- **idempotente**: se já existe item `PENDENTE` para a mesma entrega, não cria outro — reprocessar
+  `entregar` à mão não deve encher a fila morta de duplicatas;
+- log de erro `webhook_esgotou_tentativas` (sem payload, sem segredo), para alerta.
+
+O item é reparável pelo caminho já existente e autenticado: `POST /v1/admin/dlq/{id}/replay`
+(`X-Admin-Key`, ADR 0001), com a mesma recusa de replay duplo.
+
+### O teste que quase mentiu
+
+A primeira versão do teste falhou por um motivo que **não** era o código: o tenant do cenário não
+tinha segredo de webhook configurado, então `entregar` retornava **antes** de tentar entregar —
+a entrega já nascia `FALHOU` por falta de segredo. O teste "passava" na asserção de status e
+reprovava na de DLQ. Corrigido configurando `POST /v1/me/webhook` no início do cenário. Fica
+registrado porque é o tipo de armadilha que produz teste verde sem prova.
+
+### Testes (`tests/test_webhooks.py`, +3)
+
+| Teste | O que prova |
+|---|---|
+| falha repetida cria **um** item | esgotou → DLQ com `fila="webhook"`, `entrega_id` e `tentativas=5` |
+| reprocessar não duplica | chamar `entregar` de novo numa entrega esgotada não cria segundo item |
+| sucesso não cria item | entrega 2xx não polui a fila morta |
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_webhooks.py` | **24 passed** |
+| gate completo | 9/9 |
+| `mypy app src` | zero erros |
+
+---
+
+## 55. Concorrência real na idempotência: 500 em vez de 200, e a trava que resolve
+
+**Data:** 2026-11-27. **Fase:** A (isolamento/idempotência). Correção de defeito **crítico**.
+
+### Como apareceu
+
+`tests/test_idempotencia_concorrencia.py` dizia, desde a primeira versão, que o caso
+**simultâneo** não estava provado: o teste levantava `MissingGreenlet` e a hipótese registrada era
+"problema do harness de teste no `pool_pre_ping`". Hipótese nunca verificada — e estava errada.
+
+Protocolo seguido: reproduzir antes de concluir.
+
+| Experimento | Resultado |
+|---|---|
+| duas conexões concorrentes com `pool_pre_ping=True` (script isolado) | **ok** — pool não é a causa |
+| duas sessões concorrentes com o `sessionmaker` do app | **ok** — factory não é a causa |
+| duas requisições HTTP concorrentes em `/health` | **ok** — middleware não é a causa |
+| duas requisições concorrentes em `/v1/emissoes` com a mesma chave | **`MissingGreenlet`** |
+
+### Causa raiz
+
+Não era o pool, nem o teste: era a **corrida de idempotência**.
+
+1. As duas requisições passam pela checagem `_buscar_por_idempotencia` — nenhuma vê a outra, porque
+   a primeira ainda não commitou.
+2. As duas inserem. A segunda viola `uq_invoices_tenant_idempotency_key`.
+3. O código **tem** tratamento de `IntegrityError`, mas o erro chega embrulhado pelo driver asyncpg;
+   a recuperação (`rollback` + nova consulta) é executada num ponto em que o driver já perdeu o
+   contexto de greenlet, e o que o cliente recebe é `MissingGreenlet` → **500**.
+
+O caminho que deveria devolver **200 com a fatura existente** devolvia erro. Cliente em rede
+instável repete; repetição é exatamente o cenário.
+
+### Correção
+
+`pg_advisory_xact_lock` derivado de `sha256(tenant_id:chave)` **antes** da checagem de existência:
+
+- a segunda requisição **espera** a primeira terminar a transação e então encontra a fatura →
+  200, uma fatura só;
+- a trava é de transação (liberada no commit/rollback) e o escopo é a **chave**, não a tabela:
+  tenants diferentes e chaves diferentes seguem em paralelo;
+- colisão de hash apenas serializa dois pedidos distintos — não corrompe;
+- o tratamento de `IntegrityError` **permanece** como rede de segurança.
+
+### Teste
+
+`TestSimultaneidade` com `asyncio.gather` de duas emissões usando a mesma `Idempotency-Key`:
+afirma que **nenhuma** resposta é exceção, que os códigos são exatamente `[200, 201]` e que existe
+**uma** fatura no banco. Antes da correção: `[201, MissingGreenlet]`.
+
+O docstring do arquivo foi reescrito: o caso agora está provado e o histórico está registrado — em
+vez de "não provado, talvez seja o harness".
+
+### Limite honesto
+
+- A trava é **PostgreSQL**. O projeto é Postgres-only (asyncpg), então não há regressão hoje; num
+  banco diferente esta proteção não existiria.
+- A serialização é por chave: dois pedidos com a mesma chave, um espera o outro. Com a emissão
+  síncrona chamando a SEFAZ dentro da transação, a espera pode chegar à latência do autorizador
+  (segundos, não milissegundos).
+- O caminho `IntegrityError` continua sem teste que o force a acontecer (a trava o torna
+  inalcançável no fluxo normal). Ele existe como defesa, não como caminho exercitado.
+
+---
+
+## 56. Decisão registrada sobre traces (ADR 0003) e consolidação do estado
+
+**Data:** 2026-11-27. **Fase:** F. **ADR:** `docs/adr/0003-traces.md`.
+
+### O que faltava
+
+Traces distribuídos nunca existiram, e isso estava escrito como lacuna em §51 — mas **sem decisão
+registrada**. Lacuna sem decisão vira esquecimento: quem ler depois não sabe se foi avaliado e
+descartado, ou se ninguém olhou.
+
+### Decisão
+
+Não instalar OpenTelemetry neste ciclo. Motivos no ADR: cinco pacotes com versionamento próprio,
+necessidade de coletor (decisão de infraestrutura), e — o principal — **instalar SDK e chamar isso
+de "temos OTel" seria exatamente o falso positivo que o objetivo manda evitar**. Sem backend
+consumindo span, o ganho é zero e o custo é imediato.
+
+O que **existe** e resolve o caso atual: `request_id` no header e no log JSON, latência por rota em
+`/metrics` (seção 51). O que falta é a costura API→worker, não o número.
+
+**Gatilho para adotar** (registrado): incidente em ambiente publicado em que `request_id` não
+bastou; mais de um worker/instância; ou exigência contratual de SLA com trace. O ADR fixa também o
+mínimo aceitável quando entrar — spans em `TransporteHTTP`, no job do worker e na entrega de webhook,
+com **teste que prove span exportado**, não instrumentação registrada.
+
+Alternativa intermediária registrada e não escolhida: propagar `request_id` no payload do job do
+ARQ (barato, sem dependência, resolve metade do problema). Candidata ao próximo ciclo.
+
+### Estado consolidado após esta rodada
+
+| Medida | Valor |
+|---|---|
+| Commits na branch (PR #1) | 15 |
+| Testes | 1457 |
+| Cobertura | **87,72%** (fail_under = 80) - medido nesta rodada, nao herdado do baseline |
+| mypy | 0 erros / 174 arquivos |
+| Gate | 9/9 |
+| Segredos | nenhum em 490 arquivos |
+| ADRs | 3 (admin auth, dependências, traces) |
+
+Defeitos corrigidos nesta série: emissão real em homologação por `Settings` no lugar de `ambiente`
+(3 módulos); `enviar_evento` sem `cnpj`; rota de status com `cert_pem` inexistente (500 com
+certificado); webhook esgotado sem DLQ; **corrida de idempotência devolvendo 500**; teste de contrato
+comparando só `paths`; `mypy` fora do CI; re-selagem de chave-mestra inexistente.
+
+### Limite de leitura da cobertura
+
+Medido nesta rodada: `app/api/v1/emissoes.py` aparece com 46% e `app/api/v1/transportes_status.py`
+com 61%, **apesar de testes que exercitam os caminhos**. O motivo está no próprio ROADMAP: o corpo de
+handlers assíncronos aparece como não coberto. Ou seja: aqui cobertura **subestima** o testado, e
+perseguir o número levaria a escrever teste redundante em vez de corrigir defeito. Registrado para
+que ninguém "conserte" a cobertura quebrando os testes.
+
+---
+
+## 57. Mesma `Idempotency-Key` com corpo diferente devolvia a nota antiga em silêncio
+
+**Data:** 2026-11-27. **Fase:** A (idempotência). **Mudança de comportamento — leia o aviso no fim.**
+
+### O defeito
+
+Reusar a chave com **outro corpo** devolvia `200` com a fatura anterior e `ja_existia: true`.
+Nenhum aviso, nenhum erro. O cliente que pedia R$ 100 recebia de volta a nota de R$ 50 e concluía que
+havia emitido o que pediu.
+
+Em documento fiscal isso não é bug cosmético: é **divergência entre o que foi pedido e o que foi
+escriturado**, descoberta na conciliação — ou nunca.
+
+Não havia teste nem tratamento: `grep` por `divergente` nos testes não retornava nada sobre emissão,
+e o único `409` do arquivo era o de conflito raro de constraint.
+
+### A correção
+
+`_recusar_payload_divergente()` compara o corpo recebido com o `payload` que a própria fatura guardou
+na criação (o mesmo `model_dump(mode="json")` que já era persistido). Sem coluna nova, sem migração.
+
+| Situação | Antes | Agora |
+|---|---|---|
+| chave + **mesmo** corpo | 200 com `ja_existia` | **200 com `ja_existia`** (inalterado) |
+| chave + corpo **diferente** | 200 com a nota antiga | **409** explicando que a chave já foi usada com outro corpo |
+| chave nova | 201 | 201 (inalterado) |
+
+A mensagem orienta o caminho certo sem ecoar dado do cliente: "reenvio idêntico devolve a emissão
+original; para um documento novo, use outra chave".
+
+### Aviso de compatibilidade
+
+Isto **muda o comportamento de `/v1`** num caso específico. A decisão foi não versionar porque o
+comportamento anterior não era contrato — era resultado errado. Quem hoje reusa chave com corpo
+diferente está, na melhor hipótese, com bug de cliente; na pior, emitindo documento trocado.
+Para clientes que só repetem o mesmo pedido (o caso normal), nada muda.
+
+### Testes (`tests/test_idempotencia_concorrencia.py`, +2)
+
+| Teste | O que prova |
+|---|---|
+| corpo diferente vira 409 | 201 → 409, e a fatura original segue única |
+| corpo idêntico continua 200 | `ja_existia: true` e mesmo `invoice_id` |
+
+### Limites
+
+- A comparação é de **corpo normalizado**, não de intenção: dois corpos equivalentes escritos de
+  formas diferentes (campo opcional explícito como `null` vs ausente) precisam gerar o mesmo
+  `model_dump`, e é isso que o teste protege. Campo novo com default diferente quebraria a igualdade
+  e devolveria 409 num reenvio legítimo — risco aceito e documentado.
+- Não há janela de expiração da chave: a fatura antiga nunca "expira", então a chave vale para sempre
+  para aquele tenant. É coerente com retenção fiscal, mas significa que reusar chave antiga nunca
+  emitirá documento novo.
+
+---
+
+## 58. Rate limit existia e nunca era instalado
+
+**Data:** 2026-11-27. **Fase:** A (integração de componente ao fluxo). Item do objetivo:
+"identificar implementações isoladas que ainda não estão integradas ao fluxo de produção".
+
+### O defeito
+
+`app/core/middleware_ratelimit.py` estava escrito, testado (12 testes) e **nunca registrado** em
+`criar_app()`. Ligar `RATE_LIMIT_HABILITADO=true` não fazia absolutamente nada: a flag acendia uma
+proteção que ninguém executava.
+
+Os testes antigos não podiam pegar isso porque construíam uma `FastAPI()` própria e adicionavam o
+middleware à mão — provavam que o middleware **funciona**, nunca que ele **está no fluxo**. É a
+diferença entre testar a peça e testar a instalação.
+
+Efeito prático: um operador lê `.env.example`, liga a flag, e fica com a API sem cota — acreditando
+que tem.
+
+### A correção
+
+1. `MiddlewareRateLimit` é registrado **sempre** em `criar_app()`; o próprio middleware não faz nada
+   quando a flag está desligada (o padrão). Registrar condicionalmente criaria dois caminhos de
+   construção de app e um deles nunca seria exercitado pelos testes.
+2. Ordem: `MiddlewareRequisicao` fica **por fora** do rate limit, para que uma resposta 429 ainda
+   ganhe `X-Request-ID`, entre no log e conte em `/metrics`. (Medido: `CORSMiddleware` é o mais
+   externo de todos; a asserção do teste fixa a ordem relativa entre os dois que importam.)
+3. **Storage trocado para Redis** (`ArmazenamentoRedis` em `app/core/ratelimit.py`). O middleware
+   usava `ArmazenamentoMemoria`, então com N instâncias a cota real seria `N x limite` — o número
+   documentado mentiria. Redis usa `INCR` (atômico) e `EXPIRE` só na primeira escrita, senão a janela
+   viraria deslizante e a cota nunca fecharia. Falha do Redis continua **fail-open**, como o
+   `Limitador` já garantia.
+
+### Testes (`tests/test_ratelimit_instalado.py`, 5)
+
+| Teste | O que prova |
+|---|---|
+| middleware está no app real | `criar_app()` registra `MiddlewareRateLimit` |
+| requisição por fora do limite | ordem relativa correta entre os dois middlewares |
+| terceira requisição vira 429 | com `rate_limit_por_minuto=2`: 200, 200, **429** com `Retry-After`, `application/problem+json` e `X-Request-ID` |
+| `/health/live` nunca é barrado | rota isenta mesmo acima da cota |
+| desligado não barra | padrão preservado |
+
+### Achados de teste honestos
+
+- A primeira versão usava `X-API-Key` fixa e **passou a falhar ao rodar de novo**: o contador vive no
+  Redis e não expira entre execuções, então a primeira requisição do teste seguinte já vinha 429. Keys
+  agora são únicas por teste. Isso também documenta um comportamento real: a cota é por prefixo de
+  chave e a janela é de 60 s.
+- A primeira asserção de ordem estava invertida (supus que o último da lista era o mais externo;
+  Starlette embrulha em ordem reversa e o **primeiro** é o mais externo). Corrigido com o comentário
+  explicando a semântica, para o próximo não repetir o erro.
+
+### Limites
+
+- Sem Redis, o contador cai para memória por processo — a cota vira `N x limite`. O fail-open está
+  documentado em `docs/OPERACAO.md`; a consequência de escala está registrada aqui.
+- A chave de cota é o **prefixo** da API key (`api_key[:8]`), não o hash: prefixo é público por
+  desenho. Duas chaves com o mesmo prefixo dividiriam cota — improvável, mas é o comportamento.
+- O `retry_after_s` é o da janela fixa, não um cálculo exato do instante de liberação.
+
+---
+
+## 59. Inventário de implementações isoladas (código testado que não está no fluxo)
+
+**Data:** 2026-11-27. **Fase:** A (fecho do item "identificar implementações isoladas").
+
+O objetivo pede explicitamente para identificar o que existe e **não** está integrado. §54 e §58
+acharam dois casos por acidente. Esta seção faz o levantamento sistemático.
+
+### Método
+
+Para cada módulo em `app/`, contei referências dentro de `app/` (excluindo o próprio arquivo) e
+verifiquei quem importa de fato. "Só teste" significa: nenhum caminho de execução da API ou do worker
+passa por ali.
+
+| Módulo | Quem importa em produção | Estado |
+|---|---|---|
+| `app/cte/consulta_situacao.py` | **ninguém** — só `tests/test_cte_consulta_situacao.py` | **isolado** |
+| `app/cte/transmissao.py` | **ninguém** — só `tests/test_transporte_transmissao.py` | **isolado** |
+| `app/mdfe/transmissao.py` | **ninguém** — só o mesmo teste | **isolado** |
+| `app/nfse/drivers_factory.py` | **ninguém** — só testes | **isolado** |
+| `app/nfse/drivers.py` (roteamento) | só `drivers_abrasf.py` e `drivers_factory.py` | **isolado** (cadeia inteira) |
+| `app/nfse/drivers_abrasf.py` (motor ABRASF) | só `drivers_factory.py` | **isolado** |
+| `app/nfse/assinatura_rps.py` | **ninguém** — só `tests/test_nfse_assinatura_rps.py` | **isolado** |
+| `app/worker/tarefas.py` (retry→DLQ) | **ninguém** — só `tests/test_worker_tarefas.py` | **isolado** |
+| `app/core/middleware_ratelimit.py` | `app/main.py` | **integrado em §58** |
+
+### O que isso significa, sem eufemismo
+
+1. **NFS-e multi-prefeitura não está no fluxo.** Existe contrato de driver, roteamento, motor ABRASF e
+   stubs que recusam com motivo — tudo testado — mas `app/nfse/servico.py` **não** escolhe driver:
+   sempre usa o padrão nacional. Com um município ABRASF, a emissão hoje tentaria o padrão nacional em
+   vez de chamar o driver municipal. A camada está pronta para ser ligada; **não está ligada**.
+2. **Consulta de situação do CT-e não é uma capacidade da API.** A chamada real registrada em §31
+   (cStat `236`) foi feita por script, não por rota. O módulo é sólido e testado; não existe endpoint.
+3. **Transmissão de CT-e/MDF-e não tem rota.** Os módulos montam e enviam o envelope, mas nenhum
+   endpoint os chama — coerente com "não transmitir sem credenciamento", porém significa que mesmo
+   com credencial não há caminho pela API.
+4. **O helper de retry→DLQ do worker não é usado pelo worker.** `entregar_webhooks` e
+   `processar_lote` fazem o próprio tratamento; o webhook passou a alimentar a DLQ só porque §54
+   escreveu a chamada à mão. O helper genérico segue sem uso.
+
+### Correções de documentação (o ponto mais importante)
+
+`docs/MATRIZ-COBERTURA.md` dava a entender que "envelope e transporte testados" equivale a
+capacidade pronta. Foi corrigido: as linhas de transmissão de CT-e/MDF-e e de consulta de situação
+agora dizem **"módulo existe, testado, sem rota"**, e não "falta credenciamento" — que é bloqueio
+diferente e mais honesto.
+
+`docs/ROADMAP.md` ganhou a lista de pendências de integração com o que falta, em ordem.
+
+### O que **não** foi feito, e por quê
+
+Ligar a fábrica de drivers ao `servico.py` **muda comportamento**: hoje um município com stub ABRASF
+emite pelo padrão nacional; depois da ligação passaria a **recusar**. Fazer isso sem ambiente de
+homologação para validar seria trocar um erro silencioso por uma indisponibilidade — e o dono do
+projeto autorizou apenas leitura. Fica registrado como próximo passo condicionado a homologação.
+
+Criar rotas de transmissão de CT-e/MDF-e foi descartado neste ciclo: exigiria schema de entrada
+completo por documento e criaria uma superfície que emite documento fiscal sem homologação possível.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| varredura de importações em `app/` | 9 módulos com ≤1 referência interna; 8 confirmados isolados |
+| gate completo | 9/9 |
+
+---
+
+## 60. Sem `statement_timeout`: uma consulta travada podia derrubar a API
+
+**Data:** 2026-11-27. **Fase:** F (prontidão de produção). Achado por leitura do engine, não por teste
+falhando.
+
+### O risco
+
+`criar_engine()` criava o pool com `pool_pre_ping` e nada mais. Nenhum `statement_timeout`, nenhum
+`idle_in_transaction_session_timeout`, nenhum `pool_recycle`.
+
+Consequência concreta: uma consulta patológica — apuração sobre tabela inteira, lock perdido, plano
+ruim — segura a conexão **para sempre**. Com `pool_size=10`, dez consultas assim esgotam o pool e a
+API deixa de atender emissão, consulta e health. Um timeout de cliente não resolve: ele desiste de
+esperar enquanto o Postgres segue executando e segurando a conexão.
+
+### A correção
+
+`app/db/session.py` passa `server_settings` do asyncpg (valem **no servidor**, para toda conexão do
+pool) e `pool_recycle`:
+
+| Configuração | Padrão | O que impede |
+|---|---|---|
+| `DB_STATEMENT_TIMEOUT_MS` | 60 000 | consulta travada ocupando conexão indefinidamente |
+| `DB_IDLE_TX_TIMEOUT_MS` | 120 000 | transação aberta e ociosa prendendo conexão e lock |
+| `DB_POOL_RECYCLE_S` | 1 800 | conexão velha atrás de firewall/PgBouncer, já morta |
+
+Documentado em `.env.example`, com a orientação de que lote e apuração longa devem rodar no worker
+com valor próprio — não aumentar este teto para toda a API.
+
+### Testes (`tests/test_db_timeouts.py`, 4)
+
+| Teste | O que prova |
+|---|---|
+| padrões são folgados mas finitos | 1 s ≤ timeout ≤ 10 min, idle ≥ statement, recycle > 0 |
+| `SHOW statement_timeout` após `criar_engine(9_000)` | o valor configurado **chega ao servidor** |
+| `SHOW` com `connect_args` explícito | sanidade do mecanismo |
+| `pg_sleep(1)` com teto de 200 ms | a consulta é **cancelada**, não esperada |
+
+O segundo teste é o que importa: pergunta ao Postgres. A primeira versão inspecionava
+`pool._creator.__closure__` — passava sem provar nada; foi substituída.
+
+### Limite honesto
+
+- O teto é global para a API. Uma operação legítima e lenta (relatório de apuração de vários meses)
+  passa a falhar em vez de demorar. O caminho correto é o worker, com `statement_timeout` próprio —
+  que **ainda não existe** lá: o worker usa o mesmo `criar_engine`. Registrado como pendência.
+- `pool_recycle` de 30 min pode cortar conexão no meio de uma transação longa legítima; com teto de
+  60 s por consulta, é improvável, mas é uma interação entre os dois números que quem mudar precisa
+  conferir.
+
+---
+
+## 61. O painel contradizia a auditoria — e a correção é no gerador
+
+**Data:** 2026-11-27. **Fase:** documentação (sincronização exigida pelo objetivo).
+
+### O problema
+
+`docs/PAINEL.md` é vista derivada: o bloco de **métricas** é medido, mas as tabelas narrativas eram
+texto fixo em `scripts/gerar_painel.py` e nunca acompanharam o projeto. Estado encontrado:
+
+| Afirmação do painel | Realidade medida |
+|---|---|
+| CT-e e MDF-e "Geração ❌ / Assinatura ❌" | gerador, XSD e assinatura existem e são testados (§44.5) |
+| CT-e/MDF-e "Consulta ❌" | consulta de status **real** medida, `cStat 107` (§31) |
+| "Transporte SOAP DF-e ❌ AUSENTE" | transporte existe, testado, com status real; **autorização** é que falta |
+| "`pip-audit` não instalado (exige ADR)" | ADR 0002 decidiu, com gatilho — não é pendência esquecida |
+| "Admin auth — decisão do proprietário" | ADR 0001 implementado e testado |
+| "F9.6 DANFE do nfeProc ⬜" | DANFE existe e é testado |
+
+Um painel que diz "❌ geração" para um documento cuja geração é testada é pior que painel nenhum:
+quem lê decide com informação errada.
+
+### A correção
+
+Editado **o gerador**, não o arquivo gerado (regra do próprio objetivo). As tabelas agora apontam
+para `docs/MATRIZ-COBERTURA.md` e usam a distinção que passou a existir em §59:
+
+- "transmissão" de CT-e/MDF-e é `🔒 módulo, sem rota` — não "❌";
+- consulta é `✅ real (status)` para NF-e/CT-e/MDF-e;
+- bloqueio `pip-audit` e admin auth aparecem como **resolvidos**, com o ADR que os decidiu;
+- acrescentado CSC por UF e inutilização de CT-e/MDF-e (serviço inexistente no leiaute) à lista de
+  bloqueios externos.
+
+`docs/PAINEL.md` foi regenerado por comando — nenhuma edição manual.
+
+### Incidente desta rodada (registrado, não escondido)
+
+Rodei `pytest --cov` em segundo plano **e** `gerar_painel.py` ao mesmo tempo. O gerador toca o banco
+para contar tabelas/migrations; a suíte usa o **mesmo** banco de teste e trunca tabelas entre testes.
+Resultado: um teste falhou com `NoResultFound` e a cobertura saiu com 86,77%.
+
+**Não era regressão.** A suíte rodada isolada terminou com `exit=0`, e o gate completo voltou 9/9.
+É exatamente o erro que a auditoria já documentava ("nunca dois processos de teste no mesmo banco") e
+que eu repeti. A cobertura válida continua sendo a medida em execução isolada; a de 86,77% está
+contaminada e **não deve ser citada**.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `python -m scripts.gerar_painel` | painel regenerado: rotas 58, tabelas 15, migrations 11, testes 1468 |
+| `pytest tests` (isolado) | `exit=0` — verde |
+| `scripts.check_ci --tudo` (isolado) | **9/9** |
+
+---
+
+## 62. O worker herdava o teto de 60 s — risco criado por §60, fechado aqui
+
+**Data:** 2026-11-27. **Fase:** F. Corrige um risco que **eu** introduzi na rodada anterior.
+
+### O problema (autoinfligido)
+
+§60 aplicou `statement_timeout` de 60 s no `criar_engine()`. O worker usa o **mesmo** engine. Um lote
+de emissões dura minutos: com o teto da API, o Postgres cancelaria a consulta **no meio do lote**,
+deixando documentos processados pela metade — pior que falhar antes de começar.
+
+Estava registrado como "limite declarado" em §60. Limite declarado não é correção: se eu podia
+fechar, deveria fechar na mesma rodada.
+
+### A correção
+
+| Peça | O que faz |
+|---|---|
+| `DB_STATEMENT_TIMEOUT_WORKER_MS` (600 000) | teto próprio do worker, 10 min |
+| `criar_engine(..., statement_timeout_ms=...)` | parâmetro explícito; o padrão continua sendo o da API |
+| `obter_sessionmaker_worker()` | engine e pool **separados**, do processo do worker |
+| `dispose_engine()` / `reset_engine()` | descartam/limpam os **dois** engines |
+
+`entregar_webhooks` e `processar_lote` passaram a usar a fábrica do worker. Nenhuma rota da API mudou.
+
+### Testes (`tests/test_db_timeouts.py`, +3)
+
+| Teste | O que prova |
+|---|---|
+| configuração | teto do worker > teto da API |
+| `SHOW statement_timeout` na fábrica do worker | **600 000 ms** no servidor |
+| `SHOW statement_timeout` na fábrica da API | **60 000 ms** no servidor |
+
+### Achado de teste
+
+A primeira versão comparava string: esperava `"10min"` e recebeu… `"1min"` no caso da API — o
+Postgres escolhe a unidade mais legível (60 000 ms → `1min`, 600 000 ms → `10min`). Troquei por
+`_em_ms()`, que normaliza `min`/`s`/`ms` para milissegundos. Comparar formatação de `SHOW` é frágil por
+construção.
+
+### Limite residual
+
+- Dois pools agora (API e worker). Em processo único de desenvolvimento, isso é 2 × `pool_size`
+  conexões se o worker rodar no mesmo processo — no desenho real são processos distintos.
+- O teto de 10 min é escolha, não medição: não há lote real medido que justifique outro número.
+- Se algum dia o worker rodar no mesmo processo da API (`arq` embutido), a separação continua válida
+  porque são engines distintos — mas a soma de conexões precisa ser conferida no cálculo do Postgres.
+
+---
+
+## 63. Coleção Postman derivada do contrato, com guarda anti-drift
+
+**Data:** 2026-11-27. **Fase:** E (experiência de integração). Item do objetivo:
+"OpenAPI preciso, exemplos request/response e coleção Postman".
+
+### O que havia
+
+Medido em `openapi.json`: **67 operações**, 17 com `requestBody`, **0 exemplos**, e **nenhuma coleção
+Postman**. Quem integrava precisava montar as chamadas lendo o contrato na mão.
+
+### O que foi feito
+
+`scripts/gerar_postman.py` gera `docs/postman_collection.json` a partir do `openapi.json` versionado:
+
+| Decisão | Motivo |
+|---|---|
+| **Gerar** em vez de escrever à mão | coleção manual divergiu do contrato em todo projeto que cresceu |
+| `--check` compara e **reprova** divergência | a coleção não pode envelhecer em silêncio |
+| Corpo é **esqueleto** derivado do schema | inventar CNPJ/valor "de exemplo" produz coleção que parece pronta e falha no primeiro uso — e em gateway fiscal vira dado errado na mão de quem integra |
+| `X-API-Key: {{api_key}}` | a chave deriva o tenant; coleção não deve sugerir `tenant_id` no corpo |
+| Pastas por `tag` | reflete a organização do contrato, não uma taxonomia inventada |
+
+Resultado medido: **18 pastas**, **67 requisições**, **14 com corpo**.
+
+### Testes (`tests/test_gerar_postman.py`, 8)
+
+| Teste | O que prova |
+|---|---|
+| `--check` retorna 0 | coleção em dia com o contrato (falha no CI se divergir) |
+| toda requisição existe no contrato | nenhuma rota inventada |
+| toda rota está na coleção | nenhuma rota esquecida |
+| corpo é JSON válido e **sem dado inventado** | proíbe `00000000000`, `11.222.333`, CNPJ fictício, `R$ ` |
+| cabeçalho usa `{{api_key}}` | não sugere chave literal |
+| esqueleto: string→"", integer→0, boolean→false | derivação determinística |
+| respeita `example` do schema quando existe | não sobrescreve exemplo real |
+| objeto aninhado é derivado | cobre corpo com estrutura |
+
+### Limite honesto
+
+- **Exemplos de response continuam ausentes.** O objetivo pede "exemplos request/response"; o que
+  existe agora é corpo de request derivado e coleção executável. Exemplo de *resposta* exige decidir
+  qual resposta é canônica por rota (201 vs 200 vs problema+json) e fixá-la no schema — é contrato, e
+  o certo é fazer junto com versionamento, não como enfeite.
+- Corpo esqueleto **não passa** na validação de negócio (valor `""` não é `Decimal` válido). É ponto
+  de partida, não requisição pronta; está escrito na descrição da coleção.
+- A coleção não tem testes de script (Postman test assertions). Isso exigiria runner Postman/Newman,
+  que é dependência nova — regra 11, com ADR que não fiz.
+
+---
+
+## 64. Demo ponta a ponta executada em container — e um teste que estava desatualizado
+
+**Data:** 2026-11-27. **Fase:** verificação (critério F9 "fluxo mockado demonstrável"). Antes disto, a
+demo estava registrada como "não reexecutada" desde a Fase 7.
+
+### Como foi feito
+
+1. `docker compose build api worker` — os containers rodavam **imagem anterior** aos 23 commits;
+2. `docker compose up -d` com `NFSE_ADAPTER=mock`;
+3. `python -m scripts.demo_e2e` contra a API real em container, PostgreSQL e Redis reais.
+
+### Achado operacional (armadilha real)
+
+O `docker compose up` falhou com `service "migrate" didn't complete successfully: exit 255` e
+`alembic: Can't locate revision identified by '0011'`.
+
+Causa: o compose tem **três** imagens a partir do mesmo código — `api`, `worker` **e `migrate`**.
+Rebuildar só `api` e `worker` deixou a `migrate` antiga, **sem `alembic/versions`**, e o erro aponta
+para "revisão não encontrada" em vez de "imagem velha". Diagnosticado comparando
+`alembic current` dentro do container (`0011 (head)`, correto) com o serviço `migrate` falhando.
+Correção: `docker compose build migrate`. Registrado em `docs/OPERACAO.md`.
+
+### Prova de que o código dos 23 commits está no ar
+
+| Verificação | Resultado |
+|---|---|
+| `GET /health` | traz `nfse_adapter` **e** `worker: {ok: true, ultimo_batimento: ...}` (§49) |
+| `GET /metrics` | série com `metodo`, `rota` (**template**, sem UUID) e `status` (§51) |
+| `GET /v1/health/circuitos` | `sefaz:NACIONAL:autorizacao` = `fechado` (0) |
+| rate limit | registrado e no-op com a flag desligada (§58) |
+| tempos de banco | `statement_timeout` aplicado; worker com teto próprio (§60/§62) |
+
+### Achado na demo: reenvio "idêntico" que não era idêntico
+
+O passo 6 reenviava a emissão com a mesma `Idempotency-Key` mas com corpo **parcial** (sem
+`competencia`, `tomador_nome`, `tomador_documento`) e esperava **200**. Depois de §57 isso virou
+**409** — corretamente.
+
+Ou seja: a demo tinha a expectativa antiga (e errada), que só passava porque o sistema devolvia a nota
+anterior em silêncio. Corrigido no script:
+
+- reenvio **idêntico** → `200`, `ja_existia: true` e **mesma fatura**;
+- corpo **divergente** com a mesma chave → **`409`** explícito.
+
+Resultado final: **20 de 20 verificações passaram**.
+
+### Fluxo comprovado ponta a ponta (mock, em container)
+
+tenant → upload de A1 (CNPJ extraído `11222333000181`) → webhook com segredo → emissão NFS-e (201,
+chave de 50 dígitos) → reenvio idêntico (200) → divergente (409) → DANFSe 4 012 bytes PDF válido →
+webhook assinado recebido com HMAC **válida** → apuração da competência (ISS 7,50) → guia DNA com
+vencimento.
+
+### Limites
+
+- É **mock**: nada foi enviado a autorizador. O adaptador real continua sendo o padrão do compose e
+  foi restaurado ao final (`nfse_adapter: sefin`).
+- A demo usa certificado **autoassinado** gerado no próprio script; não prova aceitação pela SEFAZ.
+- Nenhum registro de documento autorizado foi produzido: o mock devolve um documento derivado da DPS.
+
+---
+
+## 65. Consolidação final da série (2026-11-27)
+
+Seção de fechamento: o que foi corrigido, o que está provado e **o que continua aberto**. Números
+medidos nesta data, não herdados.
+
+### Medições finais (executadas isoladamente)
+
+| Medida | Valor | Como |
+|---|---|---|
+| Suíte | **1479 testes, 0 falhas** | `pytest tests` (exit 0) |
+| Cobertura | **87,74%** | `pytest --cov=app` (mínimo 80) |
+| Gate | **9/9** | `python -m scripts.check_ci --tudo` |
+| mypy | **0 erros / 174 arquivos** | `mypy app src` |
+| Segredos | **nenhum em 496 arquivos** | `scripts/verificar_segredos` |
+| Demo ponta a ponta (container, mock) | **20/20** | `scripts/demo_e2e` |
+| p95 mock | **285,5 ms** | `scripts/benchmark_mock` (n=60) |
+| PR | **#24 commits**, `MERGEABLE`, CI `success` | `gh pr view 1` |
+
+### Defeitos corrigidos nesta série (13)
+
+| # | Defeito | Efeito real | Seção |
+|---|---|---|---|
+| 1 | `Settings` no lugar de `AmbienteFiscal` (3 módulos) | emissão sempre em homologação, sem mTLS | §44 |
+| 2 | `cert_pem` inexistente na rota de status | **500** sempre que havia certificado | §44 |
+| 3 | `enviar_evento` sem `cnpj` | **TypeError** em todo evento de CT-e | §44 |
+| 4 | Circuito só na emissão | cancelamento/evento queimavam timeout | §47 |
+| 5 | `reset_ephemeral_key` inútil | função que mentia | §44 |
+| 6 | Teste de contrato só em `paths` | `openapi.json` desatualizado passava | §49 |
+| 7 | `/health` sem o worker | painel verde com worker morto | §49 |
+| 8 | Sem re-selagem de chave-mestra | trocar chave invalidava tudo | §53 |
+| 9 | Webhook sem DLQ ao esgotar | entrega perdida sem aviso | §54 |
+| 10 | **Corrida de idempotência** | **500** em reenvio simultâneo | §55 |
+| 11 | Payload divergente devolvia nota antiga | nota trocada em silêncio | §57 |
+| 12 | Rate limit nunca instalado | flag ligava proteção inexistente | §58 |
+| 13 | Banco sem `statement_timeout` | uma query travada derrubava a API | §60 |
+
+### O que está provado por ambiente
+
+| Nível | Evidência |
+|---|---|
+| **Código + teste** | 1479 testes, cobertura 87,74%, gate 9/9 |
+| **Mock em container** | demo 20/20 com PostgreSQL e Redis reais |
+| **Homologação real** | consultas de status (`cStat 107`) e uma consulta de situação (`236`), registradas em §31 |
+| **Produção** | **nada** |
+
+### O que continua aberto (declarado, não escondido)
+
+1. **NFS-e multi-prefeitura não ligado** (§59) — motor existe, `servico.py` sempre usa o nacional.
+2. **Sem rotas** de transmissão CT-e/MDF-e e de consulta de situação (§59).
+3. **Worker não usa** o helper retry→DLQ genérico (§59).
+4. **Sem traces** (ADR 0003) e **sem CVE scan** (ADR 0002) — decisões com gatilho.
+5. **Exemplos de response** ausentes no OpenAPI (§63).
+6. **p95 sem folga**: p99 > 300 ms; custo dominante é assinatura RSA.
+7. **Circuito e métricas** em memória por processo.
+8. **Bloqueios externos**: credenciamento SEFAZ-GO, CSC por UF, inutilização inexistente em 4.00,
+   OAuth Melhor Envio.
+
+### Veredito
+
+**Pronto no código para a próxima validação.** Não homologado, não em produção. O que separa este
+estado de produção não é código pendente do meu lado — é credenciamento, certificado real com
+aceitação do autorizador e ambiente de homologação liberado.
+
+---
+
+## 66. Correção de precisão: o motor ABRASF não tem transporte real
+
+**Data:** 2026-11-27. **Fase:** B (documentação de precisão).
+
+### O que eu vinha escrevendo
+
+A afirmação estava em §59 e no texto do gerador do painel (não em `MATRIZ-COBERTURA.md`, que não fala
+de ABRASF — corrigir aqui é parte da precisão que este trabalho exige). Dizia: "contrato, roteamento e
+motor ABRASF existem e são **testados**". A frase está certa e sugere algo falso.
+### O que o código mostra
+
+`app/nfse/drivers_abrasf.py` define `TransporteProvedor` como **`Protocol`** — o contrato do
+transporte SOAP municipal. Procurando implementações em `app/` e `tests/`:
+
+- **nenhuma implementação em `app/`**;
+- nos testes, existe `TransporteFalso` (`tests/test_nfse_drivers_abrasf.py:13`).
+
+Ou seja: o fluxo ABRASF (montagem do RPS, lote, assinatura, envelope) é testado **com transporte
+falso**. Não existe cliente SOAP para webservice municipal, e nenhum provedor tem URL e leiaute com
+fonte oficial verificável no repositório — que é justamente a condição que o próprio repositório
+impõe (`criar_driver` recusa município sem `fonte_url`).
+
+### Consequência para o veredito
+
+Ligar a fábrica de drivers ao `servico.py` hoje **não habilitaria nenhum município**: sem transporte
+real, a primeira chamada levantaria antes de sair para a rede. A lacuna não é de integração, é de
+**implementação de transporte + evidência oficial por provedor**.
+
+### Correção aplicada
+
+| Onde | Antes | Agora |
+|---|---|---|
+| `docs/MATRIZ-COBERTURA.md` | "motor ABRASF existe e é testado" | "fluxo ABRASF testado com **transporte falso**; **sem transporte municipal real**" |
+| `docs/PAINEL.md` (gerador) | "contrato, roteamento e motor existem e são testados, mas não estão ligados" | acrescenta "e **não há transporte municipal real**: ligar não habilitaria município nenhum" |
+| `docs/ROADMAP.md` | pendência 1 = "ligar a fábrica" | pendência 1 = "implementar transporte municipal + fonte oficial por provedor" e, só então, ligar |
+
+### O que continua verdadeiro
+
+- O padrão nacional (DPS → SEFIN) é o único fluxo NFS-e que emite de verdade, e está testado e
+  medido em container.
+- As tabelas `municipios_nfse`, `credenciais_municipais` e `webservices_sefaz` existem, com rotas de
+  cadastro e criptografia por tenant + município — o **cadastro** funciona; o **motor municipal** não.
+- Nenhum município é rotulado como atendido por aparecer no seed.
+
+### Verificação
+
+Nenhuma mudança de código: só documentação, porque o código já estava correto (o `Protocol` é a
+decisão certa). O erro era meu, na descrição.
+
+---
+
+## 67–68. Isolamento nos downloads e travas de contrato para `tenant_id`
+
+**Data:** 2026-11-27. **Fase:** A (isolamento de tenant). Dois testes que faltavam, nenhum código
+alterado — o código já estava correto.
+
+### 67. Downloads de documento não tinham teste de isolamento
+
+O prompt exige teste de vazamento entre tenants em **arquivos**. O arquivo aqui é o documento fiscal:
+`GET /v1/emissoes/{id}/danfse` e `GET /v1/emissoes/{id}/representacao`.
+
+As rotas filtram por `tenant.id` no `where` — verificado por leitura — mas **não havia teste**. Um
+`where` esquecido numa refatoração passaria, e o resultado seria um tenant baixando a nota de outro
+pelo id.
+
+`tests/test_isolamento_downloads.py` (4 testes), com dois emissores reais e nota de cada um:
+
+| Teste | O que prova |
+|---|---|
+| B tenta DANFSe de A | **404** |
+| B tenta representação de A | **404** |
+| **A baixa a própria** | **200** e `%PDF` — contraprova: sem ela, um 404 geral "passaria" como isolamento |
+| sem `X-API-Key` | **401** |
+
+### 68. `tenant_id` no contrato: trava de regressão
+
+Regra 7 do objetivo: derivar o tenant da credencial, nunca aceitar `tenant_id` do cliente. Medido no
+`openapi.json`: **nenhum** schema de entrada expõe `tenant_id`; apenas duas saídas
+(`TenantFiscalConfigOut`, `TenantKeyRotacionadaOut`).
+
+Isso estava certo e indefeso. `tests/test_contrato_tenant.py` (4 testes) trava:
+
+- nenhum `requestBody` (qualquer content-type) tem `tenant_id` na primeira propriedade;
+- nenhuma rota comum tem `tenant_id` como **query param**;
+- a exceção `/v1/admin` existe de fato — o teste falha se a lista de rotas admin estiver vazia,
+  senão ele estaria apenas ignorando admin;
+- `POST /v1/emissoes` sem chave devolve **401**.
+
+A exceção do admin é por **prefixo de rota** e está explicada no arquivo: operação de plataforma
+atravessa tenants por natureza (ADR 0001), e deixar o tenant implícito esconderia qual cliente está
+sendo afetado.
+
+### Por que nenhum dos dois mudou código
+
+`consulta.py` não guarda dado de tenant (é CEP público), e as duas rotas de download já filtram por
+tenant. O defeito era de **cobertura de teste**, não de implementação — e cobertura de isolamento é
+exatamente o que o objetivo exige que exista antes de chamar algo de pronto.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_isolamento_downloads.py` | **4 passed** |
+| `pytest tests/test_contrato_tenant.py` | **4 passed** |
+| gate completo | **9/9** |
+
+---
+
+## 69. O 422 não era problem+json — o único erro fora do padrão
+
+**Data:** 2026-11-27. **Fase:** A/E (contrato de erro). Medido contra a API em container.
+
+### O que a medição mostrou
+
+| Resposta | `Content-Type` |
+|---|---|
+| 401 sem chave | `application/problem+json` ✅ |
+| 404 rota inexistente | `application/problem+json` ✅ |
+| 405 método errado | `application/problem+json` ✅ |
+| **422 validação** | **`application/json`** ❌ |
+
+O handler de `HTTPException` já convertia tudo para RFC 7807. O 422 não passa por ele: o FastAPI
+trata `RequestValidationError` em handler próprio. Resultado: o cliente tinha de tratar **dois**
+formatos de erro, e o único que fugia era justamente o mais frequente em integração nova.
+
+### A correção
+
+Handler para `RequestValidationError` em `criar_app()`, retornando `application/problem+json` com
+`type`/`title`/`status`/`origem`/`retryable` **e mantendo `detail` como a lista de erros do
+Pydantic**, exatamente como antes.
+
+Por que manter `detail` como lista em vez de trocar por texto: contrato existente. Todo cliente que
+lê `detail[0]["msg"]` continua funcionando; os campos RFC 7807 entram **ao lado**. Também adicionei
+`errors` com o mesmo conteúdo, para quem preferir um nome inequívoco.
+
+`jsonable_encoder` é obrigatório: `exc.errors()` pode carregar `ctx` com objetos que `json.dumps`
+recusa — sem ele o handler estouraria 500 dentro do próprio tratamento de erro.
+
+### Testes (`tests/test_erros_rfc7807.py`, 5)
+
+| Teste | O que prova |
+|---|---|
+| 422 tem `content-type` problem+json | o defeito medido |
+| 422 tem `status`/`title`/`type`/`origem`/`retryable` | é RFC 7807 de verdade, não só o header |
+| `detail` continua **lista** com `loc`/`msg`/`type` | compatibilidade com cliente existente |
+| `errors` espelha `detail` | nome inequívoco, sem divergir |
+| 401 continua problem+json | contraprova: o handler novo não roubou o caminho do `HTTPException` |
+
+### Limite
+
+- O corpo do 422 cresceu (campos RFC + lista duplicada em `detail` e `errors`). Em erro de payload
+  gigante isso dobra o tamanho da lista. Aceitável — erro de validação é resposta curta por
+  natureza —, mas é uma duplicação deliberada, não descuido.
+- Não mexi no `422` que algumas rotas levantam **de propósito** via `HTTPException(422)` (ex.:
+  certificado ausente): esse já saía problem+json com `detail` em texto, e mudá-lo quebraria quem
+  lê string ali. São dois formatos por origem, e agora estão documentados.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_erros_rfc7807.py` | **5 passed** |
+| gate completo | **9/9** |
+| `mypy` | zero erros |
+
+---
+
+## 70. Dois modos de operação documentados, com as lacunas do modo hospedado
+
+**Data:** 2026-11-27. **Fase:** produto/documentação. Atende ao adendo de continuidade (§2–§6).
+
+### O que foi verificado antes de escrever
+
+| Verificação | Resultado |
+|---|---|
+| Licença | **MIT** (`LICENSE`) |
+| Chamada obrigatória a servidor do mantenedor | **nenhuma** |
+| Telemetria/analytics | **nenhuma** (`grep` em `app/`, `src/`, `scripts/` = zero) |
+| Paywall, limite de emissão, licença remota | **não existem no código** |
+| `ConectorDz23` | é **webhook de entrada** opcional, autenticado por `tenant_atual`; desativá-lo não afeta emissão |
+
+### Entregues
+
+- **`docs/MODOS-DE-OPERACAO.md`**: modo auto-hospedado × serviço hospedado; o que muda (responsabilidade
+  operacional) e o que **não** muda (o código é o mesmo, sem build "enterprise"); custos transparentes;
+  fronteira desenvolvedor × operador × contribuinte; e a lista do que **não** está pronto para serviço
+  comercial.
+- **`docs/ONBOARDING-HOSPEDADO.md`**: os 10 passos pedidos, cada um mapeado à rota real, com
+  **lacuna** marcada onde a rota não existe.
+
+### Lacunas do modo hospedado, medidas no código (não estimadas)
+
+| Lacuna | Consequência para um serviço comercial |
+|---|---|
+| Sem **escopos** por chave | chave é tudo-ou-nada no tenant; não há como dar acesso só de leitura ao ERP |
+| Sem **expiração** de chave | credencial vive para sempre |
+| Sem **revogação sem substituição** | único caminho é rotacionar (emite outra) |
+| Sem **auditoria de uso do certificado** | não é possível responder "quem usou qual A1, quando, para quê" |
+| Sem **usuário/papel** por tenant | um tenant = uma chave; várias pessoas exigem compartilhar segredo |
+| Sem **exportação/exclusão** por tenant na API | portabilidade e LGPD dependem de acesso ao banco |
+| Certificado: remoção apaga a linha, **sem sobrescrever** o ciphertext | "exclusão segura" não está comprovada |
+
+Essas lacunas são a diferença entre "o software permite operar" e "o serviço hospedado está pronto".
+O documento diz isso explicitamente — não afirma prontidão que a evidência não sustenta.
+
+### Não confirmado (registrado, não inventado)
+
+Exigência de cadastro da empresa desenvolvedora, identificação de responsável técnico, CSRT ou
+homologação por UF/documento. **Não há fonte oficial verificada neste repositório.** O próximo passo
+está escrito: consultar o manual do autorizador por documento/UF e registrar versão, data e hash, como
+já se faz com XSD em `data/xsd_manifest.json`.
+
+### Verificação
+
+Documentação apenas; nenhum código alterado nesta seção. Gate da rodada: 9/9.
+
+---
+
+## 71–72. Auditoria de uso do certificado (com migração) e o incidente de teste que chamou a SEFIN
+
+**Data:** 2026-11-27. **Fase:** A/B. Atende ao adendo §5 ("auditoria de uso", "exclusão registrada sem
+expor segredo").
+
+### 71. O que foi implementado
+
+Era impossível responder "este A1 foi usado para quê, e quando?" — pergunta obrigatória ao operar
+credencial fiscal de terceiros.
+
+| Peça | Onde |
+|---|---|
+| Tabela `certificado_usos` | migração **0012** (upgrade e downgrade testados; `alembic check` sem drift) |
+| Modelo | `app/db/models/certificado_uso.py` |
+| Registro | `certificados.abrir_para_uso()` — abre e grava; **grava também a falha** |
+| Pontos de uso | emissão, cancelamento, evento, consulta de transporte, status de transporte |
+| Consulta | `GET /v1/me/certificados/{id}/usos` (404 para certificado de outro tenant) |
+
+**O que a linha guarda:** `operacao`, `ambiente`, `sucesso` e o **tipo** da exceção.
+**O que nunca guarda:** PFX, senha, XML, payload, mensagem de erro (mensagem pode carregar CNPJ,
+município ou caminho — a auditoria viraria um segundo vazamento). Teste proíbe `pfx`/`senha`/
+`signature`/`xml` no registro.
+
+Por que registrar falha: "chave-mestra trocada" e "envelope corrompido" só aparecem no uso. Sem a
+linha de falha, o operador descobre por reclamação do cliente.
+
+A linha entra na **mesma transação** da operação fiscal: rollback da operação remove o uso — coerente,
+porque nada foi assinado.
+
+### 72. Incidente: um teste meu emitiu contra a borda real da SEFIN
+
+Ao escrever o teste de auditoria, esqueci o override de `Settings` com `nfse_adapter="mock"`. O
+padrão do projeto é `sefin`, então a emissão do teste saiu para a **borda real**.
+
+- Resultado: **403** na borda (certificado autoassinado recusado), **nenhum documento emitido**;
+- resposta 502 no teste, com a mensagem da SEFIN preservada;
+- **mesma classe** do incidente de §48 (benchmark): o padrão do repositório é o adaptador real, e
+  teste que esquece o override fala com o autorizador.
+
+**Correção estrutural**, não só do teste: `tests/conftest.py` agora define
+`os.environ["NFSE_ADAPTER"] = "mock"` para **toda** a suíte. Antes, cada teste que quisesse o dublê
+precisava lembrar; agora o esquecimento é que precisa ser explícito.
+
+Isto não substitui o override de `Settings` em testes que injetam configuração — complementa. E não
+impede o *build* de chamar o real: a guarda é da suíte de testes.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_certificado_usos.py` | **5 passed** |
+| `alembic upgrade head` / `downgrade 0011` / `check` | aplica, reverte e **sem drift** |
+| gate completo | **9/9** |
+| contrato + coleção Postman | regenerados (rota nova incluída) |
+
+---
+
+## 73. Expiração e revogação de API key (migração 0013)
+
+**Data:** 2026-11-27. **Fase:** A / modo hospedado (adendo §4–§5). Fecha duas lacunas do
+`docs/ONBOARDING-HOSPEDADO.md` §2.
+
+### O que faltava
+
+A chave vivia **para sempre** e não havia como matá-la sem emitir outra. Para operar credencial de
+terceiro isso é insuficiente: vazamento exige revogação, e política de segurança exige prazo.
+
+### Implementado
+
+| Peça | Onde |
+|---|---|
+| Colunas `api_key_expira_em` e `api_key_revogada_em` | migração **0013** (upgrade, downgrade e `alembic check` sem drift) |
+| Verificação na autenticação | `tenant_service.autenticar` recusa chave expirada e revogada |
+| Rotação com prazo | `rotacionar_chave(..., dias_validade=30)`; **limpa** o carimbo de revogação |
+| Revogação sem substituição | `revogar_chave()` + `POST /v1/admin/tenants/{id}/revogar-chave` (X-Admin-Key) |
+
+### Decisão de segurança: revogar troca o hash
+
+A revogação grava um hash **aleatório** no lugar do anterior. Consequência: a chave revogada não casa
+em nenhuma busca — nem na do próprio dono — e **não volta a valer** por flip de flag no banco. O
+carimbo `api_key_revogada_em` fica como trilha de auditoria.
+
+Efeito colateral aceito: quem apresenta chave revogada recebe `401 credencial inválida`, indistinto de
+chave desconhecida. A alternativa (manter o hash e só checar a flag) daria mensagem mais específica e
+uma porta de retorno — troquei mensagem por irreversibilidade.
+
+**Chave expirada** é diferente: o hash continua válido, então a resposta é
+`401 credencial expirada; rotacione para obter outra`. O dono precisa saber que é prazo, não erro de
+digitação.
+
+### Testes (`tests/test_chave_expira_revoga.py`, 6)
+
+| Teste | O que prova |
+|---|---|
+| expirada → 401 com "expirada" | mensagem distinta da inválida |
+| chave válida continua 200 | contraprova |
+| revogada → 401 e carimbo gravado | revogação persiste; hash mudou |
+| revogar exige admin | sem `ADMIN_HABILITADO` a rota responde **404** (ADR 0001) |
+| revogação não afeta vizinho | isolamento entre tenants |
+| rotação com prazo limpa revogação | chave nova não nasce morta; a antiga continua morta |
+
+### Achado de implementação (registrado)
+
+A rota nasceu como `/v1/admin/admin/tenants/...`: o router de admin **já tem** `prefix="/admin"` e eu
+repeti o prefixo no decorador. O teste pegou como **404**; corrigido para
+`/v1/admin/tenants/{id}/revogar-chave`.
+
+### Limite
+
+Revogar deixa o tenant **sem acesso** até alguém emitir outra chave. No auto-hospedado isso é acesso ao
+banco; no modo hospedado é o suporte. Não existe rota de "emitir chave para outro tenant" — a decisão
+de quem pode fazer isso é de operação, não de código, e ficou fora.
+
+---
+
+## 74. Exclusão de certificado passa a sobrescrever o envelope
+
+**Data:** 2026-11-27. **Fase:** A / adendo §5 ("exclusão segura"). Fecha a lacuna que eu havia
+registrado em `docs/ONBOARDING-HOSPEDADO.md` §4.
+
+### O que estava errado
+
+`remover()` executava `DELETE` na linha. O ciphertext continuava em **páginas antigas** da tabela e no
+**WAL** — recuperável com ferramenta trivial em muitos cenários. "Removido" no banco não significava
+"fora do banco".
+
+### O que mudou
+
+`_sobrescrever_envelope()` troca `pfx_selado` e `senha_selada` por bytes **aleatórios do mesmo
+tamanho** e dá `flush` **antes** do `DELETE`. Usado em `remover()` e em `remover_todos()`.
+
+Duas decisões de detalhe:
+- **mesmo tamanho**: manter o comprimento evita que a própria linha registre quanto media o segredo
+  (metadado que ajuda quem procura);
+- **bytes aleatórios**: conteúdo sem cabeçalho que confunda parser de envelope.
+
+### O que este código NÃO garante (e não vou afirmar que garante)
+
+Sobrescrever reduz a superfície; **não torna o dado irrecuperável**. Limites reais:
+
+1. **WAL** e réplicas podem conter a versão anterior até o reciclo;
+2. **backups e dumps** já feitos mantêm o envelope antigo — e neles o conteúdo continua selado com a
+   chave-mestra, que é o que realmente protege;
+3. `autovacuum` decide quando a página é reutilizada; não há `VACUUM FULL` no caminho.
+
+A proteção efetiva continua sendo a **selagem AES-256-GCM com `aad` por tenant** mais a guarda da
+chave-mestra (`docs/OPERACAO.md` §5). A sobrescrita é camada adicional, não substituta.
+
+### Testes (`tests/test_certificado_usos.py`, +3)
+
+| Teste | O que prova |
+|---|---|
+| bytes mudam, tamanho preservado | a sobrescrita acontece e não vira lixo de tamanho diferente |
+| registro sem senha não quebra | caminho do A1 sem senha |
+| remoção apaga a linha | contraprova: sobrescrever não impede o `DELETE` |
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_certificado_usos.py` | **8 passed** |
+| gate completo | **9/9** |
+| `mypy` | zero erros |
+
+---
+
+## 75. Escopos por chave de API (migração 0014)
+
+**Data:** 2026-11-27. **Fase:** A / adendo §4. Fecha a última das três lacunas de credencial que eu
+havia listado em `docs/ONBOARDING-HOSPEDADO.md`.
+
+### O que faltava
+
+A chave era **tudo-ou-nada no tenant**. Não havia como dar só leitura ao ERP e só emissão ao PDV — que
+é o caso real de integração de um gateway fiscal.
+
+### Implementado
+
+| Peça | Onde |
+|---|---|
+| Coluna `api_key_escopos` (JSONB) | migração **0014** (upgrade, downgrade, `alembic check` sem drift) |
+| Aplicação | `_exigir_escopo()` dentro de `tenant_atual`, olhando o método HTTP |
+| Definição | `POST /v1/me/rotacionar-chave` aceita `escopos: ["leitura" \| "emissao"]` |
+
+**Regra:** `GET`/`HEAD`/`OPTIONS` exigem `leitura`; o resto exige `emissao`.
+
+Por que método HTTP e não por rota: escopo por rota exigiria anotar 60 handlers e manter a anotação
+sincronizada com o contrato; uma rota nova sem anotação ficaria **sem exigência**, silenciosamente. A
+regra por método é grosseira e **fecha por padrão** — rota nova já nasce coberta.
+
+### Compatibilidade (o ponto delicado)
+
+`api_key_escopos = None` significa **sem restrição**. Isso é o que mantém as chaves já emitidas
+funcionando: tratar ausência como "nenhum escopo" transformaria a migração em negação de acesso geral.
+Teste cobre exatamente isso — chave antiga continua lendo e escrevendo.
+
+### Testes (`tests/test_escopos_chave.py`, 6)
+
+| Teste | O que prova |
+|---|---|
+| chave sem escopo continua com tudo | compatibilidade da migração |
+| escopo `leitura` → GET 200, emissão **403** | restrição aplicada, mensagem cita o escopo |
+| chave anterior deixa de valer após rotação | rotação mata a antiga (já era assim) |
+| escopo `emissao` → emite 201, leitura **403** | o caso espelhado, não só um dos lados |
+| prazo e escopo juntos | os dois campos convivem na resposta |
+| escopo inválido (`admin`) → **422** | o contrato recusa antes de gravar |
+
+O cenário de emissão sobe **certificado A1**, senão o 422 seria por falta de certificado e o teste
+provaria a coisa errada (foi o primeiro erro que cometi aqui).
+
+### Limite
+
+- Escopo é por **método**, não por recurso: `emissao` permite qualquer escrita, inclusive cancelamento e
+  cadastro de certificado. Um escopo "só emitir, sem cancelar" exigiria anotação por rota e o custo
+  correspondente — declarado, não implementado.
+- Rotação **substitui** os escopos; não há rota para alterar escopo sem trocar a chave. Para reduzir
+  privilégio é preciso rotacionar e redistribuir a chave nova.
+- A verificação usa o método do request; `HEAD`/`OPTIONS` contam como leitura de propósito.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_escopos_chave.py` | **6 passed** |
+| migração 0014 | aplica, reverte, **sem drift** |
+| gate completo | **9/9** |
+| contrato + Postman | regenerados |
+
+---
+
+## 76. Exportação dos dados do tenant (portabilidade)
+
+**Data:** 2026-11-27. **Fase:** E / adendo §6 item 10. Era a última lacuna grande do modo hospedado.
+
+### O que foi implementado
+
+`GET /v1/me/exportacao` devolve um pacote JSON com: identificação do tenant, configuração fiscal,
+**metadados** dos certificados (apelido, CNPJ, validade, fingerprint, ativo — nunca o PFX), URL do
+webhook, e contagem de emissões por status. Com `?incluir_xml=true&limite=N` acrescenta até N
+documentos com XML autorizado.
+
+### Decisões que importam
+
+| Decisão | Motivo |
+|---|---|
+| **Sem XML por padrão** | exportar tudo por padrão transforma pedido de conferência em resposta de gigabytes |
+| `limite` de 1 a 500 | teto explícito em vez de "depende do banco do cliente" |
+| **Nunca** PFX, senha, hash de chave, segredo de webhook, token | portabilidade é sobre os dados do cliente, não sobre as credenciais dele — credencial sai do cofre, não de uma exportação |
+| Certificado aparece só como metadado | o cliente precisa saber **qual** certificado existe e até quando vale, não possuir a chave privada de novo pelo export |
+
+### Testes (`tests/test_exportacao_tenant.py`, 6)
+
+| Teste | O que prova |
+|---|---|
+| exporta dados do próprio tenant | slug, UF, certificado, URL de webhook, contadores |
+| sem XML por padrão | `documentos` ausente |
+| nenhum segredo no pacote | proíbe `pfx_selado`, `senha_selada`, `api_key_hash`, `webhook_secret`, `signature` |
+| **a própria API key não aparece** | teste com o valor literal da chave |
+| não traz dado de outro tenant | dois tenants, pacote do segundo não contém o primeiro |
+| XML entra quando pedido | `incluir_xml=true&limite=10` devolve documentos e o limite usado |
+
+### Limite
+
+- **Não é backup.** Backup é o dump do banco (`docs/OPERACAO.md` §2); o pacote é portabilidade de
+  dado de negócio. Restaurar um pacote desses não é caminho suportado e o documento não sugere que seja.
+- Não há paginação de documentos: `limite` corta em N mais recentes, sem cursor. Para histórico
+  completo, dump.
+- **Exclusão do tenant por API continua não existindo.** LGPD/portabilidade pedem também o direito de
+  eliminação; hoje o caminho é `DELETE` no banco pelo operador. É a lacuna seguinte, e ela exige
+  decisão sobre confirmação e sobre o que fazer com documento fiscal que tem guarda legal — não vou
+  implementar apagamento de documento fiscal sem essa definição.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_exportacao_tenant.py` | **6 passed** |
+| gate completo | **9/9** |
+| contrato + Postman | regenerados |
+
+---
+
+## 77. Roteamento da NFS-e Nacional: campo existia, decisão não existia
+
+**Data:** 2026-11-27. **Fase:** B (regra fiscal). Atende ao adendo regulatório.
+
+### O defeito medido
+
+`tenant_fiscal_configs.aderente_emissor_nacional` era **gravado e nunca consultado**. Varredura em
+`app/` por esse nome retornava: a definição no modelo, o schema de entrada e **um texto de orientação
+de erro** (`nfse/errors.py`, mensagem do `E0312`). Nenhuma decisão de rota olhava o campo.
+
+Consequência: o sistema sempre tentava o Emissor Nacional. Para município cujo parâmetro oficial diz
+"não aderente", o erro só aparecia como **rejeição `E0312` vinda da SEFIN**, depois de gerar, assinar
+e transmitir.
+
+### Fontes consultadas (2026-11-27)
+
+- [Perguntas Frequentes NFS-e v1.2 (arquivo de 2026-10-27)](https://www.gov.br/nfse/pt-br/perguntas-frequentes/perguntas-frequentes-nfs-e-v1-2-20261027.pdf)
+- [Perguntas Frequentes NFS-e v1.3 (arquivo de 2026-11-06)](https://www.gov.br/nfse/pt-br/perguntas-frequentes/perguntas-frequentes-nfs-e-v1-3-20261106.pdf)
+
+O que essas fontes sustentam: ME/EPP do Simples emitem **exclusivamente** pelo Emissor Nacional a
+partir de **01/11/2026** (sistema municipal deixa de autorizar); `situacaoEmissaoPadraoContribuintesRFB = 0`
+significa que o município **não** usa os Emissores Nacionais como padrão; a Autorização de Uso dos
+Emissores Públicos (CNC/Painel do Contribuinte) é trava de exclusividade, não opção paralela.
+
+### O que foi implementado
+
+`app/nfse/roteamento.py` — função **pura** de decisão, com quatro ramos e fonte citada em cada um:
+
+| Situação | Decisão |
+|---|---|
+| ME/EPP Simples, competência ≥ 2026-11 | **nacional permitido** (obrigação legal vence parâmetro municipal) |
+| Parâmetro **não confirmado** + produção | **bloqueia** — rota não pode ser presumida em produção |
+| Parâmetro não confirmado + fora de produção | segue com **aviso** (não é prova de rota) |
+| Aderente confirmado | nacional permitido |
+| Não aderente confirmado, fora da obrigação | **bloqueia** com pendência (integração municipal §66 ou autorização CNC) |
+
+Preflight ligado em `nfse/servico.py::emitir` **antes de reservar número, assinar e transmitir**, com
+`RotaNaoPermitida` carregando a **pendência**, e tradução dedicada em `emissoes.py` para que o 422 diga
+o que falta (o `except` genérico de `ErroDeEmissao` descartaria essa informação).
+
+### Migração 0015
+
+`aderente_confirmado_em` e `aderente_fonte` em `tenant_fiscal_configs`. Sem eles, não havia como
+distinguir "o município não adere" de "ninguém conferiu" — e bloquear por omissão derrubaria município
+aderente cujo booleano ficou `False` no default.
+
+### Exceções **não** implementadas, de propósito
+
+A alegação de que **MEI** e operações do **grupo 99** escapam de `aderenteEmissorNacional = 0` **não
+foi confirmada** em fonte oficial nesta sessão. Não há ramo para elas, e o teste
+`test_mei_nao_recebe_tratamento_especial` fixa o comportamento conservador: MEI é tratado como
+qualquer contribuinte. Implementar a exceção sem fonte produziria nota pela rota errada **com
+aparência de autorizada** — pior que bloquear.
+
+### Testes (`tests/test_nfse_roteamento.py`, 13)
+
+Decisão (10): Simples ≥ 2026-11 passa; Simples 2026-10 **não** é reclassificado; MEI sem tratamento
+especial; competência ausente não vira obrigação; aderente permite; não aderente bloqueia com
+pendência; produção exige confirmação; homologação avisa e segue; decisão imutável; **todo bloqueio
+traz próximo passo**.
+
+Rota real (3): não aderente → **422** com "Pendência"; Simples 2026-11 → **201**; bloqueio de um
+tenant **não afeta** outro.
+
+### Limites declarados
+
+- `simples_nacional`/`optante_mei` continuam **preenchidos à mão**. O correto é vir dos parâmetros
+  oficiais do contribuinte; hoje o sistema registra a procedência do parâmetro municipal
+  (`aderente_*`), mas **não** do regime. É a próxima lacuna, e ela exige fonte de dados oficial.
+- A exceção do MEI/grupo 99 fica como pendência com o pré-requisito escrito: confirmar em fonte e
+  adicionar ramo com teste.
+- A decisão **não** consulta o CNC em tempo real: `Autorização de Uso` entra como pendência textual,
+  não como verificação. Consultar exigiria integração autenticada ao Painel do Contribuinte.
+- `producao` bloqueia sem confirmação — o que significa que **nenhuma emissão real é possível hoje
+  sem parametrizar a fonte**. Isso é intencional: o projeto nunca emitiu em produção.
+
+---
+
+## 78. Reconciliação do ciclo NFS-e: README contradizia a si mesmo, e eu contradisse a evidência
+
+**Data:** 2026-11-27. **Fase:** B/F. Atende ao item "Evidências e documentação" do adendo regulatório.
+
+### Três afirmações, duas fontes, uma delas minha
+
+| Onde | O que dizia |
+|---|---|
+| `README.md` cabeçalho | NFS-e **autorizada pela Produção Restrita**, ciclo completo emitir → consultar → DANFSe → cancelar |
+| `README.md` §"Produção restrita" | "falta validar o payload de emissão"; "emissão, cancelamento e eventos seguem `[A VALIDAR]`" |
+| minhas próprias falas desta sessão | "zero notas autorizadas" |
+
+As duas primeiras **se contradiziam** dentro do mesmo arquivo. A terceira era minha, e estava errada como
+afirmação geral.
+
+### O que a evidência mostra
+
+`docs/REFERENCIAS.md` §15 (registro de 25/11/2026) traz a chave autorizada
+`5200258...2611076352769` e o ciclo: `201 status=authorized`, `GET` autorizado com XML, DANFSe de 4.014
+bytes, cancelamento aceito.
+
+Medido no banco de desenvolvimento em **2026-11-27**:
+
+```
+invoices:        3 authorized, 1 cancelled, 10 rejected, 2 pending, 1 error — TODOS ambiente=homologacao
+fiscal_documents: 4 registros, 4 com xml_autorizado e chave, 0 com protocolo
+```
+
+E o XML autorizado guardado, quando lido, é inequívoco:
+
+```
+<NFSe versao="1.01" ...><infNFSe Id="NFS5200258...">
+  <xLocEmi>Águas Lindas de Goiás</xLocEmi> ... <ambGer>2</ambGer>
+  <cStat>100</cStat><dhProc>2026-11-25T20:21:46-03:00</dhProc><nDFSe>44</nDFSe>
+```
+
+`cStat=100` é autorização; `ambGer=2` é homologação. O banco mistura chamadas reais com execuções em
+mock (chaves `6718062...`, de 27/11), mas as chaves `5200258...` de 25/11 são reais.
+
+### Correções aplicadas
+
+1. **`README.md`** — o quadro de "Produção restrita" agora reflete o medido, e há aviso explícito de que
+   **Produção Restrita ≠ produção**. A contradição interna desapareceu.
+2. **`docs/MATRIZ-COBERTURA.md`** — a linha "Autorização (emissão)" passou de `🔒` para
+   ✅ **real em homologação**, com a nota do banco reescrita para separar mock de real.
+3. **Minha fala**: onde eu disse "zero notas autorizadas", o correto é **zero em produção**. Em
+   homologação existe autorização real documentada.
+
+### A "lacuna do protocolo" que eu quase inventei
+
+Cheguei a registrar `protocolo` vazio como lacuna de persistência. Fui ao XML antes de tratar como
+defeito — e **não é**: a NFS-e Nacional não emite número de protocolo como a NF-e; a evidência de
+autorização é `cStat` + `dhProc` + `nDFSe`. Criar coluna/protocolo seria inventar requisito de leiaute.
+
+O defeito real era outro, e foi corrigido: **`codigo_status` era `NULL` em todos os documentos**,
+inclusive na NFS-e autorizada. O `cStat` existia apenas dentro do blob, então "esta nota está
+autorizada?" só se respondia abrindo o XML.
+
+- `extrair_cstat()` em `app/nfse/errors.py` lê `cStat` com namespace e **nunca levanta** (XML inesperado
+  devolve `None`; o XML guardado continua sendo a prova, o campo é índice);
+- `RespostaEmissao.codigo_status` preenchido pelo adapter real **e** pelo dublê — o dublê imita o
+  contrato (`cStat=100`), senão o teste passaria num caminho que a produção não tem;
+- `FiscalDocument.codigo_status` persistido na emissão; `protocolo` permanece nulo **de propósito**,
+  com teste que fixa isso.
+
+### Testes (`tests/test_nfse_cstat.py`, 6)
+
+Extração com namespace; aceita `bytes`; sem `cStat` → `None`; XML inválido não levanta; vazio → `None`;
+e a persistência: emissão grava `codigo_status="100"` e `protocolo is None`.
+
+### O que continua não provado
+
+- **Produção fiscal: nenhuma nota.** A autorização é de homologação;
+- o registro de 25/11 é documental — não reexecutei a emissão real nesta sessão (exigiria certificado e
+  chamada externa), então a classe de evidência é **"registro+banco"**, não "reproduzido hoje";
+- `dhProc`/`nDFSe` continuam só no XML: poderiam virar colunas, mas não são necessários para responder
+  "autorizada?", que é o que `cStat` resolve.
+
+---
+
+## 79. CI vermelho por infraestrutura: `lxml` compilado sem headers
+
+**Data:** 2026-11-27. **Fase:** F (CI/CD).
+
+### O que aconteceu
+
+O commit de §78 subiu e a CI falhou em **"Instalar dependências"**, nos dois jobs:
+
+```
+Error: Please make sure the libxml2 and libxslt development packages are installed.
+ERROR: Failed to build 'lxml' when getting requirements to build wheel
+```
+
+Não era regressão de código: o commit anterior passou no **mesmo** workflow, e o instalador é idêntico
+(`pip install -e ".[app,dev]"`). É o caso clássico de runner cujo `pip` resolve uma versão de `lxml` sem
+wheel correspondente e cai para o build do fonte — e o runner não tem os headers.
+
+Reexecutei os jobs falhos (`gh run rerun --failed`) para distinguir transiente de persistente:
+**falhou de novo**. Persistente.
+
+### Correção aplicada
+
+Passo novo nos **dois** jobs, antes do `pip`:
+
+```yaml
+- name: Bibliotecas de sistema para compilar lxml
+  run: |
+    sudo apt-get update
+    sudo apt-get install -y --no-install-recommends libxml2-dev libxslt1-dev
+```
+
+Resolve o build em vez de mascarar o erro. **Não** adiciona dependência de runtime, **não** altera o
+ambiente do usuário e não mexe em versão de biblioteca — é só o runner de CI.
+
+### Erro meu no caminho (registrado)
+
+A primeira edição juntou `run: |` na linha do `name:` e **quebrou o YAML**. O `yaml.safe_load` recusou com
+`mapping values are not allowed here` na linha 66. Corrigi as duas ocorrências e validei antes de
+commitar: `jobs: ['testes','contrato']`, 11 passos e 5 passos.
+
+Se eu tivesse commitado sem validar, o push teria criado um workflow inválido — pior que a falha
+original, porque o GitHub não roda workflow inválido e o vermelho viria sem log.
+
+### Verificação
+
+| Passo | Resultado |
+|---|---|
+| `yaml.safe_load` no workflow | estrutura válida, 2 jobs |
+| reexecução antes da correção | `completed failure` (persistente) |
+| CI após a correção | **`completed success`** |
+
+### O que isto **não** prova
+
+Que o build de `lxml` do fonte seja desejável. Se o runner voltar a não ter headers, o passo de apt
+resolve; o certo a médio prazo seria fixar uma versão de `lxml` com wheel garantida para toda matriz
+suportada — mas pin sem necessidade declarada é dívida, e o projeto não declara matriz de runners.
+O gatilho fica registrado aqui em vez de virar pin especulativo.
+
+---
+
+## 80. Certificado ambíguo e divergência leiaute×XSD: dois riscos silenciosos
+
+**Data:** 2026-11-27. **Fase:** A/B. Origem: verificação dos quatro itens pedidos (NT-009, condomínios,
+Anexo VIII, multi-CNPJ), todos **ausentes** — a checagem expôs dois riscos que já existiam.
+
+### 80.1 Dois certificados ativos assinavam "um ao acaso"
+
+`certificados.ativo()` fazia `.first()` sobre `ativo=True`. O banco não tem índice único para isso, e
+um upload concorrente com uma ativação pode deixar dois ativos. Resultado: a emissão escolhia um
+arbitrariamente e **assinava com o titular errado** — e não há como detectar depois, porque a nota sai
+autorizada.
+
+Correção: `ativo()` agora exige **exatamente um**. Zero → `None`; um → ele; mais de um →
+`CertificadoAmbiguo`, com os certificados listados (apelido, id, CNPJ) e a instrução de qual rota usar.
+Na emissão o mapeamento é **409**, não 422: é conflito de estado a resolver pelo operador, não erro de
+payload. A rota `POST /v1/me/certificados/{id}/ativar` já existia e desativa os demais — é a saída.
+
+Testes (`tests/test_certificado_ambiguo.py`, 3): dois ativos → **409** citando a ambiguidade; ativar um
+resolve e a emissão volta a **201**; um ativo único continua emitindo.
+
+### 80.2 O leiaute declarado não tem XSD no repositório
+
+`constants.py` declara homologação em `LEIAUTE_NT009`, mas o pacote de schemas é `nfse-1.01` e **não
+declara** `finNFSe`/`vAjusteBC`/`indDest`. Ou seja: validar "NT 009" contra o XSD que existe dá falsa
+segurança — o schema aceita o documento antigo e recusaria o novo.
+
+Não dá para corrigir sem o **pacote oficial da NT 009 (2026-11-24)** com origem, data e hash; escrever
+schema à mão violaria a regra 9. O que dá para fazer é impedir que o gap passe em silêncio:
+`tests/test_leiaute_nt009_guard.py` é `xfail(strict=True)`.
+
+- passa como **xfail enquanto o gap existir**, com a razão nomeando o bloqueio;
+- **falha no dia em que o XSD oficial entrar** — e aí a marcação tem de sair, forçando a validação real
+  a ocupar o lugar do "esperado falhar".
+
+É o oposto de relaxar expectativa: a suíte fica verde **com o gap documentado**, e a correção quebra o
+teste de propósito.
+
+### 80.3 Os quatro itens pedidos: estado medido
+
+| Item | Estado | Evidência |
+|---|---|---|
+| NT-009 2026-11-24 + `indDest` automático | ❌ | XSD é `nfse-1.01`; **zero** ocorrências de `indDest` em `app/`, `src/`, `tests/` |
+| Condomínios 99.05.01 + `condominios`/`unidades` | ❌ | **zero** ocorrências de `condomin`, `99.05.01`, `gCobranca`, `gDetCobranca`, `CIB` |
+| Anexo VIII (tribISSQN=4, NBS 110019000, cIndOp 020201, CST 200, cClassTrib 200046) | ❌ | só validação de **formato**: `dps.py:38-40`, `tribISSQN` como conjunto `{1,2,3,4}` em `dps.py:47` |
+| Multi-CNPJ por estabelecimento + procuração 00233 | 🌗 parcial → **endurecido** | vários certificados com `cnpj` existem; seleção por estabelecimento e procuração **não** existem |
+
+Sobre o item 3 há um **conflito declarado** com §77: o roteador hoje **bloqueia** emissão nacional em
+município não aderente fora da obrigação do Simples. A exceção de Anexo VIII exige fonte oficial que a
+sustente; sem ela, implementar seria reintroduzir a nota pela rota errada com aparência de autorizada.
+
+### O que continua bloqueado, com o pré-requisito exato
+
+1. **Pacote XSD oficial NT-009 (2026-11-24)** — arquivo + URL + data + hash;
+2. **Manual/leiaute dos grupos `condominios` e `imovel.unidades`** e a regra do 99.05.01;
+3. **Fonte oficial do Anexo VIII** que fixe os cinco códigos e a exceção de rota;
+4. **Regra de titularidade e contrato da procuração eletrônica RFB (00233)** — endpoints, campos,
+   vigência e revogação.
+
+Nenhum desses pode ser suprido por inferência; todos exigem documento oficial que eu não tenho.
+
+---
+
+## 81. Adendo 3 aplicado como bloqueio: fontes oficiais, manifestos e estados
+
+**Data:** 2026-11-27. **Fase:** gate regulatório. **Nenhum schema, código fiscal, rota ou integração foi
+implementado** nesta seção — por exigência do próprio adendo.
+
+### O que foi coletado (fontes oficiais, com hash)
+
+| Fonte | Arquivo | Bytes | SHA-256 (primeiros 16) |
+|---|---|---|---|
+| "Documentação atual" — pacote de esquemas | `esquemas-xsd-v1.01-20260209.zip` | 65.640 | `e7935cbd9470527c` |
+| "Arquivos dos esquemas XSD" (NFS-e via) | `schemas_v1-01_atualizado.zip` | 12.298 | `e17ffb5eb05ecd7e` |
+| Manual contribuintes API ADN v1.1 (2026-11-03) | `.pdf` | 325.925 | `f3c7cf067a51a768` |
+| Portarias e Resoluções CGNFS-e (índice) | `.html` | 92.942 | `2a8bed04f08b073a` |
+
+Manifesto completo, com URL direta, órgão, título, data de acesso e limitação de cada item:
+[`sources/manifest.yaml`](../sources/manifest.yaml). Os arquivos estão versionados para o hash ser
+reverificável offline.
+
+### O que **não** foi encontrado
+
+- **Pacote XSD NT-009 de 2026-11-24**: não existe link nas páginas oficiais consultadas. O pacote mais
+  recente publicado é **`esquemas-xsd-v1.01-20260209.zip`** (2026-02-09).
+- **`finNFSe`, `vAjusteBC`, `indDest`, `condominios`, `gCobranca`**: `grep` vazio nos dois pacotes oficiais
+  baixados.
+- **Manual/leiaute de `condominios` / `imovel.unidades` / 99.05.01**: não localizado.
+- **Ato do Anexo VIII** com 110019000 / 020201 / 200046: índice de resoluções localizado, vínculo **não
+  verificado**.
+- **Documentação oficial da procuração RFB (00233)**: não localizada.
+- O manual ADN v1.1 tem **5 páginas / 5.735 caracteres** e nenhum dos termos procurados — é capa, não
+  especificação.
+
+### Achado adicional: o XSD do repositório não é o oficial
+
+| Arquivo | Tamanho | SHA-256 (16) |
+|---|---|---|
+| `tests/fixtures/schemas/nfse-1.01/DPS_v1.01.xsd` (repo) | 678 | `c7dab363d8cf7c83` |
+| `Schemas/1.01/DPS_v1.01.xsd` (oficial 2026-02-09) | 691 | `fe45e5250a48e519` |
+
+**Diferentes.** O fixture do repositório é menor que o oficial: não é o arquivo publicado. Isso significa
+que a validação XSD que a suíte executa prova conformidade contra um schema **de proveniência não
+estabelecida**, não contra o oficial. Registrado como lacuna, não corrigido — substituir o schema exige o
+pacote oficial íntegro e revisão dos testes que dependem dele.
+
+### Estados (matriz completa em `docs/REQUISITOS-FONTES.md`)
+
+| REQ | Tema | Estado |
+|---|---|---|
+| REQ-1 | XSD NT-009 2026-11-24 + `indDest` | **BLOCKED** |
+| REQ-2 | `condominios` / `imovel.unidades` / 99.05.01 | **BLOCKED** |
+| REQ-3 | Anexo VIII (110019000 / 020201 / 200046) + exceção de rota | **BLOCKED** |
+| REQ-4 | Titularidade, certificado de terceiro, procuração RFB 00233 | **BLOCKED** |
+| REQ-5 | Contrato multitenant (tenant ≠ emitente ≠ certificado ≠ operador) | **PARTIAL** |
+
+Nenhum `PASS`. Nenhum `NOT_TESTED` "otimista": onde procurei e não achei, está `BLOCKED` com o item
+exato faltando.
+
+### ADR 0005 — decisão de bloqueio, não de implementação
+
+[`docs/adr/0005-titularidade-e-representacao.md`](../adr/0005-titularidade-e-representacao.md) registra:
+`tenant_id` continua a fronteira de isolamento; emitente é o CNPJ do certificado ativo; **representação
+por procuração fica bloqueada**; e o modo hospedado **não aceita certificado de terceiro** enquanto não
+houver contrato oficial — limitação declarada ao cliente, não bug.
+
+### O que continua valendo do trabalho anterior
+
+§77 (roteamento com preflight) e §80 (certificado ambíguo → 409, guarda `xfail` do gap XSD) **não** foram
+afrouxados. A exceção de rota do Anexo VIII não foi codificada justamente porque a fonte não existe — e
+implementá-la por hipótese reintroduziria o defeito que §77 corrigiu.
+
+### Pré-requisito exato para desbloquear
+
+1. URL oficial do pacote **NT-009 de 2026-11-24** (ou comunicado que o nomeie);
+2. manual/leiaute de **`condominios` e `imovel.unidades`** com cardinalidade e a regra do 99.05.01;
+3. **ato do Anexo VIII** com os três códigos, significados e a condição da rota excepcional;
+4. **documentação oficial da procuração RFB 00233**: endpoint, autenticação, campos, poderes, vigência,
+   situação e forma de consultar revogação.
+
+Com qualquer um em mão: baixar → SHA-256 → manifesto → atualizar matriz → implementar **só** o contrato
+comprovado → testes positivo e negativo → revisão independente.
+
+---
+
+## 82. Prova dura: o XSD do repositório foi adaptado para aceitar o código
+
+**Data:** 2026-11-27. **Fase:** C/F (integridade de schema). Consequência direta do pacote oficial baixado
+no Adendo 3.
+
+### Experimento executado
+
+Substituí os 8 XSD de `tests/fixtures/schemas/nfse-1.01/` pelos arquivos **oficiais** do pacote
+`esquemas-xsd-v1.01-20260209.zip` (sha256 `e7935cbd9470527c…`) e rodei a suíte de schema. Resultado:
+**falhou**, com dois erros independentes.
+
+### Erro 1 — `finNFSe` não existe no leiaute oficial 1.01
+
+```
+Element '{...}finNFSe': This element is not expected.
+Expected is one of ( cMotivoEmisTI, chNFSeRej, cLocEmi )
+```
+
+O gerador emite `finNFSe` (campo da **NT 009**) dentro da DPS. O XSD oficial **vigente** (2026-02-09) é
+anterior à NT 009 e não aceita o elemento.
+
+**Conclusão material:** o fixture do repositório aceitava `finNFSe` porque foi **modificado**. O
+`ORIGEM.md` já declarava origem em projeto de terceiro ("OpenAC.Net.NFSe.Nacional"); a comparação agora
+prova o efeito: **a validação XSD da suíte não provava conformidade com o schema oficial** — provava
+conformidade com um schema ajustado ao código.
+
+### Erro 2 — `serie` e `idEvManifRej` com padrão não atendido
+
+- `serie` = `"1"` rejeitado pelo padrão oficial (`TSSerieDPS`, `tiposSimples_v1.01.xsd`);
+- `idEvManifRej` do catálogo de eventos não atende `[0-9]{59}` (`TSIdNumEvento`).
+
+Ambos são **dados de teste/geração** que o schema permissivo não pegava. Não foram corrigidos nesta
+execução: corrigir exige decidir qual leiaute adotar (ver abaixo), e o fixture oficial não pode ser
+adotado com o gerador no estado atual.
+
+### Decisão: reverter o fixture e transformar a divergência em teste
+
+Os fixtures voltaram aos arquivos anteriores (a suíte fica verde) **e** a divergência passou a ser
+verificada, não narrada:
+
+`tests/test_leiaute_nt009_guard.py` agora tem **duas** guardas `xfail(strict=True)`:
+
+1. `test_xsd_acompanha_o_leiaute_declarado` — falha se o leiaute declarado for NT 009 e o XSD não tiver
+   os elementos;
+2. `test_gerador_e_aceito_pelo_xsd_oficial` — extrai o **zip oficial versionado** (funciona na CI, sem
+   depender de download) e valida a DPS gerada contra ele. Hoje falha por `finNFSe`; **passa a passar no
+   dia em que o gerador e o leiaute estiverem alinhados — e, por ser `strict`, quebra a suíte para forçar
+   a revisão da decisão**.
+
+Nenhum dos dois "relaxa expectativa": os dois quebram quando a situação mudar, que é o oposto.
+
+### O que isso muda no estado do projeto
+
+| Antes | Agora |
+|---|---|
+| "XSD oficial, validação offline" (texto do `ORIGEM.md` e do teste) | fixture de **fonte secundária, adaptado**; divergência medida e testada |
+| leiaute declarado NT 009 sem schema | continua **BLOCKED** (REQ-1), agora com prova de que o oficial rejeita o campo |
+| — | pacote oficial preservado em `sources/oficiais/` com hash no manifesto |
+
+### Bloqueio que permanece, com o pré-requisito exato
+
+Adotar a NT 009 exige o **pacote oficial dela (2026-11-24)**. Sem esse pacote não se decide se o campo
+`finNFSe` está correto, nem se `serie` deve ser zero-padded, nem se o catálogo de eventos precisa de 59
+dígitos. Escrever isso por inferência seria inventar leiaute — o que o Adendo 3 proíbe.
+
+---
+
+## 83. Integridade de XSD: a biblioteca existia, ninguém a chamava (e eu dupliquei antes de ver)
+
+**Data:** 2026-11-27. **Fase:** F. Item da missão §3: "manifesto SHA-256 de XSD, comparação de arquivo
+ausente/adulterado/não manifestado e configuração WARN/STRICT".
+
+### Primeiro, o erro que eu cometi
+
+Comecei escrevendo `scripts/verificar_xsd.py` e `tests/test_integridade_xsd.py` — **sem procurar** se
+isso já existia. Existia, completo:
+
+| Peça | Onde |
+|---|---|
+| `verificar()`, `sha256()`, `gerar_manifesto()`, `ModoVerificacao` (WARN/STRICT) | `app/core/schemas.py` |
+| Manifesto versionado com **113 schemas** (NFS-e, NF-e, CT-e, MDF-e) | `data/xsd_manifest.json` |
+| Gerador | `scripts/gerar_manifesto_xsd.py` |
+| Testes (13) | `tests/test_schemas_integridade.py` |
+
+Pior: o `MANIFEST.sha256` que meu script gerou dentro do diretório de fixtures fez o teste **existente**
+falhar (ele reporta arquivo não manifestado — corretamente). Removi a duplicação inteira. Registro aqui
+porque a regra 4 é explícita e eu a violei por não ter procurado antes.
+
+### O que a medição então mostrou
+
+A funcionalidade estava completa… e **desligada**:
+
+- `app/core/schemas.verificar` **não era chamado em parte alguma de `app/`**;
+- `scripts/check_ci.py` **não tinha** checagem de integridade;
+- o gerador só tinha dry-run e `--apply` — **nada falhava** se um schema divergisse.
+
+Ou seja: exatamente o padrão que a missão manda identificar — implementação isolada que não chega ao
+fluxo. A documentação do módulo chegava a declarar "hash conferido no boot"; não havia boot nenhum
+chamando.
+
+### Correção mínima, sem duplicar
+
+1. **`--check` no gerador existente** (`scripts/gerar_manifesto_xsd.py`): sai **1** quando há schema
+   novo, removido ou alterado, e **0** quando os 113 conferem. O dry-run continua saindo 0.
+2. **Checagem no gate** (`scripts/check_ci.py`): vira o 10º check, com saída `[OK] 113 schema(s)
+   conferem com o manifesto`.
+3. **Passo no workflow de CI**: mesma verificação, para não depender do gate local.
+
+### Verificação executada
+
+| Comando | Resultado |
+|---|---|
+| `python -m scripts.gerar_manifesto_xsd --check` | `[OK] 113 schema(s) conferem com o manifesto`, exit 0 |
+| `scripts.check_ci` (rápido) | 10 checks, todos `[OK]`, incluindo `integridade dos XSD` |
+| `pytest tests/test_schemas_integridade.py` | **13 passed** (voltou a passar após remover meu arquivo intruso) |
+| `yaml.safe_load` no workflow | estrutura válida, com o passo novo |
+
+### O que continua valendo
+
+- O manifesto cobre os 4 diretórios de schema; qualquer troca passa a **falhar** o gate e a CI.
+- Isso **não** diz que os schemas são oficiais. O da NFS-e é de fonte secundária e foi adaptado (§82); a
+  integridade que se prova aqui é "o arquivo é o que foi registrado", não "o arquivo é o publicado".
+
+---
+
+## 84. Integridade de XSD no boot: o docstring dizia, o código não fazia
+
+**Data:** 2026-11-27. **Fase:** F. Fecha o último ponto morto da mesma família de §83.
+
+### O que estava escrito × o que acontecia
+
+`app/core/schemas.py` afirma no docstring: "Seção R3 do v10.0 pede hash conferido no boot e aborto se
+divergir. Implementado de forma **mais conservadora**… Modo explícito: WARN (padrão) registra divergência;
+STRICT levanta."
+
+Medido: **nenhum código chamava `verificar`**. Nem o app, nem o gate (até §83), nem a CI. O processo
+subia sem olhar para o manifesto — a verificação existia como biblioteca e teste, não como controle.
+
+### Implementado
+
+`_verificar_integridade_dos_schemas()` chamada no `lifespan`, logo após as validações de configuração:
+
+| Situação | Comportamento |
+|---|---|
+| manifesto ausente | `WARNING xsd_sem_manifesto` e segue (estado válido: verificação desligada) |
+| divergência, modo WARN (padrão) | `WARNING xsd_integridade_divergente` e segue |
+| divergência, modo STRICT | `ERROR` e **o processo não inicia** |
+| tudo confere | silêncio (não polui log de boot) |
+
+Configuração: `XSD_INTEGRIDADE_STRICT` (`false` por padrão), documentada no próprio `Settings` com o
+motivo de não ser o padrão — nem todo schema tem procedência oficial confirmada, e derrubar a API por
+schema secundário trocaria risco de integridade por risco de indisponibilidade.
+
+### Testes (`tests/test_boot_integridade_xsd.py`, 4)
+
+| Teste | O que prova |
+|---|---|
+| manifesto real não levanta | boot normal com os 113 schemas íntegros |
+| manifesto ausente avisa e segue | ausência não é falha fatal |
+| divergência em WARN não levanta | padrão preservado |
+| divergência em STRICT levanta | `ErroDeIntegridade` sobe e o boot falha |
+
+Um teste meu foi descartado no caminho: a primeira versão de "divergência em WARN" tentava trocar o
+diretório via `monkeypatch` de `Path`, o que **não** exercitava a função (o caminho é fixo). Substituí por
+divergência real no manifesto (arquivo listado e inexistente), que é o caso de uso.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_boot_integridade_xsd.py` | **4 passed** |
+| `scripts.check_ci` (rápido) | **10/10** |
+| `mypy app src` | zero erros / 176 arquivos |
+
+---
+
+## 85. Consulta de status ia à SEFAZ sem circuito — e o escopo por UF estava disponível
+
+**Data:** 2026-11-27. **Fase:** F (resiliência). Missão §3: "circuit breaker ligado às chamadas externas
+reais, escopado por serviço/UF/município".
+
+### Medição
+
+Varredura por chamadas ao transporte externo e por uso de `executar_com_circuito`:
+
+| Caminho | Circuito antes |
+|---|---|
+| emissão (`POST /v1/emissoes`) | ✅ `emitir_com_circuito` |
+| cancelamento | ✅ `executar_com_circuito(..., OPERACAO_CANCELAMENTO)` |
+| evento | ✅ `executar_com_circuito(..., OPERACAO_EVENTO)` |
+| **status de transporte** (`GET /v1/transportes/status`) | ❌ **direto no `ClienteSefaz`** |
+
+O endpoint recebe `uf` como parâmetro — exatamente o escopo que o circuito já sabe usar — e não usava.
+Com a SEFAZ de uma UF fora, cada requisição queimava **30 s** de timeout do transporte, sem que o
+circuito abrisse para as seguintes.
+
+### Correção
+
+`executar_com_circuito(registro_padrao, uf=uf.upper(), operacao="consulta_status", acao=_consultar)`,
+com a chamada de CT-e/MDF-e dentro da closure. A chave fica `sefaz:<UF>:consulta_status`:
+
+- **por UF**: GO fora não abre o circuito de SP (o teste fixa isso);
+- **por operação**: queda de consulta não bloqueia emissão.
+
+`CircuitoAberto` já tem handler global (503 + `Retry-After`), então não houve mudança de contrato: o 504
+de transporte continua para recusa definitiva, e o 503 aparece quando o circuito está aberto.
+
+### Testes (`tests/test_circuito_consulta_status.py`, 2)
+
+Chave por UF (`sefaz:GO:consulta_status` ≠ `sefaz:SP:consulta_status`) e separação entre consulta e
+autorização. Mais os 11 de `test_transporte_status_rota.py`, que seguem verdes.
+
+### Incidente meu nesta rodada
+
+Rodei a suíte de cobertura **em segundo plano** enquanto executava testes — no mesmo banco de teste. O
+resultado foi contaminação: `test_transporte_status_rota.py` falhou com **401 "credencial inválida"**,
+erro que não existia. Matei o job e a mesma suíte passou (11/11). É a **terceira vez** que cometo esse
+erro nesta sessão; o registro fica para não repetir: medição de cobertura e testes de banco são
+sequenciais, nunca concorrentes.
+
+---
+
+## 86. Webhook retentava recusa permanente — 5 chamadas inúteis e 42 min até a DLQ
+
+**Data:** 2026-11-27. **Fase:** E/F. Missão §3: "retry somente para falhas transitórias".
+
+### Medição
+
+`app/webhooks/service.py` tratava **qualquer** não-2xx como falha retentável: `BACKOFF_SEGUNDOS = (10,
+30, 120, 600, 1800)`, cinco tentativas. Um `404` no endpoint do cliente — configuração errada, que nunca
+vai passar — consumia 5 chamadas ao servidor dele ao longo de ~42 minutos antes de chegar à DLQ.
+
+### Correção
+
+`_recusa_permanente(codigo)` separa as classes:
+
+| Resposta | Tratamento |
+|---|---|
+| `2xx` | entregue |
+| `3xx` | **permanente** — o cliente HTTP não segue redirecionamento (decisão anterior, para não entregar payload assinado a outro host); então 3xx é configuração errada |
+| `4xx` exceto `408`/`429` | **permanente** — o destino recusou o pedido |
+| `408`, `429`, `5xx`, erro de rede, timeout | transitório, backoff normal |
+
+Falha permanente usa `_marcar_falha_definitiva`: conta a tentativa, fecha como `FALHOU`,
+`proxima_tentativa=None` e cai no caminho de DLQ que já existia. O `ultimo_erro` diz "recusa permanente,
+não retentada" — para o operador não procurar um problema de rede que não existe.
+
+### Testes (`tests/test_webhook_falha_permanente.py`, 17)
+
+Classificação paramétrica (400/401/403/404/410/422/301/302 → permanente; 408/429/500/502/503/504/2xx →
+não), e a entrega real: `404` → **uma** tentativa, sem reagendamento, item na **DLQ**.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_webhook_falha_permanente.py` | **17 passed** |
+| `pytest tests/test_webhooks.py` | **24 passed** |
+| `mypy app src` | zero erros |
+
+---
+
+## 88. Revisão de continuidade do PR #1 — o que foi conferido, não repetido
+
+**Data:** 2026-11-27. **Escopo:** revisar a branch e o PR com evidência do repositório, sem refazer a
+auditoria e sem merge.
+
+### Estado conferido por comando
+
+| Item | Comando | Resultado |
+|---|---|---|
+| Branch / HEAD | `git status -sb`, `git rev-parse --short HEAD` | `work/auditoria-e-fase-a`, `4e7366d`, working tree limpo |
+| Base | `git rev-parse --short main` | `55351cb` |
+| Divergência | `git log --oneline main..HEAD \| wc -l` | **47 commits** |
+| Volume | `git diff --stat main..HEAD` | **126 arquivos**, +25.215 / −198 |
+| PR | `gh pr view 1` | `OPEN`, `MERGEABLE`, `CLEAN`, head `4e7366d` |
+| CI | `gh run list --branch ...` | `success` em `4e7366d` |
+
+Distribuição do diff: `app/` 42 · `tests/` 30 · `sources/` 17 · `docs/` 13 · `scripts/` 9 ·
+`alembic/` 4 · `.github/` 1.
+
+### Gates reexecutados nesta revisão (serial, banco compartilhado)
+
+`python -m scripts.check_ci --tudo` → **10/10** + suíte: lint, formatação, tipagem, segredos,
+dependências, contrato OpenAPI, integridade dos XSD (113 conferem), schema da DPS, migrações reproduzem
+os modelos, suíte completa. `pytest --co` → **1565 testes coletados**. `ruff format --check .` → 378
+arquivos formatados.
+
+Não remedi cobertura nesta rodada: o número anterior (**87,98%**) é de execução isolada registrada em
+§61/§83 e **não** é reivindicado como recém-medido aqui.
+
+### `xfail(strict=True)` — dois casos, ambos de divergência medida
+
+| Teste | O que fixa | Por que não esconde regressão |
+|---|---|---|
+| `test_xsd_acompanha_o_leiaute_declarado` | falha se o leiaute declarado for NT-009 e o XSD do repositório não tiver `finNFSe`/`vAjusteBC` | `strict=True`: se passar a passar, a suíte **quebra** e exige revisão |
+| `test_gerador_e_aceito_pelo_xsd_oficial` | valida a DPS gerada contra o pacote oficial extraído do ZIP versionado | falha hoje por `finNFSe` (o fixture do repo é adaptado, §82); quando o leiaute for alinhado, quebra de propósito |
+
+Nenhum dos dois usa `xfail` sem `strict`, e nenhum foi adicionado para "fazer a suíte passar" — ambos
+**descrevem** a divergência com o schema oficial.
+
+### Testes não alcançam produção
+
+| Controle | Evidência |
+|---|---|
+| Ambiente fixo de teste | `tests/conftest.py:24` → `ENVIRONMENT=test` |
+| Adaptador dublê obrigatório | `tests/conftest.py:30` → `NFSE_ADAPTER=mock` |
+| Banco de teste próprio | `tests/conftest.py:31` → `DATABASE_URL = suporte.url_teste()` |
+| Allowlist de host no cliente real | `app/nfse/adapter.py:243` + `app/core/config.py:86` (`sefin_permitir_host_nao_oficial=False` por padrão) |
+| `tp_amb=1` (produção) em teste | **nenhuma** instrução; texto antigo corrigido nesta rodada (§REQ-1) |
+
+### Isolamento entre tenants — amostra de testes presentes
+
+`test_certificado_usos.py` (histórico de uso), `test_chave_expira_revoga.py`, `test_cancelamento.py`,
+`test_apuracao.py`, `test_credenciais_rota.py`, `test_circuit.py` — todos com caso de "outro tenant" ou
+"tenant cruzado". O contrato de tenant-vindo-da-credencial está em `test_contrato_tenant.py`.
+
+### Manifesto e matriz: existem e conferem
+
+`sources/manifest.yaml` — **15 fontes**, todas com `sha256` verificado por script (`ok=15 diverge=0
+ausente=0`), sem caminho absoluto de disco. `docs/REQUISITOS-FONTES.md` — matriz com estados
+`PASS/PARTIAL/NOT_TESTED/BLOCKED` e a citação do que cada fonte diz.
+
+### Correções documentais desta revisão
+
+1. `tp_amb=1` → `tp_amb=2` na instrução de não-regressão (produção não recebe teste);
+2. **REQ-2**: `PARTIAL` → **`BLOCKED` para a regra**, com o cronograma oficial: Operações Condominiais
+   são o item 2.15 da **Release 3** (Produção Restrita prevista 07/12/2026);
+3. **REQ-4**: passa a **`PARTIAL`** (fluxo confirmado no FAQ v1.5) mantendo **`BLOCKED`** para a API de
+   consulta de vigência/revogação; `00233` registrado como **não citado** na fonte consultada;
+4. **REQ-3**: `BLOCKED` como regra executável, com a ressalva oficial de que não há regras de negócio
+   baseadas no Anexo VIII;
+5. ADR 0005 atualizado: o bloqueio permanece, mas o **fundamento mudou** — a representação existe e está
+   em produção desde 31/10/2026; falta a forma de verificar o vínculo e o grupo de XML (Release 3).
+
+### O que esta revisão **não** fez
+
+Não fez merge, não alterou `main`, não enviou mensagem externa, não reivindicou homologação nem produção.
+A decisão de merge continua com o mantenedor.
+
+---
+
+## 89. Adoção do XSD oficial de 24/11/2026 — o gap de §82 foi fechado
+
+**Data:** 2026-11-27. **Fase:** C/F. Executa a recomendação de §88 e fecha o maior risco técnico aberto.
+
+### O que foi feito
+
+1. Fixtures de `tests/fixtures/schemas/nfse-1.01/` **substituídos** pelos arquivos do pacote oficial
+   `esquemas-xsd-producao-restrita-20261124.zip` (sha256 `1ca83c1a7929f6d5…`), extraído de
+   `sources/oficiais`.
+2. `data/xsd_manifest.json` regenerado: **115 schemas** conferem.
+3. Gerador corrigido em `app/nfse/dps.py`:
+   - `indDest` passou a ser emitido em **`infDPS`**, depois de `toma` e antes de `dest`/`serv`, com o
+     domínio oficial (`0` = destinatário é o tomador; `1` = difere);
+   - `indDest` e `dest` **removidos de dentro do grupo `IBSCBS`** — ali o schema oficial recusa o
+     elemento e invalida a DPS inteira (`TCRTCInfoIBSCBS` não tem esses campos).
+4. Duas guardas `xfail(strict=True)` substituídas por **três testes positivos**:
+   - fixtures **byte a byte** iguais ao pacote oficial (compara SHA-256 arquivo por arquivo);
+   - XSD declara `finNFSe`, `vAjusteBC`, `indDest`;
+   - `indDest` existe uma vez em `infDPS` e **não** dentro de `IBSCBS`.
+
+### Causa raiz do que §82 media
+
+O fixture antigo era uma cópia **adaptada**: aceitava `finNFSe` e `indDest` em posições que o schema
+publicado não aceita. A suíte provava conformidade com o schema modificado. Com o pacote oficial, o
+gerador foi obrigado a se ajustar de verdade — e ajustou-se.
+
+### Erro meu encontrado nesta rodada
+
+A guarda 1 de §80 falhava por **typo na constante**: `MARCADORES_NT009` tinha `finNFse` (minúsculo) em vez
+de `finNFSe`, então a busca nunca casava. O teste parecia "detectar o gap" quando na verdade detectava
+minha própria digitação. Corrigido ao reescrever o arquivo; a comparação agora é por hash, não por regex.
+
+### Verificação desta rodada
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_schema_dps.py` | **5 passed** (antes: 3 falhando contra o oficial) |
+| `pytest tests/test_eventos_tipos.py`, `test_evento_cancelamento.py` | **69 passed** |
+| `pytest tests/test_leiaute_nt009_guard.py` | **3 passed** (sem `xfail`) |
+| `gerar_manifesto_xsd --apply` → `--check` | **115 conferem** |
+| `check_ci` (rápido) | **9/9** |
+| `check_ci --tudo` (rodada anterior à correção de lint) | 10 de 11; lint quebrado por `×` em comentário — corrigido |
+
+### O que continua fora
+
+Adotar o schema **não** implementa os grupos de condomínio: `condominios`, `gCobranca`, `gDetCobranca` e
+`unidades` existem no XSD, mas as **regras de negócio do item 2.15 só entram na Release 3** (Produção
+Restrita prevista 07/12/2026, conforme comunicado oficial). O estado de REQ-2 permanece **BLOCKED** para a
+regra.
+
+`indDest` derivado automaticamente só no caso modelado (destinatário = tomador, ou `dest` informado). Não
+há regra oficial publicada que exija `1` em outros cenários, e não foi inventada.
+
+### Corrigido — CI quebrada por normalização de fim de linha nos XSD
+
+O commit que adotou o pacote oficial passou no gate local e **falhou no CI**: 10 schemas apareceram como
+"alterado" sem ninguém tocar neles.
+
+Causa: `.gitattributes` já tinha `tests/fixtures/schemas/** text eol=lf`, e os pacotes oficiais publicam os
+`.xsd` com **CRLF**. O manifesto era gerado no Windows sobre os bytes publicados (CRLF) e o checkout do CI
+(Linux) entregava LF — hash diferente, mesmo conteúdo.
+
+Correção: `*.xsd -text` e `data/xsd_manifest.json -text`, com o motivo escrito no próprio arquivo. A
+regra antiga foi removida. Verificado: hash do arquivo no worktree (`fe45e525…`) igual ao registrado no
+manifesto, e `--check` → **115 conferem**. O byte do repositório passa a ser o byte publicado, que é o que
+a integridade deve comparar.
+
+### 89.1 Dois leiautes — um valida, o outro é defeituoso no artefato publicado
+
+O Adendo 3 exige validação nos **dois leiautes** para `PASS` em REQ-1. Executei com os dois pacotes
+oficiais versionados e o resultado separou responsabilidades:
+
+| Pacote | `TSSerieDPS` | Consequência |
+|---|---|---|
+| 24/11/2026 (NT 009) | `[0-9]{1,4}\|[0-8][0-9]{4}` | valida (DPS gerada aceita) |
+| 09/02/2026 (anterior) | `^0{0,4}\d{1,5}$` | **rejeita qualquer `serie`** |
+
+Causa: no dialeto de regex do **XML Schema**, `^` e `$` **não são âncoras** — são caracteres literais. Um
+`xs:pattern` com `^...$` só casaria com valor que contivesse literalmente esses caracteres. Portanto
+**nenhum** valor de `serie` (nem `1`, nem `00001`) passa no pacote de fevereiro, e não existe ajuste no
+gerador que satisfaça um schema assim.
+
+Prova em `tests/test_dps_dois_leiautes.py::test_pacote_anterior_rejeita_qualquer_serie`: tenta quatro
+valores de `serie` e exige que **zero** sejam aceitos. O teste falha se o pacote for corrigido — momento em
+que a validação do leiaute anterior deve ser reativada.
+
+**Consequência para REQ-1**: continua **PARTIAL**, não `PASS`. O que existe: pacote preservado com hash,
+fixtures byte-idênticas, leiaute NT 009 validado de ponta a ponta, regra de `indDest` documentada e testada,
+não-regressão coberta. O que falta: validação do leiaute anterior, **impossível com o artefato publicado**
+— bloqueio do órgão, não do projeto.
+
+---
+
+## Fecho da revisão — 27/11/2026, HEAD `1bd80a3`
+
+Estado final desta continuação, com o que foi **executado** (não herdado):
+
+| Item | Valor |
+|---|---|
+| Branch / HEAD | `work/auditoria-e-fase-a` / `1bd80a3` |
+| Base | `main` = `55351cb` (intocada) |
+| Commits à frente | **52** |
+| Diff | **144 arquivos**, +40.528 / −6.075 |
+| PR #1 | `OPEN`, `MERGEABLE` |
+| CI | `success` em `1bd80a3` |
+| Testes coletados | **1571** |
+| Gate | 10/10 + suíte |
+| Manifesto de fontes | **15**, todos os hashes conferem |
+| Manifesto de XSD | **115** conferem (agora com bytes preservados) |
+
+### O que mudou desde o relatório de §88
+
+1. **XSD oficial adotado** (pacote de 24/11/2026): fixtures byte-idênticas ao publicado, manifesto
+   regenerado, gerador corrigido (`indDest` em `infDPS`, fora de `IBSCBS`).
+2. **Duas `xfail(strict)` extintas** — viraram três testes positivos, incluindo comparação por hash.
+3. **Defeito do pacote anterior provado**: `^`/`$` literais no dialeto XSD impedem validar `serie` no
+   leiaute de fevereiro; teste fixa isso e falha se o órgão corrigir.
+4. **CI consertada duas vezes**: normalização CRLF→LF (`-text` em `*.xsd`) e regravação dos blobs com os
+   bytes publicados.
+5. **Erro meu corrigido**: `finNFse` em vez de `finNFSe` na constante de marcadores — a guarda de §80
+   detectava minha digitação, não o gap.
+
+### Matriz final
+
+| REQ | Estado | Evidência |
+|---|---|---|
+| REQ-1 XSD NT-009 + `indDest` | **PARTIAL** | pacote + hash + fixtures idênticas + NT009 validado + regra de `indDest` testada; falta validar o leiaute anterior (artefato defeituoso) |
+| REQ-2 condomínios | **BLOCKED** | grupos no XSD, regras só na Release 3 (07/12/2026) |
+| REQ-3 Anexo VIII | **BLOCKED** | documento obtido; fonte diz que não há regras de negócio nele |
+| REQ-4 procuração | **PARTIAL** / **BLOCKED** | fluxo confirmado no FAQ v1.5; sem API de vigência/revogação; `00233` não citado |
+| REQ-5 multitenant | **PARTIAL** | isolamento testado; falta `procurador` e vínculo certificado↔estabelecimento |
+
+### Riscos que permanecem
+
+1. Leiaute anterior não validável com o pacote publicado (defeito do artefato).
+2. Condomínios, Anexo VIII e representação em XML dependem de publicação oficial futura.
+3. Autorização NF-e/CT-e/MDF-e e NFC-e dependem de credenciamento/CSC do contribuinte.
+4. Produção fiscal: **zero notas**. Homologação: uma NFS-e autorizada documentada (§15).

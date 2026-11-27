@@ -43,6 +43,9 @@ from app.nfse.errors import (
     extrair_alertas,
     extrair_mensagens,
 )
+from app.nfse.errors import (
+    extrair_cstat as _extrair_cstat,
+)
 from app.nfse.transport import (
     TIMEOUT_CONSULTA,
     TIMEOUT_LEITURA,
@@ -72,6 +75,9 @@ class RespostaEmissao:
     id_dps: str | None = None
     alertas: list[MensagemSefin] = field(default_factory=list)
     data_processamento: str | None = None
+    #: `cStat` da NFS-e devolvida (`100` = autorizada). Sem ele, "autorizada" só era legível dentro
+    #: do XML guardado e não dava para filtrar por código de retorno (§78).
+    codigo_status: str | None = None
     bruto: dict[str, Any] = field(default_factory=dict)
 
 
@@ -132,7 +138,9 @@ class SefinAdapter(Protocol):
 
     def consultar_nfse(self, chave: str) -> RespostaEmissao: ...
 
-    def registrar_evento(self, chave: str, pedido_assinado: bytes) -> RespostaEvento: ...
+    def registrar_evento(
+        self, chave: str, pedido_assinado: bytes, *, operacao: str = "o evento"
+    ) -> RespostaEvento: ...
 
     def consultar_evento(self, chave: str, tipo: str, n_seq: int = 1) -> bytes | None: ...
 
@@ -248,12 +256,14 @@ class SefinNacionalClient:
         bruto = {
             k: v for k, v in (resultado.json or {}).items() if str(k).lower() != "nfsexmlgzipb64"
         }
+        xml_nfse = ungzip_b64(base64_xml)
         return RespostaEmissao(
             chave_acesso=str(_get(resultado.json, "chaveAcesso") or ""),
-            nfse_xml=ungzip_b64(base64_xml),
+            nfse_xml=xml_nfse,
             id_dps=_get(resultado.json, "idDps"),
             alertas=extrair_alertas(resultado.json),
             data_processamento=_get(resultado.json, "dataHoraProcessamento"),
+            codigo_status=_extrair_cstat(xml_nfse),
             bruto=bruto,
         )
 
@@ -518,6 +528,8 @@ class SefinMockAdapter:
             nfse_xml=xml_nfse,
             id_dps=id_dps,
             data_processamento="2026-11-25T12:00:00-03:00",
+            # O dublê imita o contrato real: `cStat=100` é o que a SEFIN devolve ao autorizar.
+            codigo_status=_extrair_cstat(xml_nfse),
         )
         self._emitidas[chave] = resposta
         if id_dps:

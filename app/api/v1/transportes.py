@@ -51,7 +51,9 @@ async def _certificado_do_tenant(sessao: AsyncSession, tenant: Tenant, conf: Set
                 "Envie o .pfx em POST /v1/me/certificados."
             ),
         )
-    return certificados.abrir_em_memoria(registro, settings=conf)
+    return await certificados.abrir_para_uso(
+        sessao, registro, operacao="consulta_transporte", settings=conf
+    )
 
 
 @router.post(

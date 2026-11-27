@@ -168,7 +168,8 @@ def verificacao_criptografica(ctx: Contexto) -> None:
 
     try:
         raiz_lxml = etree.fromstring(ET.tostring(ctx.raiz))
-        XMLVerifier().verify(raiz_lxml, x509_cert=pem, expect_references=1)
+        # signxml aceita PEM como str; aqui o PEM vem como bytes de `public_bytes`.
+        XMLVerifier().verify(raiz_lxml, x509_cert=pem.decode("ascii"), expect_references=1)
     except Exception as exc:  # a biblioteca levanta tipos próprios
         ctx.erro_em(
             "ASSIN-004",

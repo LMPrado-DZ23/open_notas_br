@@ -7,6 +7,7 @@ para lote; a semântica de idempotência é a mesma e já está implementada.
 
 from __future__ import annotations
 
+import hashlib
 import uuid
 from datetime import date
 
@@ -21,12 +22,13 @@ from fastapi import (
 )
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import tenant_atual
 from app.assessment.service import competencia_de
+from app.certificates.service import CertificadoAmbiguo
 from app.core.config import Settings, get_settings
 from app.danfe import ErroRepresentacao
 from app.danfe import gerar as gerar_representacao
@@ -43,7 +45,13 @@ from app.nfse.adapter import SefinMockAdapter
 from app.nfse.errors import ErroSefin
 from app.nfse.evento import MOTIVOS_CANCELAMENTO
 from app.nfse.eventos_tipos import TIPOS_DO_CONTRIBUINTE, TIPOS_EVENTO, ErroDeEventoCatalogo
-from app.nfse.injecao import UF_NACIONAL, emitir_com_circuito
+from app.nfse.injecao import (
+    OPERACAO_CANCELAMENTO,
+    OPERACAO_EVENTO,
+    UF_NACIONAL,
+    emitir_com_circuito,
+    executar_com_circuito,
+)
 from app.nfse.resiliencia import registro_padrao
 from app.nfse.schemas import DocumentoOut, EmissaoDetalheOut, EmissaoIn, EmissaoOut
 from app.nfse.servico import (
@@ -86,6 +94,41 @@ def _emissao_out(
         chave=documento.chave if documento else None,
         erro=invoice.erro,
         ja_existia=ja_existia,
+    )
+
+
+def _trava_de_idempotencia(tenant_id: uuid.UUID, chave: str) -> int:
+    """Identificador de 64 bits (com sinal) para `pg_advisory_xact_lock`.
+
+    Derivado de (tenant, chave) por SHA-256: duas chaves diferentes caem em travas diferentes, e
+    o mesmo par sempre cai na mesma. Colisão é teoricamente possível e apenas serializa dois
+    pedidos distintos — não corrompe nada.
+    """
+    resumo = hashlib.sha256(f"{tenant_id}:{chave}".encode()).digest()[:8]
+    return int.from_bytes(resumo, "big", signed=True)
+
+
+def _recusar_payload_divergente(existente: Invoice, dados: BaseModel) -> None:
+    """Mesma `Idempotency-Key` com corpo diferente é **409**, não 200 silencioso.
+
+    Reutilizar a chave com outro pedido e receber de volta a nota anterior é o pior desfecho
+    possível: o cliente acha que emitiu R$ 100 e o documento que existe é de R$ 50 — e num
+    documento fiscal isso é divergência de escrituração, não bug cosmético.
+
+    A comparação usa o `payload` que a própria fatura guardou na criação (`model_dump(mode="json")`),
+    então não precisa de coluna nova nem de migração. Corpo idêntico continua devolvendo **200** com
+    `ja_existia: true`, que é o comportamento que o cliente que repete espera.
+    """
+    original = existente.payload or {}
+    atual = dados.model_dump(mode="json")
+    if original == atual:
+        return
+    raise HTTPException(
+        status_code=HTTP_409,
+        detail=(
+            "esta `Idempotency-Key` já foi usada com um corpo diferente. "
+            "Reenvio idêntico devolve a emissão original; para um documento novo, use outra chave."
+        ),
     )
 
 
@@ -154,8 +197,26 @@ async def emitir(
             status_code=HTTP_422,
             detail="a chave de idempotência deve ter de 8 a 128 caracteres",
         )
+
+    # Serializa o par (tenant, chave) DENTRO da transação, antes de olhar se a fatura existe.
+    #
+    # Sem isto, duas requisições simultâneas com a mesma `Idempotency-Key` passam as duas pela
+    # checagem (nenhuma vê a outra ainda), as duas tentam inserir, e a segunda bate na constraint
+    # `uq_invoices_tenant_idempotency_key`. O tratamento de `IntegrityError` existe, mas o erro
+    # chega embrulhado pelo driver e a recuperação estourava com `MissingGreenlet` — o cliente
+    # recebia 500 num caminho que deveria ser 200 (auditoria §55). Segurar o par antes da leitura
+    # evita a corrida em vez de remendar o estrago.
+    #
+    # `pg_advisory_xact_lock` é liberado no commit/rollback e o escopo é a chave, não a tabela:
+    # duas emissões de tenants diferentes (ou de chaves diferentes) seguem em paralelo.
+    await db.execute(
+        text("select pg_advisory_xact_lock(:chave)"),
+        {"chave": _trava_de_idempotencia(tenant.id, chave)},
+    )
+
     existente = await _buscar_por_idempotencia(db, tenant.id, chave)
     if existente is not None:
+        _recusar_payload_divergente(existente, dados)
         documento = await _documento_da_fatura(db, existente)
         if existente.status is StatusFatura.AUTORIZADA and documento is not None:
             corpo = _emissao_out(existente, documento, ja_existia=True)
@@ -239,6 +300,19 @@ async def emitir(
     except emissao_service.ConfiguracaoFiscalAmbigua as exc:
         await db.rollback()
         raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
+    # Mesma razão da linha acima: `RotaNaoPermitida` herda de `ErroDeEmissao`, e o genérico
+    # descartaria a `pendencia` — que é justamente o que o operador precisa ler (§77).
+    except emissao_service.RotaNaoPermitida as exc:
+        await db.commit()  # preserva o evento de erro registrado
+        detalhe = str(exc)
+        if exc.pendencia:
+            detalhe = f"{detalhe}. Pendência: {exc.pendencia}"
+        raise HTTPException(status_code=HTTP_422, detail=detalhe) from exc
+    # Conflito, não validação: dois certificados ativos é estado a resolver pelo operador. 409
+    # diz "resolva o estado" e 422 diria "corrija o payload", que é o diagnóstico errado (§80).
+    except CertificadoAmbiguo as exc:
+        await db.rollback()
+        raise HTTPException(status_code=HTTP_409, detail=str(exc)) from exc
     except (ConfiguracaoFiscalAusente, CertificadoAusente, ErroDeEmissao) as exc:
         await db.commit()  # preserva o evento de erro registrado
         raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc
@@ -459,14 +533,19 @@ async def cancelar_emissao(
     adaptador = SefinMockAdapter(invoice.ambiente) if settings.nfse_adapter == "mock" else None
 
     try:
-        resposta = await cancelamento_service.cancelar(
-            db,
-            tenant,
-            invoice,
-            c_motivo=dados.c_motivo,
-            x_motivo=dados.x_motivo,
-            adapter=adaptador,
-            settings=settings,
+        resposta = await executar_com_circuito(
+            registro_padrao,
+            uf=UF_NACIONAL,
+            operacao=OPERACAO_CANCELAMENTO,
+            acao=lambda: cancelamento_service.cancelar(
+                db,
+                tenant,
+                invoice,
+                c_motivo=dados.c_motivo,
+                x_motivo=dados.x_motivo,
+                adapter=adaptador,
+                settings=settings,
+            ),
         )
         await db.commit()
     except cancelamento_service.DocumentoNaoAutorizado as exc:
@@ -584,14 +663,19 @@ async def registrar_evento(
     adaptador = SefinMockAdapter(invoice.ambiente) if settings.nfse_adapter == "mock" else None
 
     try:
-        resposta = await eventos_service.registrar(
-            db,
-            tenant,
-            invoice,
-            codigo=dados.codigo,
-            campos=dados.campos,
-            adapter=adaptador,
-            settings=settings,
+        resposta = await executar_com_circuito(
+            registro_padrao,
+            uf=UF_NACIONAL,
+            operacao=OPERACAO_EVENTO,
+            acao=lambda: eventos_service.registrar(
+                db,
+                tenant,
+                invoice,
+                codigo=dados.codigo,
+                campos=dados.campos,
+                adapter=adaptador,
+                settings=settings,
+            ),
         )
         await db.commit()
     except eventos_service.TipoReservado as exc:

@@ -32,6 +32,17 @@ class TestOpenApiVersionado:
             'encoding="utf-8")\\"'
         )
 
+    def test_schemas_tambem_estao_sincronizados(self) -> None:
+        """Comparar só `paths` deixava passar mudança de **schema** — o contrato que o
+        integrador lê. Foi assim que um campo novo em `/health` sobreviveu sem regenerar o
+        arquivo (a resposta ganhou `worker` e o `openapi.json` ficou sem `EstadoWorker`).
+        """
+        versionado = json.loads((RAIZ / "openapi.json").read_text(encoding="utf-8"))
+        atual = criar_app().openapi()
+        assert versionado.get("components") == atual.get("components"), (
+            "openapi.json divergiu nos schemas. Regenere (mesmo comando de cima)."
+        )
+
     def test_cobre_todas_as_rotas(self) -> None:
         versionado = json.loads((RAIZ / "openapi.json").read_text(encoding="utf-8"))
         rotas_app = set(criar_app().openapi()["paths"])

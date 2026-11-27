@@ -241,14 +241,17 @@ que existem.
 
 ## Critérios de go-live — verificação
 
+**Medido em 2026-11-26**, sobre `work/auditoria-e-fase-a` (base `55351cb`). Números anteriores (573 testes, 85,41%) foram substituídos pela medição atual; ver `docs/auditoria_inicial.md` §44.
+
 | Critério | Evidência | Estado |
 |---|---|---|
 | `docker compose up` sobe tudo | `down` + `up`: api, worker, postgres, redis `healthy` | ✅ |
 | `/health` responde | 200 em readiness | ✅ |
-| Testes passando | **573** | ✅ |
-| Cobertura ≥ 80% nos módulos fiscais e de segurança | total **85,41%**; servico 85%, dps 91%, signer 89%, adapter 80%, tax 90%, certificates 97%, crypto 100%, security 100%, tenants 93/100% | ✅ |
+| Testes passando | **1406** (`pytest -q`, 0 failed) | ✅ |
+| Cobertura ≥ 80% nos módulos fiscais e de segurança | total **87,98%** (`pytest --cov=app --cov=notasbr`, 10 427 statements) | ✅ |
 | Piso de cobertura imposto no CI/local | `[tool.coverage.report] fail_under = 80` | ✅ |
-| Fluxo fim-a-fim mockado demonstrável | `python -m scripts.demo_e2e` → **18/18** | ✅ |
+| Tipagem sem erros | `mypy app src` -> Success: no issues found in 173 source files; passo no CI e no gate (7/7) | ✅ |
+| Fluxo fim-a-fim mockado demonstrável | `python -m scripts.demo_e2e` — **não reexecutado em 2026-11-26**: o stack local estava com `NFSE_ADAPTER=sefin` e a demo agora recusa rodar assim (aborta com código 2 antes de escrever). Exige `NFSE_ADAPTER=mock`. | ⚠️ |
 | README diz o que é produção restrita e o que falta validar | seção "Estado de maturidade" | ✅ |
 | Nenhum segredo no repositório | testes: `.gitignore` cobre `*.pfx`/`*.p12`/`.env`; nenhum certificado no diretório | ✅ |
 | `.env.example` cobre todas as variáveis | teste compara com `Settings.model_fields` (30 campos) | ✅ |
@@ -348,3 +351,24 @@ oficial, não a arquitetura.
 
 Para reabrir: obter o leiaute publicado (ou o da UF alvo) e implementar como mais
 uma representação no catálogo.
+
+## Pendências de integração (código pronto, fluxo não)
+
+Levantadas em 2026-11-27 (auditoria §59). **Existem, são testadas e ninguém em produção as chama.**
+
+> **Atualização de 2026-11-27 (§77–§86):** três itens desta família foram ligados — circuito na consulta
+> de status (escopo por UF), integridade de XSD no gate/CI/boot e classificação de retry do webhook. A
+> tabela abaixo continua válida para o que **não** foi ligado; conferir `docs/auditoria_inicial.md` antes
+> de tratar qualquer linha como atual.
+Ordem sugerida; nenhuma pode ser "concluída" sem ambiente de homologação para validar.
+
+| # | Pendência | O que falta | Por que não foi feito já |
+|---|---|---|---|
+| 1 | **Implementar transporte SOAP municipal real** e depois ligar `nfse/drivers_factory` ao `nfse/servico.py` | hoje `TransporteProvedor` é só `Protocol`: os testes usam `TransporteFalso`. Sem transporte e sem URL/leiaute oficial por provedor, ligar não habilitaria município nenhum (§66) | falta evidência oficial (URL, manual, leiaute) por provedor — inventar viola R8 |
+| 2 | Rota de consulta de situação do CT-e | endpoint sobre `cte/consulta_situacao.py` | a chamada real de §31 foi por script; criar rota exige contrato e teste de erro |
+| 3 | Rotas de transmissão de CT-e/MDF-e | schema de entrada por documento | criaria superfície que emite documento fiscal sem homologação possível |
+| 4 | Usar `worker/tarefas.py` (retry→DLQ) nos jobs | trocar tratamento manual dos jobs pelo helper | muda retentativa em produção; o webhook já foi ligado à DLQ em §54 |
+| 5 | Traces (ADR 0003) e CVE scan (ADR 0002) | decisão tomada, gatilho definido | dependem de coletor e de política de CI |
+
+Regra: nenhuma destas pode aparecer como "concluída" antes de código **ligado**, teste passando e
+`docs/MATRIZ-COBERTURA.md` atualizado com o nível de prova real.

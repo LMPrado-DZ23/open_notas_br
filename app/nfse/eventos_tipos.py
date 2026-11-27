@@ -19,11 +19,27 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import TypedDict
 
 from app.nfse.constants import NS_NFSE, VERSAO_LEIAUTE
 
+
 #: Restrições lidas do schema, por tipo de campo.
-RESTRICOES: dict[str, dict[str, object]] = {
+class RestricaoCampo(TypedDict, total=False):
+    """Restrição declarada de um tipo simples do leiaute, campo a campo.
+
+    Antes era `dict[str, object]`: cada acesso a `regra["min"]` virava `object`, e o `mypy`
+    acusava `int(object)`, `in object` e `join(object)`. O TypedDict descreve o que a tabela
+    realmente tem — sem `Any`, que só esconderia o problema.
+    """
+
+    enum: tuple[str, ...]
+    pattern: str
+    min: int
+    max: int
+
+
+RESTRICOES: dict[str, RestricaoCampo] = {
     "TSMotivo": {"min": 15, "max": 255},
     "TSCPF": {"pattern": r"[0-9]{11}"},
     "TSChaveNFSe": {"pattern": r"[0-9]{6}[0-9A-Z]{14}[0-9]{30}"},

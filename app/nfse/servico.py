@@ -43,6 +43,7 @@ from app.nfse.dps import (
     extrair_id,
 )
 from app.nfse.errors import ErroSefin, TipoErroFiscal
+from app.nfse.roteamento import decidir_rota
 from app.nfse.signer import ErroAssinatura, assinar_dps
 
 logger = logging.getLogger(__name__)
@@ -58,6 +59,18 @@ class ErroDeEmissao(Exception):
 
 class ConfiguracaoFiscalAmbigua(ErroDeEmissao):
     """Há mais de uma configuração para o ambiente e nenhuma foi escolhida."""
+
+
+class RotaNaoPermitida(ErroDeEmissao):
+    """A rota da NFS-e não pode ser a nacional para este contribuinte/município (§77).
+
+    Carrega `pendencia`: o pré-requisito exato que falta. Erro de emissão sem essa informação
+    obriga o operador a adivinhar por que a nota não sai.
+    """
+
+    def __init__(self, motivo: str, *, pendencia: str | None = None) -> None:
+        super().__init__(motivo)
+        self.pendencia = pendencia
 
 
 class ConfiguracaoFiscalAusente(ErroDeEmissao):
@@ -318,12 +331,44 @@ async def emitir(
 
     config = await _config_do_tenant(sessao, tenant.id, invoice.ambiente, municipio_ibge)
 
+    # 1b) Preflight de rota ANTES de assinar e transmitir (§77).
+    #
+    # Antes disto o sistema sempre tentava o Emissor Nacional: para município cujo parâmetro oficial
+    # diz "não aderente", o erro só aparecia como rejeição E0312 depois de gerar, assinar e enviar.
+    # Bloquear aqui evita transmissão fadada e diz qual pré-requisito falta.
+    decisao = decidir_rota(
+        aderente_emissor_nacional=config.aderente_emissor_nacional,
+        aderente_confirmado=config.aderente_confirmado_em is not None,
+        simples_nacional=config.simples_nacional,
+        optante_mei=config.optante_mei,
+        competencia=invoice.competencia,
+        ambiente=str(config.ambiente),
+    )
+    if not decisao.permitido:
+        logger.warning(
+            "emissao_bloqueada_por_rota",
+            extra={
+                "invoice_id": str(invoice.id),
+                "rota": decisao.rota,
+                "motivo": decisao.motivo,
+                "pendencia": decisao.pendencia,
+            },
+        )
+        raise RotaNaoPermitida(decisao.motivo, pendencia=decisao.pendencia)
+    if not decisao.confirmado:
+        logger.info(
+            "rota_nao_confirmada",
+            extra={"invoice_id": str(invoice.id), "motivo": decisao.motivo},
+        )
+
     registro_cert = await certificados.ativo(sessao, tenant.id)
     if registro_cert is None:
         raise CertificadoAusente(
             "nenhum certificado A1 ativo. Envie o .pfx em POST /v1/me/certificados."
         )
-    certificado = certificados.abrir_em_memoria(registro_cert, settings=conf)
+    certificado = await certificados.abrir_para_uso(
+        sessao, registro_cert, operacao="emissao", settings=conf
+    )
 
     numero_dps = await _reservar_numero_dps_no_banco(sessao, config)
 
@@ -364,9 +409,10 @@ async def emitir(
     except ErroSefin as erro:
         # Timeout ambíguo: a nota pode existir. Consultar antes de acusar falha.
         if erro.pode_ter_sido_processada and id_dps:
-            resposta = await _tentar_recuperar(cliente, id_dps, erro)
-            if resposta is None:
+            recuperada = await _tentar_recuperar(cliente, id_dps, erro)
+            if recuperada is None:
                 raise
+            resposta = recuperada
             logger.warning(
                 "emissao_recuperada_apos_timeout",
                 extra={"invoice_id": str(invoice.id), "chave": resposta.chave_acesso},
@@ -425,6 +471,9 @@ async def _persistir_autorizacao(
         chave=resposta.chave_acesso,
         xml_assinado=dps_assinada.decode("utf-8", errors="replace"),
         xml_autorizado=resposta.nfse_xml.decode("utf-8", errors="replace"),
+        # Índice do código de autorização, para não obrigar a abrir o XML (§78). `protocolo` fica
+        # nulo de propósito: a NFS-e Nacional não tem número de protocolo.
+        codigo_status=resposta.codigo_status,
         resposta_bruta=resposta.bruto or None,
         emitido_em=datetime.now(UTC),
     )

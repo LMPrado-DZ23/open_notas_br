@@ -30,9 +30,25 @@ class Checagem:
 CHECAGENS: tuple[Checagem, ...] = (
     Checagem("lint", [sys.executable, "-m", "ruff", "check", "."]),
     Checagem("formatacao", [sys.executable, "-m", "ruff", "format", "--check", "."]),
+    # O mypy existia no `pyproject.toml` desde o início e **nunca** rodava em gate nem em CI:
+    # 93 erros acumularam, três deles defeitos de execução (um mandava emissão real para a
+    # SEFIN de homologação). Zero erros hoje; entrar no gate é o que impede o retorno.
+    Checagem("tipagem", [sys.executable, "-m", "mypy", "app", "src"]),
+    # Regra dura do projeto (nunca versionar chave/senha/PEM) não tinha verificação nenhuma:
+    # dependia de disciplina. Este scanner varre o índice do git e não ecoa o valor achado.
+    Checagem("segredos", [sys.executable, "-m", "scripts.verificar_segredos"]),
+    # Consistência de dependências (ADR 0002). Offline e determinístico; **não** é varredura
+    # de CVE — isso exige base de advisories e fica decidido com gatilho no próprio ADR.
+    Checagem("dependencias", [sys.executable, "-m", "pip", "check"]),
     Checagem(
         "contrato openapi",
         [sys.executable, "-m", "pytest", "tests/test_openapi_sincronizado.py", "-q"],
+    ),
+    # Integridade dos XSD: a biblioteca existia em `app/core/schemas.py` e **ninguém a chamava** —
+    # nem o app, nem o gate. Schema trocado passava; e o fixture da NFS-e estava adaptado (§82).
+    Checagem(
+        "integridade dos XSD",
+        [sys.executable, "-m", "scripts.gerar_manifesto_xsd", "--check"],
     ),
     Checagem(
         "schema da DPS",

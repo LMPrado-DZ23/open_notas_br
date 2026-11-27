@@ -170,3 +170,25 @@ mascarar a chave também, não só os campos.
 **Motivo.** A alternativa (deixar propagar) interrompe o lote; a alternativa
 pior (ignorar) produz "aprovado" sem a checagem. Converter em erro mantém o
 processo rodando e torna o defeito visível com o nome da regra.
+
+---
+
+## ADRs da plataforma (`docs/adr/`)
+
+A série acima (ADR-001 a ADR-007) é do **núcleo de auditoria XML** (`src/notasbr`) e usa numeração
+`ADR-NNN`. A partir de 2026-11-26 existe uma segunda série, em `docs/adr/`, para decisões da
+**plataforma** (API/worker/infra), numerada com quatro dígitos. Conviver com as duas numerações é
+deliberado — renumerar ADR aceita reescreveria histórico — mas é preciso saber qual é qual:
+
+| ADR | Título | Data | Estado |
+|---|---|---|---|
+| [`0001-admin-auth`](adr/0001-admin-auth.md) | Auth mínima de admin para replay de DLQ | 2026-11-26 | aceita e implementada |
+| [`0002-dependencias`](adr/0002-dependencias.md) | `pip check` agora; `pip-audit` com gatilho | 2026-11-26 | aceita e implementada |
+| [`0005-titularidade-e-representacao`](adr/0005-titularidade-e-representacao.md) | Representação por procuração bloqueada até fonte oficial; titular ≠ contribuinte | 2026-11-27 | aceita |
+| [`0003-traces`](adr/0003-traces.md) | OpenTelemetry não agora, com gatilho | 2026-11-27 | aceita (nada instalado) |
+
+Regra prática: decisão que muda **como o projeto é construído** (dependência, auth, observabilidade,
+ferramenta) vai para `docs/adr/`. Decisão que muda **o que o núcleo afirma sobre um XML** fica aqui,
+numerada como `ADR-NNN`.
+
+atualizado por dsh em 2026-11-27

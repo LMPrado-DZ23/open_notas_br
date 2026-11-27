@@ -29,6 +29,7 @@ from app.db.models.enums import StatusFatura
 from app.db.models.invoice import FiscalDocument, Invoice, InvoiceEvent
 from app.db.models.tenant import Tenant
 from app.nfse.adapter import RespostaEvento, SefinAdapter
+from app.nfse.documento_autorizado import DocumentoAutorizado
 from app.nfse.errors import ErroSefin
 from app.nfse.evento import (
     MOTIVOS_CANCELAMENTO,
@@ -57,7 +58,7 @@ class MotivoInvalido(ErroDeCancelamento):
 
 async def _documento_autorizado(
     sessao: AsyncSession, tenant_id: Any, invoice: Invoice
-) -> FiscalDocument:
+) -> DocumentoAutorizado:
     resultado = await sessao.execute(
         select(FiscalDocument).where(
             FiscalDocument.tenant_id == tenant_id,
@@ -70,7 +71,7 @@ async def _documento_autorizado(
         raise DocumentoNaoAutorizado(
             "a fatura não tem documento autorizado com chave; não há o que cancelar"
         )
-    return documento
+    return DocumentoAutorizado(documento=documento, chave=documento.chave)
 
 
 def validar_motivo(c_motivo: str, x_motivo: str) -> None:
@@ -106,7 +107,8 @@ async def cancelar(
     if invoice.status is StatusFatura.CANCELADA:
         raise ErroDeCancelamento("esta fatura já está cancelada")
 
-    documento = await _documento_autorizado(sessao, tenant.id, invoice)
+    alvo = await _documento_autorizado(sessao, tenant.id, invoice)
+    documento, chave = alvo.documento, alvo.chave
     validar_motivo(c_motivo, x_motivo)
 
     registro_cert = await certificados.ativo(sessao, tenant.id)
@@ -115,10 +117,19 @@ async def cancelar(
             "nenhum certificado A1 ativo: o pedido de cancelamento precisa ser "
             "assinado por quem responde pela nota"
         )
-    certificado = certificados.abrir_em_memoria(registro_cert, settings=conf)
+    certificado = await certificados.abrir_para_uso(
+        sessao, registro_cert, operacao="cancelamento", settings=conf
+    )
+    if not certificado.cnpj:
+        # Sem CNPJ no titular não há autor identificável no XML assinado. Falhar aqui,
+        # antes de qualquer chamada, evita mandar pedido inválido e gastar a tentativa.
+        raise ErroDeCancelamento(
+            "o certificado A1 ativo não identifica CNPJ no titular; "
+            "o pedido de cancelamento precisa de autor"
+        )
 
     pedido = PedidoCancelamento(
-        chave=documento.chave,
+        chave=chave,
         cnpj_autor=certificado.cnpj,
         c_motivo=c_motivo,
         x_motivo=x_motivo,
@@ -143,7 +154,7 @@ async def cancelar(
         )
 
     try:
-        resposta = cliente.registrar_evento(documento.chave, assinado)
+        resposta = cliente.registrar_evento(chave, assinado)
     except ErroSefin as erro:
         await _registrar_falha_de_cancelamento(sessao, invoice, erro)
         raise
@@ -165,10 +176,10 @@ async def cancelar(
             mensagem=f"cMotivo {c_motivo}: {x_motivo}"[:500],
             xml_evento=resposta.evento_xml.decode("utf-8", errors="replace")[:20000],
             requisicao={
-                "id_pedido": id_pedido_evento(documento.chave, TIPO_CANCELAMENTO),
+                "id_pedido": id_pedido_evento(chave, TIPO_CANCELAMENTO),
                 "c_motivo": c_motivo,
                 "x_motivo": x_motivo,
-                "chave": documento.chave,
+                "chave": chave,
                 "cnpj_autor": pedido.cnpj_autor,
                 "ambiente": pedido.ambiente,
             },
@@ -178,7 +189,7 @@ async def cancelar(
     await sessao.flush()
     logger.info(
         "nfse_cancelada",
-        extra={"invoice_id": str(invoice.id), "chave": documento.chave},
+        extra={"invoice_id": str(invoice.id), "chave": chave},
     )
     return resposta
 

@@ -629,6 +629,59 @@
         }
       }
     },
+    "/v1/admin/tenants/{tenant_id}/revogar-chave": {
+      "post": {
+        "tags": [
+          "admin"
+        ],
+        "summary": "Revoga a API key de um tenant (operação de plataforma)",
+        "description": "Mata a credencial sem emitir outra (adendo §5).\n\nQuem usa: operador diante de vazamento ou desligamento. O tenant fica **sem acesso** até que\noutra chave seja emitida — comportamento correto para credencial comprometida, e diferente de\nrotação, que já devolve a nova ao dono.\n\n`404` quando o admin não está habilitado (ADR 0001: quem não deve saber que a rota existe não\ndescobre pelo código de erro).",
+        "operationId": "revogar_chave_do_tenant_v1_admin_tenants__tenant_id__revogar_chave_post",
+        "parameters": [
+          {
+            "name": "tenant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Tenant Id"
+            }
+          },
+          {
+            "name": "X-Admin-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Key"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/fretes/oauth/iniciar": {
       "get": {
         "tags": [
@@ -1128,6 +1181,7 @@
           "tenants"
         ],
         "summary": "Gera nova API key e invalida a anterior",
+        "description": "Gera nova chave e define prazo/escopos, se pedido (§73, §75).\n\nCorpo é opcional: sem ele, o comportamento antigo continua (chave sem prazo e sem restrição).",
         "operationId": "rotacionar_chave_v1_me_rotacionar_chave_post",
         "parameters": [
           {
@@ -1149,6 +1203,23 @@
             "description": "API key do tenant"
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/RotacionarChaveIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Corpo"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -1270,6 +1341,84 @@
                     "$ref": "#/components/schemas/TenantFiscalConfigOut"
                   },
                   "title": "Response Listar Config Fiscal V1 Me Config Fiscal Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/exportacao": {
+      "get": {
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Exporta os dados do tenant (portabilidade)",
+        "description": "Pacote de dados do próprio tenant, para portabilidade e conferência (§76).\n\nInclui: identificação, configuração fiscal, metadados de certificado, webhook e contadores por\nstatus. O XML só entra com `incluir_xml=true` e até `limite` documentos — exportar tudo por padrão\ntransformaria um pedido de conferência em resposta de gigabytes.\n\n**Nunca inclui:** PFX, senha, hash de chave, segredo de webhook, token de frete. Portabilidade é\nsobre os dados do cliente, não sobre as credenciais dele — e credencial sai do cofre, não de uma\nexportação.",
+        "operationId": "exportar_dados_v1_me_exportacao_get",
+        "parameters": [
+          {
+            "name": "incluir_xml",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Inclui o XML dos documentos",
+              "default": false,
+              "title": "Incluir Xml"
+            },
+            "description": "Inclui o XML dos documentos"
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Exportar Dados V1 Me Exportacao Get"
                 }
               }
             }
@@ -1553,6 +1702,84 @@
         "responses": {
           "204": {
             "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/certificados/{certificado_id}/usos": {
+      "get": {
+        "tags": [
+          "certificados"
+        ],
+        "summary": "Histórico de uso do certificado (auditoria)",
+        "description": "Quem usou este A1, quando e para qual operação (§71).\n\n`404` quando o certificado não é do tenant: a existência de um id de outro cliente não é\ninformação que este endpoint deva revelar.\n\nO registro traz operação, ambiente, sucesso e o **tipo** do erro — nunca mensagem, nunca\nsegredo, nunca XML. É auditoria de uso, não cópia da operação.",
+        "operationId": "usos_do_certificado_v1_me_certificados__certificado_id__usos_get",
+        "parameters": [
+          {
+            "name": "certificado_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Certificado Id"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsoCertificadoOut"
+                  },
+                  "title": "Response Usos Do Certificado V1 Me Certificados  Certificado Id  Usos Get"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -5384,6 +5611,42 @@
         ],
         "title": "EstadoDependencia"
       },
+      "EstadoWorker": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          },
+          "ultimo_batimento": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimo Batimento"
+          },
+          "detalhe": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detalhe"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "title": "EstadoWorker",
+        "description": "Sinal de vida do worker, lido do batimento em Redis.\n\n`detalhe` explica a ausência em linguagem de operação, não de stack trace. O valor do\nbatimento é um timestamp — não é dado de tenant nem PII."
+      },
       "EventoIn": {
         "properties": {
           "codigo": {
@@ -6171,6 +6434,44 @@
         "title": "ProvedorNFSe",
         "description": "Provedor/layout que responde pelo município."
       },
+      "RotacionarChaveIn": {
+        "properties": {
+          "dias_validade": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 3650.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dias Validade"
+          },
+          "escopos": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "leitura",
+                    "emissao"
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Escopos"
+          }
+        },
+        "type": "object",
+        "title": "RotacionarChaveIn",
+        "description": "Parâmetros opcionais da rotação. Sem corpo, o comportamento antigo é preservado.\n\n`escopos`: `leitura` (GET/HEAD/OPTIONS) e `emissao` (escritas). Omitir = sem restrição — é o que\nmantém compatibilidade com quem já usa a chave para tudo."
+      },
       "SaudeCertificadoOut": {
         "properties": {
           "existe": {
@@ -6278,6 +6579,9 @@
             "type": "string",
             "title": "Nfse Adapter"
           },
+          "worker": {
+            "$ref": "#/components/schemas/EstadoWorker"
+          },
           "verificacoes": {
             "additionalProperties": {
               "$ref": "#/components/schemas/EstadoDependencia"
@@ -6293,6 +6597,7 @@
           "ambiente",
           "uptime_segundos",
           "nfse_adapter",
+          "worker",
           "verificacoes"
         ],
         "title": "SaudeOut"
@@ -7093,6 +7398,32 @@
           "api_key_prefix": {
             "type": "string",
             "title": "Api Key Prefix"
+          },
+          "api_key_expira_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key Expira Em"
+          },
+          "api_key_escopos": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key Escopos"
           }
         },
         "type": "object",
@@ -7165,6 +7496,59 @@
         ],
         "title": "TenantOut",
         "description": "Visão pública do tenant. Nunca inclui hash nem segredo."
+      },
+      "UsoCertificadoOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "operacao": {
+            "type": "string",
+            "title": "Operacao"
+          },
+          "ambiente": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ambiente"
+          },
+          "sucesso": {
+            "type": "boolean",
+            "title": "Sucesso"
+          },
+          "erro_tipo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Erro Tipo"
+          },
+          "em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "operacao",
+          "sucesso",
+          "em"
+        ],
+        "title": "UsoCertificadoOut",
+        "description": "Uma linha de auditoria de uso. Sem mensagem de erro, sem segredo, sem XML."
       },
       "ValidationError": {
         "properties": {

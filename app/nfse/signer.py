@@ -84,7 +84,9 @@ def assinar(
         digest_algorithm=digest,
         c14n_algorithm=c14n,
     )
-    assinador.namespaces = {None: NS_DSIG}
+    # signxml tipa `namespaces` como dict[str, str], mas o namespace default usa a
+    # chave None — e é assim que o leiaute exige (elementos sem prefixo).
+    assinador.namespaces = {None: NS_DSIG}  # type: ignore[dict-item]
 
     try:
         assinado = assinador.sign(

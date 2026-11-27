@@ -22,11 +22,31 @@ from app.nfse.resiliencia import RegistroCircuitos, chave_sefaz, executar
 
 #: Operação usada na chave do circuito para autorização de NFS-e.
 OPERACAO_EMISSAO = "autorizacao"
+#: Operações de escrita na mesma SEFIN. Circuito separado por operação: uma rejeição de
+#: cancelamento não deve abrir o circuito de emissão, e vice-versa.
+OPERACAO_CANCELAMENTO = "cancelamento"
+OPERACAO_EVENTO = "evento"
 
 #: Chave de circuito para o padrão nacional. Não é UF: a NFS-e nacional não depende de
 #: SEFAZ estadual, então um único circuito cobre todos os municípios. Vira por município
 #: quando existirem drivers municipais.
 UF_NACIONAL = "NACIONAL"
+
+
+async def executar_com_circuito[T](
+    registro: RegistroCircuitos,
+    *,
+    uf: str,
+    operacao: str,
+    acao: Callable[[], Awaitable[T]],
+) -> T:
+    """Executa `acao` sob o circuito de `(uf, operacao)`.
+
+    Genérico de propósito: emissão, cancelamento e evento falam com a **mesma** SEFIN e
+    sofrem do mesmo modo quando ela está fora. Antes só a emissão tinha circuito; as outras
+    duas queimavam timeout próprio a cada requisição.
+    """
+    return await executar(registro, chave_sefaz(uf, operacao), acao)
 
 
 async def emitir_com_circuito[T](
@@ -42,7 +62,7 @@ async def emitir_com_circuito[T](
 
     A chave inclui a UF porque GO cair não pode parar SP.
     """
-    return await executar(registro, chave_sefaz(uf, OPERACAO_EMISSAO), acao)
+    return await executar_com_circuito(registro, uf=uf, operacao=OPERACAO_EMISSAO, acao=acao)
 
 
 def chave_da_emissao(uf: str) -> str:

@@ -68,7 +68,8 @@ def assinar_nfe(xml: bytes, certificado: CertificadoA1) -> bytes:
         digest_algorithm=DigestAlgorithm.SHA1,
         c14n_algorithm=CanonicalizationMethod.CANONICAL_XML_1_0,
     )
-    assinador.namespaces = {None: NS_DSIG}
+    # Mesma limitação de tipagem da NFS-e: namespace default usa a chave None.
+    assinador.namespaces = {None: NS_DSIG}  # type: ignore[dict-item]
 
     try:
         assinado = assinador.sign(

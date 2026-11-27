@@ -37,6 +37,7 @@ from app.core.config import Settings, get_settings
 from app.db.models.invoice import FiscalDocument, Invoice, InvoiceEvent
 from app.db.models.tenant import Tenant
 from app.nfse.adapter import RespostaEvento, SefinAdapter
+from app.nfse.documento_autorizado import DocumentoAutorizado
 from app.nfse.errors import ErroSefin
 from app.nfse.evento import assinar_pedido_evento
 from app.nfse.eventos_tipos import (
@@ -66,7 +67,7 @@ class EventoNaoAplicavel(ErroDeEvento):
 
 async def _documento_autorizado(
     sessao: AsyncSession, tenant_id: Any, invoice: Invoice
-) -> FiscalDocument:
+) -> DocumentoAutorizado:
     resultado = await sessao.execute(
         select(FiscalDocument).where(
             FiscalDocument.tenant_id == tenant_id,
@@ -79,7 +80,7 @@ async def _documento_autorizado(
         raise ErroDeEvento(
             "a fatura não tem documento autorizado com chave; não há nota para receber evento"
         )
-    return documento
+    return DocumentoAutorizado(documento=documento, chave=documento.chave)
 
 
 def validar_tipo(codigo: str, *, permitir_oficio: bool = False) -> None:
@@ -112,7 +113,8 @@ async def registrar(
     conf = settings or get_settings()
     validar_tipo(codigo, permitir_oficio=permitir_oficio)
 
-    documento = await _documento_autorizado(sessao, tenant.id, invoice)
+    alvo = await _documento_autorizado(sessao, tenant.id, invoice)
+    documento, chave = alvo.documento, alvo.chave
 
     registro_cert = await certificados.ativo(sessao, tenant.id)
     if registro_cert is None:
@@ -120,12 +122,19 @@ async def registrar(
             "nenhum certificado A1 ativo: o pedido de evento precisa ser assinado "
             "por quem responde pela nota"
         )
-    certificado = certificados.abrir_em_memoria(registro_cert, settings=conf)
+    certificado = await certificados.abrir_para_uso(
+        sessao, registro_cert, operacao="evento", settings=conf
+    )
+    if not certificado.cnpj:
+        raise ErroDeEvento(
+            "o certificado A1 ativo não identifica CNPJ no titular; "
+            "o pedido de evento precisa de autor"
+        )
 
     try:
         pedido_xml = construir_evento(
             codigo,
-            chave=documento.chave,
+            chave=chave,
             cnpj_autor=certificado.cnpj,
             campos=campos,
             ambiente="1" if documento.ambiente.value == "producao" else "2",
@@ -152,7 +161,7 @@ async def registrar(
         )
 
     try:
-        resposta = cliente.registrar_evento(documento.chave, assinado, operacao=f"evento {codigo}")
+        resposta = cliente.registrar_evento(chave, assinado, operacao=f"evento {codigo}")
     except ErroSefin as erro:
         await _registrar_falha(sessao, tenant, invoice, documento, codigo, erro)
         raise
@@ -174,9 +183,9 @@ async def registrar(
             requisicao={
                 "codigo": codigo,
                 "campos": campos,
-                "chave": documento.chave,
+                "chave": chave,
                 "cnpj_autor": certificado.cnpj,
-                "id_pedido": f"PRE{documento.chave}{codigo}",
+                "id_pedido": f"PRE{chave}{codigo}",
             },
             resposta={"data_processamento": resposta.data_processamento},
         )

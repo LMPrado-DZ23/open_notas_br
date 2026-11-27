@@ -235,18 +235,16 @@ def main() -> int:
                 receptor.segredo = webhook.json()["segredo"].encode()
 
             passo("5. Emitir NFS-e")
-            emissao = http.post(
-                "/v1/emissoes",
-                headers=cabecalho,
-                json={
-                    "idempotency_key": "demo-e2e-001",
-                    "valor": "150.00",
-                    "descricao": "Corte + barba",
-                    "competencia": "2026-11",
-                    "tomador_nome": "Cliente Demo",
-                    "tomador_documento": "11144477735",
-                },
-            )
+            # Corpo guardado numa variável: o passo 6 precisa reenviar **exatamente** isto.
+            corpo_nota = {
+                "idempotency_key": "demo-e2e-001",
+                "valor": "150.00",
+                "descricao": "Corte + barba",
+                "competencia": "2026-11",
+                "tomador_nome": "Cliente Demo",
+                "tomador_documento": "11144477735",
+            }
+            emissao = http.post("/v1/emissoes", headers=cabecalho, json=corpo_nota)
             checar(emissao.status_code == 201, f"POST /v1/emissoes -> {emissao.status_code}")
             if emissao.status_code != 201:
                 print(emissao.text)
@@ -255,18 +253,24 @@ def main() -> int:
             checar(len(nota["chave"]) == 50, f"Chave de acesso: {nota['chave']}")
 
             passo("6. Idempotência (mesma chave de idempotência)")
-            repetida = http.post(
-                "/v1/emissoes",
-                headers=cabecalho,
-                json={
-                    "idempotency_key": "demo-e2e-001",
-                    "valor": "150.00",
-                    "descricao": "Corte + barba",
-                },
-            )
+            # Reenvio **idêntico** é o caso que o cliente faz: devolve a mesma nota.
+            repetida = http.post("/v1/emissoes", headers=cabecalho, json=corpo_nota)
             checar(
                 repetida.status_code == 200 and repetida.json()["ja_existia"] is True,
-                f"reenvio -> {repetida.status_code} ja_existia={repetida.json().get('ja_existia')}",
+                f"reenvio idêntico -> {repetida.status_code} ja_existia={repetida.json().get('ja_existia')}",
+            )
+            checar(
+                repetida.json()["invoice_id"] == nota["invoice_id"],
+                "reenvio idêntico devolveu a MESMA fatura",
+            )
+
+            # Corpo diferente com a mesma chave é 409: sem isso, o cliente que pede R$ 100
+            # recebia de volta a nota de R$ 50 e achava que emitiu o que pediu (auditoria §57).
+            divergente = dict(corpo_nota, valor="999.00")
+            conflito = http.post("/v1/emissoes", headers=cabecalho, json=divergente)
+            checar(
+                conflito.status_code == 409,
+                f"corpo divergente com a mesma chave -> {conflito.status_code} (esperado 409)",
             )
 
             passo("7. DANFSe local (PDF)")

@@ -1,14 +1,16 @@
-"""Concorrência na idempotência: o que está provado e o que não está.
+"""Concorrência na idempotência: repetição sequencial e simultaneidade.
 
-A garantia contra duas notas para o mesmo `Idempotency-Key` vem do banco: a constraint
-`uq_invoices_tenant_idempotency_key`. O código trata `IntegrityError` buscando a fatura
-existente. Isso é verificado **sequencialmente** aqui, que é o caminho que o cliente repete.
+A garantia contra duas notas para o mesmo `Idempotency-Key` tem duas camadas:
 
-**O caso realmente simultâneo NÃO está provado** e o motivo está na auditoria §18: com duas
-requisições concorrentes, o teste levanta `MissingGreenlet` dentro de `do_ping` do pool
-(`pool_pre_ping`), não no código de emissão. Investigar isso exige um harness próprio; deixar
-um teste que não entendo, ou marcar como "concorrência OK" sem entender, seria pior que a
-ausência.
+1. **advisory lock** por (tenant, chave), adquirido antes de consultar — evita a corrida;
+2. **constraint** `uq_invoices_tenant_idempotency_key` — rede de segurança se a camada 1 falhar.
+
+Histórico: até 2026-11-27 o caso simultâneo **não estava provado** — o teste levantava
+`MissingGreenlet` dentro de `do_ping`/`_handle_exception` do driver, e o docstring dizia que
+investigar exigiria um harness próprio. A investigação mostrou que **não era artefato de teste**:
+sem a trava, as duas requisições passavam pela checagem, as duas inseriam, e a recuperação do
+`IntegrityError` estourava com `MissingGreenlet` — o cliente recebia **500** num caminho que
+deveria ser 200 (auditoria §55). O caso agora está coberto e passa.
 """
 
 from __future__ import annotations
@@ -110,3 +112,85 @@ class TestRepeticaoSequencial:
             )
         ).scalar_one()
         assert total == 2
+
+
+class TestSimultaneidade:
+    """Duas requisições **ao mesmo tempo** com a mesma `Idempotency-Key`.
+
+    O docstring deste arquivo dizia que este caso não estava provado por causa de um
+    `MissingGreenlet` em `do_ping` do pool. Um erro de pool em requisições concorrentes pode ser
+    do harness de teste **ou** do produto — e a diferença importa: em produção o cliente repete
+    em rede instável, e duas notas para o mesmo pedido é o pior defeito possível aqui.
+    """
+
+    async def test_duas_requisicoes_simultaneas_criam_uma_fatura(
+        self, cliente, pronto, sessao_db
+    ) -> None:
+        import asyncio
+
+        cabecalho = {**pronto["cabecalho"], "Idempotency-Key": "simultanea-0001"}
+
+        respostas = await asyncio.gather(
+            cliente.post("/v1/emissoes", json=CORPO, headers=cabecalho),
+            cliente.post("/v1/emissoes", json=CORPO, headers=cabecalho),
+            return_exceptions=True,
+        )
+
+        codigos = [r.status_code if hasattr(r, "status_code") else repr(r) for r in respostas]
+        assert all(not isinstance(r, BaseException) for r in respostas), (
+            f"requisicao concorrente estourou: {codigos}"
+        )
+
+        # Uma cria (201) e a outra reaproveita (200). Nenhuma pode ser 5xx.
+        assert sorted(r.status_code for r in respostas) == [200, 201], codigos
+
+        total = (
+            await sessao_db.execute(
+                select(func.count())
+                .select_from(Invoice)
+                .where(Invoice.idempotency_key == "simultanea-0001")
+            )
+        ).scalar_one()
+        assert total == 1, "duas faturas para o mesmo Idempotency-Key"
+
+
+class TestPayloadDivergente:
+    """Mesma `Idempotency-Key`, corpo diferente: 409, não 200 silencioso (§57).
+
+    Sem isto, o cliente que pede R$ 100 com a chave de um pedido de R$ 50 recebia de volta a nota
+    de R$ 50 com `ja_existia: true` — e acharia que emitiu o que pediu. Em documento fiscal, isso é
+    divergência de escrituração.
+    """
+
+    async def test_corpo_diferente_vira_409(self, cliente, pronto, sessao_db) -> None:
+        cabecalho = {**pronto["cabecalho"], "Idempotency-Key": "divergente-0001"}
+
+        primeira = await cliente.post("/v1/emissoes", json=CORPO, headers=cabecalho)
+        assert primeira.status_code == 201, primeira.text
+
+        outro = {**CORPO, "valor": "99.00", "descricao": "Outro servico, mesmo pedido"}
+        segunda = await cliente.post("/v1/emissoes", json=outro, headers=cabecalho)
+
+        assert segunda.status_code == 409, segunda.text
+        assert "corpo diferente" in segunda.json()["detail"]
+
+        # E a fatura original continua sendo a única, com o valor original.
+        total = (
+            await sessao_db.execute(
+                select(func.count())
+                .select_from(Invoice)
+                .where(Invoice.idempotency_key == "divergente-0001")
+            )
+        ).scalar_one()
+        assert total == 1
+
+    async def test_corpo_identico_continua_200(self, cliente, pronto) -> None:
+        cabecalho = {**pronto["cabecalho"], "Idempotency-Key": "identico-0001"}
+
+        primeira = await cliente.post("/v1/emissoes", json=CORPO, headers=cabecalho)
+        segunda = await cliente.post("/v1/emissoes", json=CORPO, headers=cabecalho)
+
+        assert primeira.status_code == 201
+        assert segunda.status_code == 200
+        assert segunda.json()["ja_existia"] is True
+        assert primeira.json()["invoice_id"] == segunda.json()["invoice_id"]

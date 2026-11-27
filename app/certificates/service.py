@@ -43,6 +43,10 @@ class CertificadoNaoEncontrado(ErroDeCertificadoDeTenant):
     """Não existe certificado com este id para este tenant."""
 
 
+class CertificadoAmbiguo(ErroDeCertificadoDeTenant):
+    """Há mais de um certificado ativo: assinar sem saber qual é assinar às cegas (§80)."""
+
+
 async def registrar(
     sessao: AsyncSession,
     tenant_id: uuid.UUID,
@@ -133,14 +137,32 @@ async def listar(sessao: AsyncSession, tenant_id: uuid.UUID) -> Sequence[TenantC
 
 
 async def ativo(sessao: AsyncSession, tenant_id: uuid.UUID) -> TenantCertificate | None:
-    """Certificado ativo do tenant, se houver."""
+    """Certificado ativo do tenant, se houver **exatamente um**.
+
+    Antes devolvia `.first()`. Com dois certificados ativos — estado possível porque o banco não tem
+    índice único para isso e porque a ativação pode correr com um upload — a emissão escolhia um ao
+    acaso e **assinava com o certificado errado**. Não há como detectar isso depois: a nota sai
+    autorizada com o titular errado.
+
+    Agora, mais de um ativo é ambiguidade declarada: `CertificadoAmbiguo`. O operador resolve com
+    `POST /v1/me/certificados/{id}/ativar`, que desativa os demais (§80).
+    """
     resultado = await sessao.execute(
         select(TenantCertificate).where(
             TenantCertificate.tenant_id == tenant_id,
             TenantCertificate.ativo.is_(True),
         )
     )
-    return resultado.scalars().first()
+    registros = list(resultado.scalars().all())
+    if not registros:
+        return None
+    if len(registros) == 1:
+        return registros[0]
+    raise CertificadoAmbiguo(
+        "há mais de um certificado ativo para este tenant: "
+        + ", ".join(f"{r.apelido} (id={r.id}, cnpj={r.cnpj or chr(63)})" for r in registros[:5])
+        + ". Ative apenas um em POST /v1/me/certificados/{id}/ativar."
+    )
 
 
 async def por_id(
@@ -172,15 +194,42 @@ async def ativar(
     return registro
 
 
+def _sobrescrever_envelope(registro: TenantCertificate) -> None:
+    """Sobrescreve o envelope antes de apagar a linha.
+
+    Excluir só a linha deixa o ciphertext em páginas antigas da tabela e no WAL. Sobrescrever não
+    torna o dado irrecuperável de um dump — **nada** em software resolve isso —, mas evita que a
+    remoção de um certificado continue legível por consulta a páginas mortas com ferramenta trivial.
+
+    O conteúdo é aleatório do **mesmo tamanho**: manter o tamanho evita registrar na própria linha
+    quanto media o segredo, e bytes aleatórios não têm cabeçalho que confunda o parser de envelope.
+    """
+    import secrets
+
+    if registro.pfx_selado:
+        registro.pfx_selado = secrets.token_bytes(len(registro.pfx_selado))
+    if registro.senha_selada:
+        registro.senha_selada = secrets.token_bytes(len(registro.senha_selada))
+
+
 async def remover(sessao: AsyncSession, tenant_id: uuid.UUID, certificado_id: uuid.UUID) -> None:
+    """Remove o certificado: sobrescreve o envelope e então apaga a linha."""
     registro = await por_id(sessao, tenant_id, certificado_id)
+    _sobrescrever_envelope(registro)
+    await sessao.flush()
     await sessao.delete(registro)
     await sessao.flush()
 
 
 async def remover_todos(sessao: AsyncSession, tenant_id: uuid.UUID) -> int:
-    """Apaga todos os certificados do tenant (uso em exclusão de conta)."""
+    """Apaga todos os certificados do tenant (uso em exclusão de conta).
+
+    Sobrescreve cada envelope antes de apagar, mesmo critério de `remover`.
+    """
     registros = await listar(sessao, tenant_id)
+    for registro in registros:
+        _sobrescrever_envelope(registro)
+    await sessao.flush()
     for registro in registros:
         await sessao.delete(registro)
     await sessao.flush()
@@ -203,3 +252,64 @@ def abrir_em_memoria(
         tem_senha=True,
     )
     return CertificadoA1.de_pfx(pfx, senha)
+
+
+async def registrar_uso(
+    sessao: AsyncSession,
+    registro: TenantCertificate,
+    *,
+    operacao: str,
+    ambiente: str | None = None,
+    sucesso: bool = True,
+    erro_tipo: str | None = None,
+) -> None:
+    """Grava uma linha em `certificado_usos`. **Não faz commit** — quem chama controla.
+
+    Guarda operação, ambiente e o **tipo** da exceção. Nunca a mensagem: ela pode conter dado do
+    cliente (CNPJ, município, caminho de arquivo) e a auditoria viraria um segundo vazamento.
+    """
+    from app.db.models.certificado_uso import CertificadoUso
+
+    sessao.add(
+        CertificadoUso(
+            tenant_id=registro.tenant_id,
+            certificado_id=registro.id,
+            operacao=operacao[:40],
+            ambiente=(ambiente or None) and ambiente[:20],
+            sucesso=sucesso,
+            erro_tipo=(erro_tipo[:80] if erro_tipo else None),
+        )
+    )
+    await sessao.flush()
+
+
+async def abrir_para_uso(
+    sessao: AsyncSession,
+    registro: TenantCertificate,
+    *,
+    operacao: str,
+    ambiente: str | None = None,
+    settings: Settings | None = None,
+) -> CertificadoA1:
+    """Abre o certificado **e registra o uso**, inclusive quando a abertura falha.
+
+    Por que registrar a falha: "chave-mestra trocada" e "envelope corrompido" só aparecem no momento
+    do uso. Sem a linha de falha, o operador descobre por reclamação do cliente, não por auditoria.
+
+    A linha entra na mesma transação da operação fiscal: se a operação der rollback, o uso também
+    desaparece — coerente, porque nada foi assinado.
+    """
+    try:
+        certificado = abrir_em_memoria(registro, settings=settings)
+    except Exception as exc:
+        await registrar_uso(
+            sessao,
+            registro,
+            operacao=operacao,
+            ambiente=ambiente,
+            sucesso=False,
+            erro_tipo=type(exc).__name__,
+        )
+        raise
+    await registrar_uso(sessao, registro, operacao=operacao, ambiente=ambiente)
+    return certificado

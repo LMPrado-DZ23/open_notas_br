@@ -1,5 +1,12 @@
-# Fim de linha fixo: o manifesto SHA-256 de XSD compara BYTES. Com CRLF no Windows e LF
-# no Linux, o mesmo arquivo gera hash diferente e a verificacao falha no CI.
+# Fim de linha: o manifesto SHA-256 dos XSD compara BYTES.
+#
+# Histórico (27/11/2026): a regra anterior era `tests/fixtures/schemas/** text eol=lf`. Como os pacotes
+# oficiais da NFS-e publicam os `.xsd` com **CRLF**, o git normalizava para LF no checkout e o manifesto
+# — gerado no Windows sobre os bytes publicados — passava a divergir no Linux do CI: 10 schemas
+# "alterados" sem ninguém tocá-los.
+#
+# Decisão: `.xsd` fica `-text` (sem normalização). Assim o byte do repositório é o byte publicado, e o
+# hash confere em qualquer sistema. O manifesto também é `-text` pelo mesmo motivo.
 * text=auto
-tests/fixtures/schemas/** text eol=lf
-data/xsd_manifest.json text eol=lf
+data/xsd_manifest.json -text
+*.xsd -text

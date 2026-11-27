@@ -88,3 +88,11 @@ htmlcov/
 .pytest_cache/
 .ruff_cache/
 *.log
+# Fontes oficiais baixadas: os ZIPs, PDFs e HTMLs ficam versionados (hash reverificável no manifesto).
+# As árvores EXTRAÍDAS são derivadas — não versionar, para o repositório não carregar cópia redundante.
+sources/oficiais/esq-tmp/
+sources/oficiais/schemas_v1-01/
+sources/oficiais/esquemas-oficiais-1.01/
+sources/oficiais/manual-adn-v1.1.txt
+# Árvores extraídas dos ZIPs oficiais (derivadas — o ZIP versionado é a fonte; hash no manifesto).
+sources/oficiais/nt009-xsd/

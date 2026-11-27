@@ -145,3 +145,37 @@ class Limitador:
             restante=0,
             retry_after_s=self._janela_s,
         )
+
+
+class ArmazenamentoRedis:
+    """Contagem compartilhada entre processos, no Redis que o projeto já usa.
+
+    Por que não só memória: com N instâncias da API, a cota em memória vira `N x limite` — o
+    cliente descobre o limite real na prática, e o número documentado mente. Com Redis, a janela
+    é uma só. Falha do Redis **não** bloqueia: o `Limitador` trata a exceção como permissão
+    (fail-open, documentado em `docs/OPERACAO.md`).
+
+    A janela é fixa por chave e recomeça pelo `EXPIRE` na primeira escrita: `INCR` é atômico, então
+    duas instâncias não contam a mesma requisição duas vezes nem perdem incremento.
+    """
+
+    def __init__(self, prefixo: str = "notasbr:rl:") -> None:
+        self._prefixo = prefixo
+
+    async def incrementar(self, chave: str, ttl_s: int) -> int:
+        from app.core.redis import obter_redis
+
+        cliente = obter_redis()
+        nome = f"{self._prefixo}{chave}"
+        total = await cliente.incr(nome)
+        if total == 1:
+            # Só a primeira escrita define a janela; renovar a cada requisição tornaria o limite
+            # deslizante e a cota nunca fecharia.
+            await cliente.expire(nome, ttl_s)
+        return int(total)
+
+    async def consultar(self, chave: str) -> int:
+        from app.core.redis import obter_redis
+
+        valor = await obter_redis().get(f"{self._prefixo}{chave}")
+        return int(valor) if valor else 0

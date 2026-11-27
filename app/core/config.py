@@ -53,6 +53,20 @@ class Settings(BaseSettings):
     db_pool_size: int = 10
     db_max_overflow: int = 20
     db_echo: bool = False
+    #: Teto por consulta no servidor (`statement_timeout`). Sem ele, uma consulta patológica
+    #: segura a conexão para sempre e esgota o pool — a API inteira para por causa de uma query.
+    #: 60 s é folgado para o caminho síncrono; lote e apuração longa devem rodar no worker com
+    #: valor próprio, não aumentar este.
+    db_statement_timeout_ms: int = 60_000
+    #: Transação ociosa é desperdício de conexão: depois disto o Postgres derruba a sessão em vez
+    #: de deixá-la presa (falha de aplicação vira erro claro, não silêncio).
+    db_idle_tx_timeout_ms: int = 120_000
+    #: Teto do **worker**. Um lote de emissões dura minutos; herdar o teto da API (60 s) abortaria o
+    #: lote no meio, deixando documentos processados pela metade.
+    db_statement_timeout_worker_ms: int = 600_000
+    #: Recicla conexões depois deste tempo. `pool_pre_ping` cobre queda silenciosa, mas reciclar
+    #: evita carregar conexão velha por horas atrás de firewall/PgBouncer.
+    db_pool_recycle_s: int = 1_800
 
     # -- redis --------------------------------------------------------
     redis_url: str = "redis://127.0.0.1:56379/0"
@@ -92,6 +106,16 @@ class Settings(BaseSettings):
 
     rate_limit_habilitado: bool = False
     rate_limit_por_minuto: int = 60
+
+    #: Se `true`, `/health` responde 503 quando o worker não está batendo. Padrão `false`
+    #: porque API e worker escalam separado: uma API sem worker continua servindo leitura e
+    #: consulta. O estado do worker é sempre **reportado** em `/health`; esta flag decide
+    #: apenas se ele **reprova** a readiness.
+    readiness_exige_worker: bool = False
+    #: Se `True`, hash de XSD divergente **impede o boot** (§84). Padrão `False` porque nem todo schema
+    #: tem procedência oficial confirmada: derrubar a API por schema secundário trocaria risco de
+    #: integridade por risco de indisponibilidade. A verificação roda de qualquer forma (WARN + log).
+    xsd_integridade_strict: bool = False
 
     # -- CNPJ (Fase 3) ------------------------------------------------
     serpro_cnpj_token: str = ""
@@ -176,11 +200,6 @@ class Settings(BaseSettings):
             extra={"ambiente": self.environment},
         )
         return chave_dev
-
-    def reset_ephemeral_key(self) -> None:
-        """Descarta a chave efêmera. Existe para isolamento entre testes."""
-        global _CHAVE_EFEMERA
-        _CHAVE_EFEMERA = None
 
 
 @lru_cache(maxsize=1)

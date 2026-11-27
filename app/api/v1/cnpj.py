@@ -19,6 +19,7 @@ from app.cnpj.client import (
     BrasilApiCnpj,
     CnpjInvalido,
     CnpjNaoEncontrado,
+    ConsultaCnpj,
     FonteIndisponivel,
     MinhaReceitaCnpj,
     SerproCnpj,
@@ -40,7 +41,9 @@ def montar_servico(settings: Settings) -> ServicoCnpj:
     Ordem: Serpro (se houver token, é a fonte oficial e tem cota) e depois as
     públicas. Com `CNPJ_FALLBACK_ENABLED=false`, só a Serpro é usada.
     """
-    fontes = []
+    # Anotação explícita: `list` é invariante no mypy, então uma lista inferida como
+    # `SerproCnpj` não aceita as fontes públicas. O tipo correto é a interface comum.
+    fontes: list[ConsultaCnpj] = []
     if settings.serpro_cnpj_token:
         fontes.append(
             SerproCnpj(token=settings.serpro_cnpj_token, base_url=settings.serpro_cnpj_base_url)

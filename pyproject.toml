@@ -127,6 +127,14 @@ warn_unused_ignores = true
 no_implicit_optional = true
 plugins = ["pydantic.mypy"]
 
+# `reportlab` e `lxml` não distribuem tipos. Sem esta exceção o mypy gastava 53 dos seus
+# 93 erros em "library stubs not installed" — ruído que escondia os erros do nosso código.
+# Instalar `types-lxml`/`types-reportlab` seria dependência nova (regra 11); a exceção aqui
+# não silencia nada do projeto, só a falta de stubs de terceiro.
+[[tool.mypy.overrides]]
+module = ["lxml.*", "reportlab.*"]
+ignore_missing_imports = true
+
 [tool.coverage.run]
 source = ["notasbr", "app"]
 omit = ["*/alembic/*", "*/tests/*", "*/scripts/*"]

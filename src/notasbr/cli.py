@@ -169,7 +169,10 @@ def _comando_chave(args: argparse.Namespace) -> int:
     print(f"chave     {chave.formatada()}")
     print(f"UF        {dados['uf']} ({dados['c_uf']})")
     print(f"emissão   {dados['ano']:04d}-{dados['mes']:02d}")
-    print(f"CNPJ      {formatar_cnpj(dados['cnpj'])}")
+    # `to_dict()` devolve `dict[str, object]`; `formatar_cnpj` aceita `str | None`.
+    # Estreitar aqui evita imprimir "None" quando o campo não vier como texto.
+    cnpj_lido = dados["cnpj"]
+    print(f"CNPJ      {formatar_cnpj(cnpj_lido if isinstance(cnpj_lido, str) else None)}")
     print(f"modelo    {dados['modelo']} ({dados['modelo_nome']})")
     print(f"série     {dados['serie']}")
     print(f"número    {dados['numero']}")

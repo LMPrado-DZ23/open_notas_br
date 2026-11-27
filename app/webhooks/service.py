@@ -190,12 +190,25 @@ async def entregar(
             entrega.ultimo_erro = None
             entrega.proxima_tentativa = None
         else:
-            _registrar_falha(entrega, f"HTTP {resposta.status_code}")
+            if _recusa_permanente(resposta.status_code):
+                # 4xx (exceto 408/429) recusa o **pedido**, não está fora do ar: repetir cinco vezes
+                # com backoff de até 30 min não muda a resposta e só atrasa a DLQ (§86).
+                _marcar_falha_definitiva(
+                    entrega, f"HTTP {resposta.status_code} (recusa permanente, não retentada)"
+                )
+            else:
+                _registrar_falha(entrega, f"HTTP {resposta.status_code}")
     except httpx.HTTPError as exc:
         _registrar_falha(entrega, f"falha de rede: {type(exc).__name__}")
     finally:
         if proprio:
             await http.aclose()
+
+    # Esgotou as tentativas: o trabalho vai para a fila morta, onde o operador decide o que
+    # fazer. Antes disto, a entrega ficava só como `FALHOU` na tabela — dado presente, ninguém
+    # avisado, nenhum caminho de replay.
+    if entrega.status is StatusWebhook.FALHOU:
+        await _guardar_na_dlq(sessao, entrega)
 
     await sessao.flush()
     logger.info(
@@ -210,6 +223,28 @@ async def entregar(
     return entrega
 
 
+def _recusa_permanente(codigo: int) -> bool:
+    """`4xx` que não é "tente de novo": o destino recusou o pedido em si.
+
+    Exceções deliberadas — `408` (timeout do servidor) e `429` (rate limit) são transitórias por
+    definição e continuam no backoff. `3xx` **não** entra aqui: o cliente não segue redirecionamento,
+    então 3xx é falha de configuração do destino e retentar não resolve; tratado como permanente.
+    """
+    if codigo in (408, 429):
+        return False
+    if 300 <= codigo < 400:
+        return True
+    return 400 <= codigo < 500
+
+
+def _marcar_falha_definitiva(entrega: WebhookDelivery, motivo: str) -> None:
+    """Encerra sem reagendar: contabiliza a tentativa e fecha como falha, indo para a DLQ."""
+    entrega.tentativas += 1
+    entrega.ultimo_erro = motivo[:500]
+    entrega.status = StatusWebhook.FALHOU
+    entrega.proxima_tentativa = None
+
+
 def _registrar_falha(entrega: WebhookDelivery, motivo: str) -> None:
     entrega.tentativas += 1
     entrega.ultimo_erro = motivo[:500]
@@ -220,6 +255,57 @@ def _registrar_falha(entrega: WebhookDelivery, motivo: str) -> None:
     else:
         entrega.status = StatusWebhook.PENDENTE
         entrega.proxima_tentativa = seguinte
+
+
+#: Fila usada na DLQ para entrega de webhook esgotada.
+FILA_DLQ = "webhook"
+
+
+async def _guardar_na_dlq(sessao: AsyncSession, entrega: WebhookDelivery) -> None:
+    """Ao esgotar as tentativas, deixa o trabalho na fila morta.
+
+    Sem isto, uma entrega que falhou N vezes ficava só como `FALHOU` na tabela: o dado estava
+    lá, mas ninguém era avisado e não havia caminho de replay. O item guarda o **id da
+    entrega**, não o payload do cliente — o payload já está em `webhook_deliveries`, e copiá-lo
+    duplicaria dado fiscal.
+
+    Idempotente: se já existe item pendente para esta entrega, não cria outro. Um reprocessamento
+    manual de `entregar` não deve encher a fila morta de duplicatas.
+    """
+    from app.db.models.dlq import ItemDLQ, StatusDLQ
+    from app.worker import dlq as dlq_service
+
+    existente = await sessao.scalar(
+        select(ItemDLQ.id).where(
+            ItemDLQ.tenant_id == entrega.tenant_id,
+            ItemDLQ.fila == FILA_DLQ,
+            ItemDLQ.status == StatusDLQ.PENDENTE,
+            ItemDLQ.payload["entrega_id"].astext == str(entrega.id),
+        )
+    )
+    if existente is not None:
+        return
+
+    await dlq_service.enfileirar(
+        sessao,
+        tenant_id=entrega.tenant_id,
+        fila=FILA_DLQ,
+        payload={
+            "entrega_id": str(entrega.id),
+            "tipo_evento": entrega.tipo_evento,
+            "url_destino": entrega.url_destino,
+        },
+        erro=entrega.ultimo_erro,
+        tentativas=entrega.tentativas,
+    )
+    logger.error(
+        "webhook_esgotou_tentativas",
+        extra={
+            "entrega_id": str(entrega.id),
+            "tenant_id": str(entrega.tenant_id),
+            "tentativas": entrega.tentativas,
+        },
+    )
 
 
 async def pendentes_para_entrega(

@@ -34,6 +34,7 @@ from app.integrations.dz23.conector import ConectorDz23
 from app.nfse import servico as emissao_service
 from app.nfse.adapter import SefinAdapter
 from app.nfse.errors import ErroSefin
+from app.nfse.factory import montar_adapter
 
 HTTP_200 = 200
 HTTP_201 = 201
@@ -59,12 +60,13 @@ class EventoParceiroOut(BaseModel):
     chave: str | None = None
 
 
-def _montar_adapter(settings: Settings) -> SefinAdapter:
-    from app.nfse.adapter import SefinMockAdapter, SefinNacionalClient
+def _montar_adapter(settings: Settings) -> SefinAdapter | None:
+    """Dublê quando configurado, `None` para o serviço montar o cliente real.
 
-    if settings.nfse_adapter == "mock":
-        return SefinMockAdapter()
-    return SefinNacionalClient(settings)
+    Ver `app/nfse/factory.py`: montar o cliente aqui com `Settings` mandava a emissão
+    para a SEFIN de **homologação** e sem certificado de cliente.
+    """
+    return montar_adapter(settings)
 
 
 async def _processar(

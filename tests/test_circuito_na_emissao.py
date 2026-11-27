@@ -69,3 +69,106 @@ class TestBloqueio:
             await emitir_com_circuito(registro_padrao, uf=UF_NACIONAL, acao=nao_devia)
         assert chamou is False, "com circuito aberto a SEFIN não pode ser chamada"
         registro_padrao.resetar()
+
+
+class TestCancelamentoEEventoUsamCircuito:
+    """Cancelamento e evento falam com a **mesma** SEFIN e agora têm circuito próprio.
+
+    Antes só a emissão tinha: com a SEFIN fora, cada cancelamento e cada evento queimava
+    timeout próprio. As chaves são separadas por operação de propósito — uma rejeição de
+    cancelamento não pode abrir o circuito de emissão.
+    """
+
+    def test_chaves_sao_distintas_por_operacao(self) -> None:
+        from app.nfse.injecao import (
+            OPERACAO_CANCELAMENTO,
+            OPERACAO_EMISSAO,
+            OPERACAO_EVENTO,
+            UF_NACIONAL,
+        )
+        from app.nfse.resiliencia import chave_sefaz
+
+        chaves = {
+            chave_sefaz(UF_NACIONAL, OPERACAO_EMISSAO),
+            chave_sefaz(UF_NACIONAL, OPERACAO_CANCELAMENTO),
+            chave_sefaz(UF_NACIONAL, OPERACAO_EVENTO),
+        }
+        assert len(chaves) == 3
+
+    async def test_circuito_aberto_impede_cancelamento(self) -> None:
+        import contextlib
+
+        from app.core.circuit import CircuitoAberto
+        from app.nfse.injecao import OPERACAO_CANCELAMENTO, UF_NACIONAL, executar_com_circuito
+        from app.nfse.resiliencia import chave_sefaz, registro_padrao
+
+        registro_padrao.resetar()
+        circuito = registro_padrao.obter(chave_sefaz(UF_NACIONAL, OPERACAO_CANCELAMENTO))
+        for _ in range(circuito.limite_falhas):
+            circuito.registrar_falha()
+
+        chamou = False
+
+        async def nao_devia():
+            nonlocal chamou
+            chamou = True
+            return "x"
+
+        with contextlib.suppress(CircuitoAberto):
+            await executar_com_circuito(
+                registro_padrao,
+                uf=UF_NACIONAL,
+                operacao=OPERACAO_CANCELAMENTO,
+                acao=nao_devia,
+            )
+
+        assert chamou is False, "com o circuito aberto o cancelamento nao pode ir a SEFIN"
+        registro_padrao.resetar()
+
+    async def test_circuito_aberto_impede_evento(self) -> None:
+        import contextlib
+
+        from app.core.circuit import CircuitoAberto
+        from app.nfse.injecao import OPERACAO_EVENTO, UF_NACIONAL, executar_com_circuito
+        from app.nfse.resiliencia import chave_sefaz, registro_padrao
+
+        registro_padrao.resetar()
+        circuito = registro_padrao.obter(chave_sefaz(UF_NACIONAL, OPERACAO_EVENTO))
+        for _ in range(circuito.limite_falhas):
+            circuito.registrar_falha()
+
+        chamou = False
+
+        async def nao_devia():
+            nonlocal chamou
+            chamou = True
+            return "x"
+
+        with contextlib.suppress(CircuitoAberto):
+            await executar_com_circuito(
+                registro_padrao,
+                uf=UF_NACIONAL,
+                operacao=OPERACAO_EVENTO,
+                acao=nao_devia,
+            )
+
+        assert chamou is False, "com o circuito aberto o evento nao pode ir a SEFIN"
+        registro_padrao.resetar()
+
+    def test_estado_do_registro_e_por_processo(self) -> None:
+        """Documenta o limite: dois registros não compartilham estado.
+
+        Com N processos, cada um tem seu contador — o limite efetivo é N x `limite_falhas`.
+        Compartilhar exigiria Redis (dependência já presente) e é decisão registrada em §47.
+        """
+        from app.nfse.resiliencia import RegistroCircuitos, chave_sefaz
+
+        um, outro = RegistroCircuitos(), RegistroCircuitos()
+        chave = chave_sefaz(UF_NACIONAL, "autorizacao")
+        for _ in range(um.obter(chave).limite_falhas):
+            um.obter(chave).registrar_falha()
+
+        assert um.estados()[chave] == "aberto"
+        assert outro.estados() == {}, (
+            "registro novo nao herda estado: com N processos cada um conta sozinho"
+        )

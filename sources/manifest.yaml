@@ -1,0 +1,253 @@
+# Manifesto de fontes oficiais — NFS-e / DF-e
+#
+# Regra deste arquivo (Adendo 3): só entra o que foi **baixado de fonte oficial** nesta execução, com
+# URL direta, órgão, título, data de acesso e SHA-256 calculado sobre os bytes recebidos. Nada aqui é
+# transcrição de memória, blog ou exemplo de terceiro.
+#
+# `status_coleta`:
+#   coletado        — arquivo baixado e hash calculado nesta execução
+#   nao_encontrado  — procurei na página oficial e não existe link/arquivo correspondente
+#   nao_verificado  — existe a página, mas o conteúdo necessário não foi obtido
+
+meta:
+  adendo: "Adendo 3 — Evidências oficiais"
+  data_acesso: "2026-11-27"
+  fuso: "America/Sao_Paulo"
+  agente: dsh
+  maquina: "Windows / PowerShell 7"
+  observacao: >
+    Todo `sha256` abaixo foi calculado com `Get-FileHash -Algorithm SHA256` ou `hashlib.sha256` sobre o
+    arquivo salvo em `sources/oficiais/`. Os arquivos estão versionados junto deste manifesto para que o
+    hash seja reverificável offline.
+
+orgaos:
+  - id: cgnfs-e
+    nome: "Comitê Gestor da NFS-e (CGNFS-e) / Portal Nacional da NFS-e"
+    site: "https://www.gov.br/nfse/pt-br"
+  - id: rfb
+    nome: "Secretaria Especial da Receita Federal do Brasil"
+    site: "https://www.gov.br/receitafederal/pt-br"
+
+fontes:
+  - id: F-XSD-VIA-1.01
+    requisoito: [REQ-1]
+    orgao: cgnfs-e
+    titulo: "Arquivos dos esquemas XSD — pacote `schemas_v1-01_atualizado.zip` (NFS-e via)"
+    url_pagina: "https://www.gov.br/nfse/pt-br/nfs-e-via/documentacao-tecnica/arquivos-dos-esquemas-xsd"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/nfs-e-via/documentacao-tecnica/arquivos-dos-esquemas-xsd/schemas_v1-01_atualizado.zip"
+    arquivo: sources/oficiais/schemas_v1-01_atualizado.zip
+    bytes: 12298
+    sha256: e17ffb5eb05ecd7e7affe770fc6c88feb4e921adc7efd9ee58b4e40865f0a296
+    data_acesso: "2026-11-27"
+    versao_declarada: "v1.01 (nome do arquivo; sem data no nome)"
+    conteudo: "EventoVia_v1.01.xsd, NFSeVia_v1.01.xsd, ProcEventoVia_v1.01.xsd, ProcNFSeVia_v1.01.xsd, tiposComplexos_v1.01.xsd, tiposEventos_v1.01.xsd, tiposSimples_v1.01.xsd, xmldsig-core-schema_v1.00.xsd"
+    status_coleta: coletado
+    limitacao: >
+      É o pacote de **NFS-e via** (emissão pelo município), não o pacote de **DPS** do Emissor Nacional.
+      Não contém `finNFSe`, `vAjusteBC`, `indDest` nem grupos de condomínio — verificado por grep.
+
+  - id: F-XSD-ADN-1.01-20260209
+    requisito: [REQ-1]
+    orgao: cgnfs-e
+    titulo: "Documentação atual — pacote `esquemas-xsd-v1.01-20260209.zip`"
+    url_pagina: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/documentacao-atual"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/documentacao-atual/esquemas-xsd-v1.01-20260209.zip"
+    arquivo: sources/oficiais/esquemas-xsd-v1.01-20260209.zip
+    bytes: 65640
+    sha256: e7935cbd9470527c6cc32984c1b2263e614183bf0139ce2733eaaed2de9a8072
+    data_acesso: "2026-11-27"
+    versao_declarada: "1.01 — data no nome do arquivo: 2026-02-09"
+    conteudo: "Schemas/1.00/* e Schemas/1.01/* (DPS, NFSe, evento, pedRegEvento, CNC, tipos*)"
+    status_coleta: coletado
+    limitacao: >
+      É o pacote mais recente publicado na página oficial de documentação atual em 2026-11-27, e ele é de
+      **2026-02-09**. Não há, nessa página, pacote identificado como NT-009 de 24/11/2026. O conteúdo 1.01
+      **não** declara `finNFSe`, `vAjusteBC`, `indDest` nem `condominio`/`gCobranca` (grep vazio).
+
+  - id: F-MANUAL-ADN-1.1-20261103
+    requisito: [REQ-1, REQ-3, REQ-4]
+    orgao: cgnfs-e
+    titulo: "Manual contribuintes API ADN SNNFSE v1.1 (arquivo de 2026-11-03)"
+    url_pagina: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/documentacao-atual"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/documentacao-atual/manual-contribuintes-api-adn-snnfse-v1-1-20261103.pdf"
+    arquivo: sources/oficiais/manual-contribuintes-api-adn-snnfse-v1-1-20261103.pdf
+    bytes: 325925
+    sha256: f3c7cf067a51a768c1d60b94d4b13be2d505528885df576af1668832164f7212
+    data_acesso: "2026-11-27"
+    versao_declarada: "v1.1 / 2026-11-03"
+    status_coleta: coletado
+    limitacao: >
+      PDF com **5 páginas** e 5.735 caracteres extraídos: é capa/instrução, não especificação técnica.
+      Busca no texto extraído: `NT-009` 0, `indDest` 0, `condomin` 0, `110019000` 0, `020201` 0,
+      `200046` 0, `Anexo VIII` 0, `99.05.01` 0. Não serve como fonte para REQ-1/3/4.
+
+  - id: F-PORTARIAS-CGNFS-E
+    requisito: [REQ-3]
+    orgao: cgnfs-e
+    titulo: "Portarias e Resoluções CGNFS-e — página de índice"
+    url_pagina: "https://www.gov.br/nfse/pt-br/biblioteca/portarias-e-resolucoes-cgnfs-e"
+    arquivo: sources/oficiais/portarias-e-resolucoes-cgnfs-e.html
+    bytes: 92942
+    sha256: 2a8bed04f08b073aec6b7f63dacfe416f7ba5a207373448ef84ee210929bce6e
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: >
+      Página de índice (Portaria SE/CGNFS-e 01/2025 e Resoluções CGNFS-e nº 1/2023 a 9/2025). Nenhum
+      documento desta página foi aberto nem vinculado ao Anexo VIII / códigos 110019000, 020201, 200046
+      nesta execução: vínculo **não verificado**.
+
+  - id: F-ADENDO-3-LOCAL
+    requisito: [REQ-1, REQ-2, REQ-3, REQ-4]
+    orgao: externo
+    titulo: "Adendo 3 — Evidências oficiais (documento recebido do solicitante)"
+    arquivo: sources/adendos/adendo-3-evidencias-oficiais-2026-11-27.md
+    bytes: 6517
+    sha256: 4f03ccd0b7b7ebb2a2b165e66c4633cfaca92d05ff4e384059888420d1e24b89
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: >
+      Documento de **requisito**, não de fonte oficial. Não é prova de regra fiscal; define o gate.
+
+  - id: F-XSD-NT009-20261124
+    requisito: [REQ-1, REQ-2]
+    orgao: cgnfs-e
+    titulo: "Esquemas XSD Produção Restrita 2026-11-24 (NT-009)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/producao-restrita/esquemas-xsd-producao-restrita-20261124.zip"
+    arquivo: sources/oficiais/esquemas-xsd-producao-restrita-20261124.zip
+    bytes: 39728
+    sha256: 1ca83c1a7929f6d5684c9a17700fe3d3a375e4ea12b7ccb832bfc369768902c0
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "pacote oficial de 10 XSD; declara finNFSe, indDest, vAjusteBC, condominios, gCobranca, gDetCobranca e unidades — é o pacote que o Adendo 3 exigia"
+
+  - id: F-ANEXO-I-DPS-20261124
+    requisito: [REQ-1, REQ-2]
+    orgao: cgnfs-e
+    titulo: "Anexo I SEFIN ADN DPS NFSe SNNFSe Produção Restrita v1.01 2026-11-24"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/producao-restrita/anexo_i-sefin_adn-dps_nfse-snnfse_prodrest-v1-01-20261124.xlsx"
+    arquivo: sources/oficiais/anexo-i-dps-nfse-prodrest-v1.01-20261124.xlsx
+    bytes: 245045
+    sha256: cf4d1d36daae5600060db2b36d9a84a703aa209cb099a0abbd7d3793c3e7e928
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "leiaute da DPS com os grupos da NT-009 (campo a campo)"
+
+  - id: F-NT-009-V1.01
+    requisito: [REQ-1, REQ-2]
+    orgao: cgnfs-e
+    titulo: "Nota Técnica SE/CGNFS-e nº 009 versão 1.01 (01/10/2026)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc/nota-tecnica-009-se-cgnfs-e-v-1-01.pdf"
+    arquivo: sources/oficiais/nt-009-se-cgnfs-e-v1.01-20261001.pdf
+    bytes: 703145
+    sha256: cc86c9402e317e84eb3a9f48bbd5e0b8e3dcd84f2645700190c84d45bf1ea58e
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "define finNFSe, vAjusteBC e os grupos de condomínio (subitem 99.05: vCobranca, vDescCond, grupo imovel)"
+
+  - id: F-ANEXO-VIII-1.02.00
+    requisito: [REQ-3]
+    orgao: cgnfs-e
+    titulo: "Anexo VIII versão 1.02.00 (26/10/2026) — correlação Item de Serv., NBS, cClassTrib e cIndOp"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc/anexo_viii-tabela-correlacao-v01-02-00-20261026.xlsx"
+    arquivo: sources/oficiais/anexo-viii-v01.02.00-20261026.xlsx
+    bytes: 151656
+    sha256: 12cc80bc92687856b47e961b98cdbaa3f8cae568c099b3ef71994e73482ac7d0
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "a própria página oficial traz AVISO: anexo em desenvolvimento e SEM regras de negócio baseadas nele no Piloto RTC nem em Produção"
+
+  - id: F-ANEXO-VI-RN-1.04.01
+    requisito: [REQ-1, REQ-2]
+    orgao: cgnfs-e
+    titulo: "Anexo VI — Leiautes e Regras de Negócio RTC IBS/CBS v1.04.01 (NT-009)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc/anexovi-leiautesrn_rtc_ibscbs-v1-04-01-nt009.xlsx"
+    arquivo: sources/oficiais/anexo-vi-leiautes-rn-rtc-ibscbs-v1.04.01-nt009.xlsx
+    bytes: 296297
+    sha256: 103a150dd6f56ec8edcaa3a453b59a1b0e096d7cd5025d7bd06a387f141ddf39
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "regras de negócio dos grupos IBS/CBS e de condomínios"
+
+  - id: F-ANEXO-VII-INDOp-1.03.00
+    requisito: [REQ-3]
+    orgao: cgnfs-e
+    titulo: "Anexo VII — IndOp IBS/CBS v1.03.00 (NT-009)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc/anexovii-indop_ibscbs_v1-03-00-nt009.xlsx"
+    arquivo: sources/oficiais/anexo-vii-indop-ibscbs-v1.03.00-nt009.xlsx
+    bytes: 27475
+    sha256: 95f30a44ee94adeea57fb92f3a0337b1e62fdc106f393e73894087889be9e5aa
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "tabela de indicador de operação (cIndOp)"
+
+  - id: F-ANEXO-B-NBS2
+    requisito: [REQ-3]
+    orgao: cgnfs-e
+    titulo: "Anexo B — NBS 2.0 lista de serviço nacional v1.01 2026-01-22"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/producao-restrita/anexo_b-nbs2-lista_servico_nacional-snnfse-prodrest-v1-01-20260122.xlsx"
+    arquivo: sources/oficiais/anexo-b-nbs2-v1.01-20260122.xlsx
+    bytes: 84980
+    sha256: 1c07fd27ea447adca6c55efef3bb1de1efd97dfe4bac019389844dad9d86fd35
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "contém o código NBS 110019000"
+
+  - id: F-ANEXO-C-INDOp
+    requisito: [REQ-3]
+    orgao: cgnfs-e
+    titulo: "Anexo C — IndOp IBS/CBS v1.01 2026-01-22"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/producao-restrita/anexo_c-indop_ibscbs-snnfse-prodrest-v1-01-20260122.xlsx"
+    arquivo: sources/oficiais/anexo-c-indop-ibscbs-v1.01-20260122.xlsx
+    bytes: 17966
+    sha256: f13b08dc802e82c3c43d591d06575922095595a17c94e61bc4a37c41633a744b
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "contém o código 020201"
+
+  - id: F-COMUNICADO-RELEASE-2
+    requisito: [REQ-1, REQ-2, REQ-4]
+    orgao: cgnfs-e
+    titulo: "CGNFS-e informa: disponibilizado no ambiente de testes o Release 2 das evoluções da Nota Técnica 009 (publicado 25/11/2026, atualizado 27/11/2026)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/noticias/cgnfs-e-informa-disponibilizado-no-ambiente-de-testes-o-release-2-das-evolucoes-da-nota-tecnica-009"
+    arquivo: sources/oficiais/comunicado-release-2-20261125.html
+    bytes: 99734
+    sha256: 6a317b2bd211683378f29f8cd47e536286da151b4dee8e32938417d62475e9b2
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "cronograma oficial: Release 2 (NT-009 v1.01 itens 2.9-2.14) em Produção Restrita em 24/11/2026 e produção em 07/12/2026; Release 3 (07/12/2026) traz o item 2.15 Operações Condominiais, ainda em desenvolvimento; procuração/alternância de perfis já em produção desde 31/10/2026"
+
+  - id: F-FAQ-NFSE-V1.5
+    requisito: [REQ-4]
+    orgao: cgnfs-e
+    titulo: "Perguntas Frequentes da NFS-e — versão 1.5 (23/11/2026)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/perguntas-frequentes/teste-do-perguntas"
+    arquivo: sources/oficiais/faq-nfse-v1.5-20261123.html
+    bytes: 359323
+    sha256: b35b053ba11dcde935ff6a46f16646692326859e3ee9b52448e9e2072f90576d
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "Tema 28: procuração eletrônica é concedida no Portal de Serviços da RFB para os serviços da NFS-e e o vínculo é validado na alternância de perfil; emitente segue sendo o outorgante. NÃO cita o código de serviço 00233 e NÃO documenta API de consulta de vigência/revogação"
+
+nao_encontrado:
+  - requisito: REQ-1
+    procurado: "pacote XSD identificado como NT-009, publicado/atualizado em 2026-11-24"
+    onde_procurei:
+      - "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/documentacao-atual"
+      - "https://www.gov.br/nfse/pt-br/nfs-e-via/documentacao-tecnica/arquivos-dos-esquemas-xsd"
+    resultado: "não há link para pacote NT-009/2026-11-24 nas páginas oficiais consultadas em 2026-11-27"
+  - requisito: REQ-2
+    procurado: "manual/leiaute oficial dos grupos `condominios` e `imovel.unidades` e regra do 99.05.01"
+    onde_procurei:
+      - "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/documentacao-atual"
+      - "pacotes XSD oficiais baixados"
+    resultado: "não localizado; nenhum dos pacotes baixados declara esses grupos"
+  - requisito: REQ-3
+    procurado: "ato oficial que fixe 110019000 / 020201 / 200046 e a exceção de rota do Anexo VIII"
+    onde_procurei:
+      - "https://www.gov.br/nfse/pt-br/biblioteca/portarias-e-resolucoes-cgnfs-e"
+    resultado: "índice localizado, vínculo com o Anexo VIII não verificado nesta execução"
+  - requisito: REQ-4
+    procurado: "documentação técnica oficial do serviço de procuração eletrônica RFB (00233)"
+    onde_procurei:
+      - "páginas de documentação técnica da NFS-e"
+    resultado: "não localizado nesta execução"

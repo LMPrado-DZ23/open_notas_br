@@ -81,3 +81,62 @@ class TestVersao:
     async def test_health_sob_v1(self, cliente) -> None:
         resposta = await cliente.get("/v1/health/live")
         assert resposta.status_code == 200
+
+
+class TestEstadoDoWorker:
+    """`/health` reporta o worker; só reprova a readiness se o operador pedir (§49)."""
+
+    async def test_sem_batimento_reporta_sem_derrubar(self, cliente) -> None:
+        if not await ping_redis():
+            await fechar_redis()
+            pytest.skip("Redis indisponível")
+
+        from app.core.redis import obter_redis
+
+        redis = obter_redis()
+        await redis.delete("notasbr:worker:heartbeat")
+
+        resposta = await cliente.get("/health")
+
+        # Padrão (`READINESS_EXIGE_WORKER=false`): API continua pronta, worker é reportado.
+        assert resposta.status_code == 200
+        corpo = resposta.json()
+        assert corpo["worker"]["ok"] is False
+        assert "sem batimento" in corpo["worker"]["detalhe"]
+
+    async def test_com_batimento_reporta_ok_e_timestamp(self, cliente) -> None:
+        if not await ping_redis():
+            await fechar_redis()
+            pytest.skip("Redis indisponível")
+
+        from app.core.redis import obter_redis
+
+        await obter_redis().set("notasbr:worker:heartbeat", "2026-11-26T22:00:00+00:00", ex=60)
+
+        corpo = (await cliente.get("/health")).json()
+
+        assert corpo["worker"]["ok"] is True
+        assert corpo["worker"]["ultimo_batimento"] == "2026-11-26T22:00:00+00:00"
+
+    async def test_flag_liga_a_reprovacao(self, app_teste, cliente) -> None:
+        if not await ping_redis():
+            await fechar_redis()
+            pytest.skip("Redis indisponível")
+
+        from app.core.config import Settings, get_settings
+        from app.core.redis import obter_redis
+
+        await obter_redis().delete("notasbr:worker:heartbeat")
+        app_teste.dependency_overrides[get_settings] = lambda: Settings(
+            environment="test", readiness_exige_worker=True
+        )
+        try:
+            resposta = await cliente.get("/health")
+        finally:
+            app_teste.dependency_overrides.clear()
+
+        assert resposta.status_code == 503
+        assert resposta.json()["status"] == "degraded"
+        # A causa é o worker, não banco nem Redis.
+        assert resposta.json()["verificacoes"]["database"]["ok"] is True
+        assert resposta.json()["worker"]["ok"] is False
