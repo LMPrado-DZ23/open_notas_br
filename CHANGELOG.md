@@ -723,3 +723,13 @@ condomínio. O manual ADN v1.1 (2026-11-03) tem 5 páginas e nenhum dos termos p
 - Verificado: `[OK] 113 schema(s) conferem`; gate 10/10; `test_schemas_integridade` 13 passed.
 - Limite declarado: prova-se "o arquivo é o que foi registrado", **não** que ele seja o oficial — o XSD da
   NFS-e é de fonte secundária e foi adaptado (§82).
+
+### Corrigido — integridade de XSD no boot (o docstring dizia, o código não fazia)
+
+- `app/core/schemas.py` afirma que o hash é conferido "no boot"; **nada chamava** `verificar`.
+- `_verificar_integridade_dos_schemas()` no `lifespan`: manifesto ausente → aviso e segue; divergência em
+  WARN → aviso e segue; em STRICT → **boot falha**. Config: `XSD_INTEGRIDADE_STRICT` (padrão `false`, com
+  o motivo escrito no `Settings`).
+- 4 testes. Um deles foi descartado no caminho porque não exercitava a função (trocava `Path` por
+  monkeypatch, mas o caminho é fixo) — substituído por divergência real no manifesto.
+- Gate rápido 10/10; mypy zero.

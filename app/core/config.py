@@ -112,6 +112,10 @@ class Settings(BaseSettings):
     #: consulta. O estado do worker é sempre **reportado** em `/health`; esta flag decide
     #: apenas se ele **reprova** a readiness.
     readiness_exige_worker: bool = False
+    #: Se `True`, hash de XSD divergente **impede o boot** (§84). Padrão `False` porque nem todo schema
+    #: tem procedência oficial confirmada: derrubar a API por schema secundário trocaria risco de
+    #: integridade por risco de indisponibilidade. A verificação roda de qualquer forma (WARN + log).
+    xsd_integridade_strict: bool = False
 
     # -- CNPJ (Fase 3) ------------------------------------------------
     serpro_cnpj_token: str = ""

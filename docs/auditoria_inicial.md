@@ -4485,3 +4485,54 @@ chamando.
 - O manifesto cobre os 4 diretórios de schema; qualquer troca passa a **falhar** o gate e a CI.
 - Isso **não** diz que os schemas são oficiais. O da NFS-e é de fonte secundária e foi adaptado (§82); a
   integridade que se prova aqui é "o arquivo é o que foi registrado", não "o arquivo é o publicado".
+
+---
+
+## 84. Integridade de XSD no boot: o docstring dizia, o código não fazia
+
+**Data:** 2026-11-27. **Fase:** F. Fecha o último ponto morto da mesma família de §83.
+
+### O que estava escrito × o que acontecia
+
+`app/core/schemas.py` afirma no docstring: "Seção R3 do v10.0 pede hash conferido no boot e aborto se
+divergir. Implementado de forma **mais conservadora**… Modo explícito: WARN (padrão) registra divergência;
+STRICT levanta."
+
+Medido: **nenhum código chamava `verificar`**. Nem o app, nem o gate (até §83), nem a CI. O processo
+subia sem olhar para o manifesto — a verificação existia como biblioteca e teste, não como controle.
+
+### Implementado
+
+`_verificar_integridade_dos_schemas()` chamada no `lifespan`, logo após as validações de configuração:
+
+| Situação | Comportamento |
+|---|---|
+| manifesto ausente | `WARNING xsd_sem_manifesto` e segue (estado válido: verificação desligada) |
+| divergência, modo WARN (padrão) | `WARNING xsd_integridade_divergente` e segue |
+| divergência, modo STRICT | `ERROR` e **o processo não inicia** |
+| tudo confere | silêncio (não polui log de boot) |
+
+Configuração: `XSD_INTEGRIDADE_STRICT` (`false` por padrão), documentada no próprio `Settings` com o
+motivo de não ser o padrão — nem todo schema tem procedência oficial confirmada, e derrubar a API por
+schema secundário trocaria risco de integridade por risco de indisponibilidade.
+
+### Testes (`tests/test_boot_integridade_xsd.py`, 4)
+
+| Teste | O que prova |
+|---|---|
+| manifesto real não levanta | boot normal com os 113 schemas íntegros |
+| manifesto ausente avisa e segue | ausência não é falha fatal |
+| divergência em WARN não levanta | padrão preservado |
+| divergência em STRICT levanta | `ErroDeIntegridade` sobe e o boot falha |
+
+Um teste meu foi descartado no caminho: a primeira versão de "divergência em WARN" tentava trocar o
+diretório via `monkeypatch` de `Path`, o que **não** exercitava a função (o caminho é fixo). Substituí por
+divergência real no manifesto (arquivo listado e inexistente), que é o caso de uso.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_boot_integridade_xsd.py` | **4 passed** |
+| `scripts.check_ci` (rápido) | **10/10** |
+| `mypy app src` | zero erros / 176 arquivos |

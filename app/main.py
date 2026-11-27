@@ -29,7 +29,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.api.v1 import health
 from app.api.v1.router import router as v1_router
 from app.core.circuit import CircuitoAberto
-from app.core.config import get_settings, validar_ambiente_de_execucao
+from app.core.config import Settings, get_settings, validar_ambiente_de_execucao
 from app.core.errors import de_http_exception, validacao
 from app.core.logging import configurar_logging
 from app.core.redis import fechar_redis
@@ -137,6 +137,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             "admin_api_token_ausente",
             extra={"efeito": "rotas administrativas responderao 503"},
         )
+
+    _verificar_integridade_dos_schemas(settings)
 
     logger.info(
         "servico_iniciado",
@@ -303,3 +305,39 @@ def criar_app() -> FastAPI:
 
 
 app = criar_app()
+
+
+def _verificar_integridade_dos_schemas(settings: Settings) -> None:
+    """Confere o manifesto SHA-256 dos XSD no boot (§84).
+
+    O módulo `app/core/schemas.py` declara no docstring que o hash é conferido "no carregamento" — e
+    não era: nada chamava `verificar`. Resultado: a verificação existia, tinha 13 testes, rodava no gate
+    (desde §83)... e o processo subia sem olhar. Aqui ela passa a acontecer de fato.
+
+    **WARN por padrão, STRICT só por escolha.** O próprio módulo documenta por que não aborta: nem todo
+    schema tem procedência oficial confirmada, e derrubar a API por um schema secundário trocaria risco
+    de integridade por risco de indisponibilidade. Em STRICT, o erro sobe e o processo não inicia — para
+    quem exige essa garantia.
+    """
+    from app.core.schemas import (
+        MANIFESTO_PADRAO,
+        ErroDeIntegridade,
+        ModoVerificacao,
+        carregar_manifesto,
+        verificar,
+    )
+
+    modo = ModoVerificacao.STRICT if settings.xsd_integridade_strict else ModoVerificacao.WARN
+    try:
+        manifesto = carregar_manifesto(MANIFESTO_PADRAO)
+        # Manifesto ausente é estado válido (verificação desligada) — `carregar_manifesto` devolve {}.
+        if not manifesto:
+            logger.warning(
+                "xsd_sem_manifesto",
+                extra={"caminho": str(MANIFESTO_PADRAO), "efeito": "integridade nao verificada"},
+            )
+            return
+        verificar("tests/fixtures/schemas", manifesto, modo=modo)
+    except ErroDeIntegridade:
+        logger.error("xsd_integridade_falhou", extra={"modo": modo.value})
+        raise
