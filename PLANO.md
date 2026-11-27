@@ -104,3 +104,45 @@ breaker + DLQ (item 5).
 
 **Nenhum desses avança com código.** Registrado para que a próxima sessão não os trate
 como esquecimento.
+
+---
+
+## Reconciliação 2026-11-27 — estado medido (commit `a62a479`)
+
+Bloco novo porque o anterior ficou **histórico**: os números de "853 passed / 46 rotas" eram de uma fase
+fechada, não do presente. Medido nesta data, na branch `work/auditoria-e-fase-a`:
+
+| Medida | Valor | Como foi obtido |
+|---|---|---|
+| Testes | **1565** | `pytest --co` (contagem do gerador do painel) |
+| Cobertura | **87,98%** (10.863 statements, 1.306 não cobertos) | `pytest --cov=app --cov=src/notasbr`, execução **isolada** |
+| Checagens do gate | **10** | `python -m scripts.check_ci --tudo` |
+| Rotas | **61** | `openapi.json` regenerado |
+| Migrações | **15** (`0001`–`0015`) | `alembic history` + `alembic check` sem drift |
+| mypy | 0 erros / 176 arquivos | `mypy app src` |
+| Contrato | `openapi.json` sincronizado | teste `test_openapi_sincronizado` |
+| CI | verde | workflow `CI` no PR #1 |
+
+### O que mudou desde a reconciliação anterior
+
+- **integridade de XSD** passou a rodar no gate, na CI e no boot (§83, §84) — antes existia e ninguém
+  chamava;
+- **circuito** passou a cobrir a consulta de status, escopado por UF (§85);
+- **webhook** não retenta mais recusa permanente: `4xx` (exceto 408/429) e `3xx` vão direto à DLQ (§86);
+- **roteamento NFS-e** ganhou preflight com proveniência do parâmetro (§77), e a divergência
+  leiaute×XSD ficou travada por `xfail(strict)` (§82);
+- **credenciais**: uso do A1 auditado (§71), expiração e revogação (§73), escopos (§75), exclusão com
+  sobrescrita (§74), exportação do tenant (§76).
+
+### O que continua fora do plano e por quê
+
+| Item | Estado | Bloqueio |
+|---|---|---|
+| NT-009 2026-11-24 + `indDest` | BLOCKED | pacote oficial não encontrado (`docs/REQUISITOS-FONTES.md` REQ-1) |
+| `condominios` / `imovel.unidades` / 99.05.01 | BLOCKED | manual oficial não localizado (REQ-2) |
+| Anexo VIII (110019000/020201/200046) | BLOCKED | ato oficial não localizado (REQ-3) |
+| Procuração RFB 00233 | BLOCKED | documentação oficial não localizada (REQ-4); ADR 0005 |
+| Transporte SOAP municipal | não implementado | falta URL/leiaute oficial por provedor |
+
+Nenhum desses pode ser "concluído" por inferência: a regra do projeto (§9 do prompt) e o Adendo 3
+exigem fonte oficial com URL, versão, data e hash.

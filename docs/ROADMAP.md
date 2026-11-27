@@ -355,6 +355,11 @@ uma representação no catálogo.
 ## Pendências de integração (código pronto, fluxo não)
 
 Levantadas em 2026-11-27 (auditoria §59). **Existem, são testadas e ninguém em produção as chama.**
+
+> **Atualização de 2026-11-27 (§77–§86):** três itens desta família foram ligados — circuito na consulta
+> de status (escopo por UF), integridade de XSD no gate/CI/boot e classificação de retry do webhook. A
+> tabela abaixo continua válida para o que **não** foi ligado; conferir `docs/auditoria_inicial.md` antes
+> de tratar qualquer linha como atual.
 Ordem sugerida; nenhuma pode ser "concluída" sem ambiente de homologação para validar.
 
 | # | Pendência | O que falta | Por que não foi feito já |
