@@ -3321,3 +3321,53 @@ construção.
 - O teto de 10 min é escolha, não medição: não há lote real medido que justifique outro número.
 - Se algum dia o worker rodar no mesmo processo da API (`arq` embutido), a separação continua válida
   porque são engines distintos — mas a soma de conexões precisa ser conferida no cálculo do Postgres.
+
+---
+
+## 63. Coleção Postman derivada do contrato, com guarda anti-drift
+
+**Data:** 2026-11-27. **Fase:** E (experiência de integração). Item do objetivo:
+"OpenAPI preciso, exemplos request/response e coleção Postman".
+
+### O que havia
+
+Medido em `openapi.json`: **67 operações**, 17 com `requestBody`, **0 exemplos**, e **nenhuma coleção
+Postman**. Quem integrava precisava montar as chamadas lendo o contrato na mão.
+
+### O que foi feito
+
+`scripts/gerar_postman.py` gera `docs/postman_collection.json` a partir do `openapi.json` versionado:
+
+| Decisão | Motivo |
+|---|---|
+| **Gerar** em vez de escrever à mão | coleção manual divergiu do contrato em todo projeto que cresceu |
+| `--check` compara e **reprova** divergência | a coleção não pode envelhecer em silêncio |
+| Corpo é **esqueleto** derivado do schema | inventar CNPJ/valor "de exemplo" produz coleção que parece pronta e falha no primeiro uso — e em gateway fiscal vira dado errado na mão de quem integra |
+| `X-API-Key: {{api_key}}` | a chave deriva o tenant; coleção não deve sugerir `tenant_id` no corpo |
+| Pastas por `tag` | reflete a organização do contrato, não uma taxonomia inventada |
+
+Resultado medido: **18 pastas**, **67 requisições**, **14 com corpo**.
+
+### Testes (`tests/test_gerar_postman.py`, 8)
+
+| Teste | O que prova |
+|---|---|
+| `--check` retorna 0 | coleção em dia com o contrato (falha no CI se divergir) |
+| toda requisição existe no contrato | nenhuma rota inventada |
+| toda rota está na coleção | nenhuma rota esquecida |
+| corpo é JSON válido e **sem dado inventado** | proíbe `00000000000`, `11.222.333`, CNPJ fictício, `R$ ` |
+| cabeçalho usa `{{api_key}}` | não sugere chave literal |
+| esqueleto: string→"", integer→0, boolean→false | derivação determinística |
+| respeita `example` do schema quando existe | não sobrescreve exemplo real |
+| objeto aninhado é derivado | cobre corpo com estrutura |
+
+### Limite honesto
+
+- **Exemplos de response continuam ausentes.** O objetivo pede "exemplos request/response"; o que
+  existe agora é corpo de request derivado e coleção executável. Exemplo de *resposta* exige decidir
+  qual resposta é canônica por rota (201 vs 200 vs problema+json) e fixá-la no schema — é contrato, e
+  o certo é fazer junto com versionamento, não como enfeite.
+- Corpo esqueleto **não passa** na validação de negócio (valor `""` não é `Decimal` válido). É ponto
+  de partida, não requisição pronta; está escrito na descrição da coleção.
+- A coleção não tem testes de script (Postman test assertions). Isso exigiria runner Postman/Newman,
+  que é dependência nova — regra 11, com ADR que não fiz.

@@ -481,6 +481,7 @@ motivo** — nunca aprovados silenciosamente.
 - [Roadmap das fases](docs/ROADMAP.md)
 - [Matriz de cobertura fiscal](docs/MATRIZ-COBERTURA.md) — o que existe por documento e qual
   prova sustenta (teste × chamada real × bloqueado). Leia antes de acreditar em qualquer tabela.
+- [Coleção Postman](docs/postman_collection.json) — gerada do contrato; python -m scripts.gerar_postman --check reprova se divergir.
 - [Operação](docs/OPERACAO.md) — backup, restore, migrations e rollback, rotação de chave e
   resposta a incidente, com o modo de falha de cada componente (fail-open × fail-closed).
 

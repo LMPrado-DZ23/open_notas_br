@@ -5,6 +5,18 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — coleção Postman gerada do contrato, com guarda anti-drift
+
+- Medido: 67 operações no OpenAPI e **nenhuma coleção**. Agora `scripts/gerar_postman.py` gera
+  `docs/postman_collection.json` a partir do contrato: 18 pastas, 67 requisições, 14 com corpo.
+- `--check` reprova quando a coleção diverge do contrato — coleção manual envelhece em silêncio.
+- Corpo é **esqueleto derivado do schema**, não exemplo de negócio: CNPJ/valor inventado em gateway
+  fiscal vira dado errado na mão de quem integra. Teste proíbe `00000000000`, CNPJ fictício e `R$ `.
+- `X-API-Key: {{api_key}}` — a chave deriva o tenant, a coleção não sugere `tenant_id` no corpo.
+- 8 testes, incluindo "toda requisição existe no contrato" e "toda rota está na coleção".
+- **Limite:** exemplos de *response* continuam ausentes; corpo esqueleto não passa na validação de
+  negócio (é ponto de partida); sem Newman (dependência nova exigiria ADR).
+
 ### Corrigido — worker herdava o teto de 60 s e podia abortar lote no meio
 
 - Risco introduzido pelo próprio `statement_timeout` de §60: o worker usa o mesmo engine, e um lote
