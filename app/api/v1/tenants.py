@@ -22,6 +22,7 @@ from app.tenants import repository as repo
 from app.tenants import service
 from app.tenants.schemas import (
     PaginaTenants,
+    RotacionarChaveIn,
     TenantCreate,
     TenantCriadoOut,
     TenantFiscalConfigIn,
@@ -101,13 +102,25 @@ async def meu_tenant(tenant: Tenant = Depends(tenant_atual)) -> TenantOut:
 async def rotacionar_chave(
     tenant: Tenant = Depends(tenant_atual),
     db: AsyncSession = Depends(get_session),
+    corpo: RotacionarChaveIn | None = None,
 ) -> TenantKeyRotacionadaOut:
-    atualizado, nova_chave = await service.rotacionar_chave(db, tenant.id)
+    """Gera nova chave e define prazo/escopos, se pedido (§73, §75).
+
+    Corpo é opcional: sem ele, o comportamento antigo continua (chave sem prazo e sem restrição).
+    """
+    atualizado, nova_chave = await service.rotacionar_chave(
+        db,
+        tenant.id,
+        dias_validade=(corpo.dias_validade if corpo else None),
+        escopos=([str(e) for e in corpo.escopos] if corpo and corpo.escopos else None),
+    )
     await db.commit()
     return TenantKeyRotacionadaOut(
         tenant_id=atualizado.id,
         api_key=nova_chave,
         api_key_prefix=atualizado.api_key_prefix,
+        api_key_expira_em=atualizado.api_key_expira_em,
+        api_key_escopos=atualizado.api_key_escopos,
     )
 
 

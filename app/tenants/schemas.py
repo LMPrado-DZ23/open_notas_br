@@ -10,6 +10,7 @@ import re
 import uuid
 from datetime import datetime
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -81,12 +82,25 @@ class TenantCriadoOut(TenantOut):
     )
 
 
+class RotacionarChaveIn(BaseModel):
+    """Parâmetros opcionais da rotação. Sem corpo, o comportamento antigo é preservado.
+
+    `escopos`: `leitura` (GET/HEAD/OPTIONS) e `emissao` (escritas). Omitir = sem restrição — é o que
+    mantém compatibilidade com quem já usa a chave para tudo.
+    """
+
+    dias_validade: int | None = Field(default=None, ge=1, le=3650)
+    escopos: list[Literal["leitura", "emissao"]] | None = None
+
+
 class TenantKeyRotacionadaOut(BaseModel):
     """Nova API key após rotação. A anterior deixa de funcionar imediatamente."""
 
     tenant_id: uuid.UUID
     api_key: str
     api_key_prefix: str
+    api_key_expira_em: datetime | None = None
+    api_key_escopos: list[str] | None = None
 
 
 class TenantFiscalConfigIn(BaseModel):

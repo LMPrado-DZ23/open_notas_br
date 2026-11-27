@@ -57,6 +57,9 @@ class Tenant(Base, MixinId, MixinTimestamps):
     api_key_rotacionada_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     #: Quando a chave atual deixa de valer por tempo (`NULL` = sem prazo).
     api_key_expira_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    #: Escopos da chave (`leitura`, `emissao`). `None` = sem restrição: compatibilidade com chaves
+    #: emitidas antes deste campo existir — ausência de escopo não pode virar ausência de acesso.
+    api_key_escopos: Mapped[list[str] | None] = mapped_column(JSONB(none_as_null=True))
     #: Quando a chave foi **revogada** (vazamento, desligamento). Revogar grava um hash aleatório
     #: inutilizável, então a chave antiga deixa de casar até na busca do próprio dono.
     api_key_revogada_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

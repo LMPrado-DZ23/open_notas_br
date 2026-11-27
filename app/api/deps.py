@@ -10,7 +10,7 @@ from __future__ import annotations
 import hmac
 import logging
 
-from fastapi import Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
@@ -30,14 +30,43 @@ HTTP_401 = 401
 HTTP_403 = 403
 HTTP_503 = 503
 
+#: Métodos que só leem. Tudo o mais é tratado como escrita.
+METODOS_DE_LEITURA = frozenset({"GET", "HEAD", "OPTIONS"})
+
+
+def _exigir_escopo(tenant: Tenant, metodo: str) -> None:
+    """Aplica o escopo da chave ao método HTTP (§75).
+
+    Regra: `GET`/`HEAD`/`OPTIONS` exigem `leitura`; o resto exige `emissao`. É grosseiro de
+    propósito — escopo por rota exigiria anotar 60 handlers e manter essa anotação sincronizada, e o
+    ganho sobre leitura/escrita não paga o risco de uma rota esquecida ficar sem exigência.
+
+    **`api_key_escopos = None` significa sem restrição.** É o que mantém as chaves já emitidas
+    funcionando: tratar ausência como "nenhum escopo" transformaria a migração em negação de acesso
+    geral.
+    """
+    escopos = tenant.api_key_escopos
+    if escopos is None:
+        return
+    exigido = "leitura" if metodo.upper() in METODOS_DE_LEITURA else "emissao"
+    if exigido not in escopos:
+        raise HTTPException(
+            status_code=HTTP_403,
+            detail=(
+                f"a chave não tem o escopo `{exigido}`. "
+                f"Escopos desta chave: {', '.join(sorted(escopos)) or 'nenhum'}"
+            ),
+        )
+
 
 async def tenant_atual(
+    request: Request,
     x_api_key: str | None = Header(
         default=None, alias="X-API-Key", description="API key do tenant"
     ),
     db: AsyncSession = Depends(get_session),
 ) -> Tenant:
-    """Resolve o tenant dono da API key ou interrompe com 401/403."""
+    """Resolve o tenant dono da API key ou interrompe com 401/403/403 de escopo."""
     if not x_api_key:
         raise HTTPException(
             status_code=HTTP_401,
@@ -45,7 +74,9 @@ async def tenant_atual(
             headers={"WWW-Authenticate": "ApiKey"},
         )
     try:
-        return await tenant_service.autenticar(db, x_api_key)
+        tenant = await tenant_service.autenticar(db, x_api_key)
+        _exigir_escopo(tenant, request.method)
+        return tenant
     except CredencialInvalida as exc:
         raise HTTPException(
             status_code=HTTP_401,

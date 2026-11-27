@@ -1181,6 +1181,7 @@
           "tenants"
         ],
         "summary": "Gera nova API key e invalida a anterior",
+        "description": "Gera nova chave e define prazo/escopos, se pedido (§73, §75).\n\nCorpo é opcional: sem ele, o comportamento antigo continua (chave sem prazo e sem restrição).",
         "operationId": "rotacionar_chave_v1_me_rotacionar_chave_post",
         "parameters": [
           {
@@ -1202,6 +1203,23 @@
             "description": "API key do tenant"
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/RotacionarChaveIn"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Corpo"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -6338,6 +6356,44 @@
         "title": "ProvedorNFSe",
         "description": "Provedor/layout que responde pelo município."
       },
+      "RotacionarChaveIn": {
+        "properties": {
+          "dias_validade": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 3650.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dias Validade"
+          },
+          "escopos": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "leitura",
+                    "emissao"
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Escopos"
+          }
+        },
+        "type": "object",
+        "title": "RotacionarChaveIn",
+        "description": "Parâmetros opcionais da rotação. Sem corpo, o comportamento antigo é preservado.\n\n`escopos`: `leitura` (GET/HEAD/OPTIONS) e `emissao` (escritas). Omitir = sem restrição — é o que\nmantém compatibilidade com quem já usa a chave para tudo."
+      },
       "SaudeCertificadoOut": {
         "properties": {
           "existe": {
@@ -7264,6 +7320,32 @@
           "api_key_prefix": {
             "type": "string",
             "title": "Api Key Prefix"
+          },
+          "api_key_expira_em": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key Expira Em"
+          },
+          "api_key_escopos": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key Escopos"
           }
         },
         "type": "object",

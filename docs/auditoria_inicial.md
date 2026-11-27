@@ -3882,3 +3882,67 @@ chave-mestra (`docs/OPERACAO.md` §5). A sobrescrita é camada adicional, não s
 | `pytest tests/test_certificado_usos.py` | **8 passed** |
 | gate completo | **9/9** |
 | `mypy` | zero erros |
+
+---
+
+## 75. Escopos por chave de API (migração 0014)
+
+**Data:** 2026-11-27. **Fase:** A / adendo §4. Fecha a última das três lacunas de credencial que eu
+havia listado em `docs/ONBOARDING-HOSPEDADO.md`.
+
+### O que faltava
+
+A chave era **tudo-ou-nada no tenant**. Não havia como dar só leitura ao ERP e só emissão ao PDV — que
+é o caso real de integração de um gateway fiscal.
+
+### Implementado
+
+| Peça | Onde |
+|---|---|
+| Coluna `api_key_escopos` (JSONB) | migração **0014** (upgrade, downgrade, `alembic check` sem drift) |
+| Aplicação | `_exigir_escopo()` dentro de `tenant_atual`, olhando o método HTTP |
+| Definição | `POST /v1/me/rotacionar-chave` aceita `escopos: ["leitura" \| "emissao"]` |
+
+**Regra:** `GET`/`HEAD`/`OPTIONS` exigem `leitura`; o resto exige `emissao`.
+
+Por que método HTTP e não por rota: escopo por rota exigiria anotar 60 handlers e manter a anotação
+sincronizada com o contrato; uma rota nova sem anotação ficaria **sem exigência**, silenciosamente. A
+regra por método é grosseira e **fecha por padrão** — rota nova já nasce coberta.
+
+### Compatibilidade (o ponto delicado)
+
+`api_key_escopos = None` significa **sem restrição**. Isso é o que mantém as chaves já emitidas
+funcionando: tratar ausência como "nenhum escopo" transformaria a migração em negação de acesso geral.
+Teste cobre exatamente isso — chave antiga continua lendo e escrevendo.
+
+### Testes (`tests/test_escopos_chave.py`, 6)
+
+| Teste | O que prova |
+|---|---|
+| chave sem escopo continua com tudo | compatibilidade da migração |
+| escopo `leitura` → GET 200, emissão **403** | restrição aplicada, mensagem cita o escopo |
+| chave anterior deixa de valer após rotação | rotação mata a antiga (já era assim) |
+| escopo `emissao` → emite 201, leitura **403** | o caso espelhado, não só um dos lados |
+| prazo e escopo juntos | os dois campos convivem na resposta |
+| escopo inválido (`admin`) → **422** | o contrato recusa antes de gravar |
+
+O cenário de emissão sobe **certificado A1**, senão o 422 seria por falta de certificado e o teste
+provaria a coisa errada (foi o primeiro erro que cometi aqui).
+
+### Limite
+
+- Escopo é por **método**, não por recurso: `emissao` permite qualquer escrita, inclusive cancelamento e
+  cadastro de certificado. Um escopo "só emitir, sem cancelar" exigiria anotação por rota e o custo
+  correspondente — declarado, não implementado.
+- Rotação **substitui** os escopos; não há rota para alterar escopo sem trocar a chave. Para reduzir
+  privilégio é preciso rotacionar e redistribuir a chave nova.
+- A verificação usa o método do request; `HEAD`/`OPTIONS` contam como leitura de propósito.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_escopos_chave.py` | **6 passed** |
+| migração 0014 | aplica, reverte, **sem drift** |
+| gate completo | **9/9** |
+| contrato + Postman | regenerados |

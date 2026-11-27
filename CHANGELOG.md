@@ -5,6 +5,21 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — escopos por chave de API (migração 0014)
+
+- A chave era **tudo-ou-nada no tenant**: não havia como dar só leitura ao ERP e só emissão ao PDV —
+  o caso real de integração.
+- Coluna `api_key_escopos` (JSONB), aplicada em `tenant_atual` por **método HTTP**:
+  `GET`/`HEAD`/`OPTIONS` exigem `leitura`; o resto exige `emissao`.
+- Por método e não por rota de propósito: anotar 60 handlers deixaria rota nova **sem exigência**
+  silenciosamente; a regra por método fecha por padrão.
+- **Compatibilidade:** `None` = sem restrição — é o que mantém chave antiga funcionando; tratar
+  ausência como "nenhum escopo" seria negar acesso geral na migração.
+- `POST /v1/me/rotacionar-chave` aceita `escopos` e devolve prazo + escopos na resposta.
+- 6 testes, incluindo o caso espelhado (`emissao` barra leitura) e recusa de escopo inválido (422).
+- **Limites:** escopo é por método, não por recurso (permite qualquer escrita); rotação **substitui**
+  escopos — reduzir privilégio exige rotacionar e redistribuir a chave.
+
 ### Corrigido — exclusão de certificado agora sobrescreve o envelope
 
 - `remover()` só apagava a linha: o ciphertext continuava em **páginas antigas** e no **WAL**,

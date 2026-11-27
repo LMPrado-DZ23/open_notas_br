@@ -1870,7 +1870,16 @@
                 "rotacionar-chave"
               ]
             },
-            "description": ""
+            "description": "Gera nova chave e define prazo/escopos, se pedido (§73, §75).\n\nCorpo é opcional: sem ele, o comportamento antigo continua (chave sem prazo e sem restrição).",
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {

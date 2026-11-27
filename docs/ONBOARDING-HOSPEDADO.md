@@ -22,7 +22,7 @@ operada pela DZ23**. O modo auto-hospedado usa os mesmos passos, trocando "a DZ2
 | Rotacionar (substitui a anterior) | ✅ `POST /v1/me/rotacionar-chave` |
 | **Revogar sem emitir outra** | ✅ `POST /v1/admin/tenants/{id}/revogar-chave` (X-Admin-Key) — §73 |
 | **Expiração** | ✅ `rotacionar-chave` aceita `dias_validade`; autenticação recusa expirada (§73) |
-| **Escopos por chave** | ❌ não existe; a chave é tudo-ou-nada no tenant |
+| **Escopos por chave** | ✅ `leitura` / `emissao`, definidos na rotação (§75); sem escopo = sem restrição (compatibilidade) |
 
 Recomendação operacional enquanto as lacunas existirem: rotacionar em suspeita de vazamento e tratar
 a chave como segredo de nível de tenant (não compartilhar entre sistemas do cliente).

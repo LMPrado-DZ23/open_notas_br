@@ -61,7 +61,7 @@ Lista honesta, verificada no código (detalhe em `docs/ONBOARDING-HOSPEDADO.md`)
 
 | Lacuna | Estado |
 |---|---|
-| Escopos por credencial de API | **não implementado** — a chave dá acesso total ao tenant |
+| Escopos por credencial de API | ✅ implementado (§75) — `leitura`/`emissao`; granularidade por recurso ainda não |
 | Expiração de chave de API | ✅ implementada (§73) — prazo definido na rotação |
 | Revogação de chave sem emitir outra | ✅ implementada (§73) — rota de admin, hash substituído |
 | Auditoria de uso do certificado | **não implementada** (não há registro de "quem usou qual A1, quando, para quê") |

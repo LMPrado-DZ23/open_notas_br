@@ -129,7 +129,11 @@ async def autenticar(sessao: AsyncSession, api_key: str) -> Tenant:
 
 
 async def rotacionar_chave(
-    sessao: AsyncSession, tenant_id: uuid.UUID, *, dias_validade: int | None = None
+    sessao: AsyncSession,
+    tenant_id: uuid.UUID,
+    *,
+    dias_validade: int | None = None,
+    escopos: list[str] | None = None,
 ) -> tuple[Tenant, str]:
     """Gera nova API key e invalida a anterior.
 
@@ -147,6 +151,9 @@ async def rotacionar_chave(
     tenant.api_key_rotacionada_em = agora
     tenant.api_key_revogada_em = None
     tenant.api_key_expira_em = agora + timedelta(days=dias_validade) if dias_validade else None
+    # `None` = sem restrição. Lista vazia negaria tudo, então nunca é gravada por engano:
+    # `escopos or None` preserva o comportamento amplo nesse caso.
+    tenant.api_key_escopos = escopos or None
     await sessao.flush()
     return tenant, chave_completa
 
