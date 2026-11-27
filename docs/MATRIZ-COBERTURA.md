@@ -26,7 +26,7 @@ aceitação do autorizador — são níveis diferentes e o projeto os reporta se
 | Validação XSD | ✅ | teste (`tests/test_schema_dps.py`) | local |
 | Assinatura XMLDSig | ✅ | teste (`nfse/signer.py`, ASSIN-004 verifica a assinatura) | local |
 | Transporte REST + mTLS | ✅ | teste + **chamada real** (§31) | homologação |
-| Autorização (emissão) | 🔒 | código completo; **nenhum protocolo** persistido | — |
+| Autorização (emissão) | ✅ **real** | NFS-e autorizada em Produção Restrita em 25/11/2026 (`REFERENCIAS` §15: chave, consulta, DANFSe e cancelamento aceito); XML guardado traz `cStat=100` e `ambGer=2`; `codigo_status` agora é persistido (§78); `protocolo` nulo porque a NFS-e não tem esse campo | homologação |
 | Consulta de DPS/NFS-e | ✅ | teste | local |
 | Cancelamento (evento) | ✅ | teste | local |
 | Demais eventos | ✅ | teste (`eventos_tipos` com restrições do leiaute) | local |
@@ -34,11 +34,20 @@ aceitação do autorizador — são níveis diferentes e o projeto os reporta se
 | Roteamento por provedor municipal (ABRASF) | 🔒 **sem transporte real** | contrato, roteamento, fluxo RPS/lote e assinatura testados com `TransporteFalso` (§66); **não existe cliente SOAP municipal** e nenhum provedor tem URL/leiaute com fonte oficial no repositório | — |
 | Contingência | ❌ | não existe para NFS-e neste projeto | — |
 
-**Sobre "autorizado" no banco local:** medido em 2026-11-26 — `fiscal_documents`: 2 registros,
-2 com `xml_autorizado`, **0 com `protocolo`**; `invoices`: 1 `authorized`, 1 `cancelled`,
-10 `rejected`. Esse banco é de **desenvolvimento** e mistura execuções em mock com chamadas reais,
-então **não** serve como prova de autorização. A prova real que existe é a de **consulta de
-status**, não de emissão autorizada.
+**Sobre o banco de desenvolvimento:** medido em 2026-11-26 e novamente em 2026-11-27 —
+`fiscal_documents`: 4 registros, 4 com `xml_autorizado` e `chave`, **0 com `protocolo`**;
+`invoices`: 3 `authorized`, 1 `cancelled`, 10 `rejected`, 2 `pending`, 1 `error`, **todos** com
+`ambiente = homologacao`.
+
+Esse banco **mistura** execuções em mock com chamadas reais: as chaves que começam com `6718062`
+são do adaptador mock (execuções de 2026-11-27 no demo em container); as que começam com `5200258`
+(município de Goiânia) datam de 2026-11-25 e correspondem à autorização real documentada em
+`REFERENCIAS` §15. Ou seja: **existe autorização real em Produção Restrita**, mas o banco sozinho
+não a prova — a prova é a seção §15 com a chave e o ciclo completo.
+
+**Lacuna real e aberta:** `protocolo` nunca é persistido. A nota foi autorizada e o número do
+protocolo não entrou no banco. Isso não invalida a autorização, mas impede responder "qual o
+protocolo desta NFS-e" a partir do sistema — e é o que a coluna acima registra como pendência.
 
 ## NF-e 4.00
 
@@ -105,7 +114,7 @@ pior que catálogo menor — a primeira emissão falha longe da causa.
 
 | Documento | Gerar | XSD | Assinar | Transmitir | Consultar | PDF |
 |---|---|---|---|---|---|---|
-| NFS-e | ✅ teste | ✅ teste | ✅ teste | ✅ real (homologação) | ✅ teste | ✅ teste |
+| NFS-e | ✅ teste | ✅ teste | ✅ teste | ✅ **real** (Produção Restrita, 25/11/2026) | ✅ teste | ✅ teste |
 | NF-e | ✅ teste | ✅ teste | ✅ teste | 🔒 credenciamento | ✅ **real** | ✅ teste |
 | NFC-e | ❌ | — | — | 🔒 CSC | — | ✅ teste |
 | CT-e | ✅ teste | ✅ teste | ✅ teste | 🔒 credenciamento | ✅ **real** | ✅ teste |

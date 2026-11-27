@@ -275,3 +275,33 @@ def extrair_alertas(payload: Any) -> list[MensagemSefin]:
         mensagem = _uma_mensagem(valor)
         return [mensagem] if mensagem else []
     return []
+
+
+def extrair_cstat(xml_nfse: bytes | str | None) -> str | None:
+    """Lê `cStat` da NFS-e autorizada (`100` = autorizada).
+
+    Por que isto existe: até 2026-11-27 o documento guardava o XML autorizado mas **não** o código de
+    status — medido no banco de desenvolvimento, `codigo_status` era `NULL` inclusive na NFS-e real
+    autorizada cujo XML traz `cStat=100`. O código existia apenas dentro do blob, então perguntar
+    "esta nota está autorizada?" exigia abrir e interpretar o XML.
+
+    `nProt` **não** entra aqui: a NFS-e Nacional não emite número de protocolo como a NF-e; a evidência
+    de autorização é `cStat` + `dhProc` + `nDFSe` no XML (§78). Inventar protocolo seria pior que
+    deixá-lo nulo.
+
+    Nunca levanta: XML inesperado devolve `None`, e a emissão segue (o XML guardado continua sendo a
+    prova; este campo é índice, não fonte de verdade).
+    """
+    if not xml_nfse:
+        return None
+    try:
+        import xml.etree.ElementTree as ET
+
+        raiz = ET.fromstring(xml_nfse)
+    except Exception:
+        return None
+    for elemento in raiz.iter():
+        # Namespace default da NFS-e não tem prefixo: comparar o nome local, não a tag completa.
+        if elemento.tag.rsplit("}", 1)[-1] == "cStat" and elemento.text:
+            return elemento.text.strip()[:10]
+    return None

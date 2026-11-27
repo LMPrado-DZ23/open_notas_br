@@ -615,3 +615,26 @@ multi-prefeitura. Medido: **1156 testes**, 55 rotas, 15 tabelas, 7 migrations.
 ### Adicionado
 
 - Auditoria offline de XML fiscal e biblioteca `notasbr`.
+
+### Corrigido — `codigo_status` da NFS-e não era persistido
+
+- Medido em 2026-11-27: `fiscal_documents.codigo_status` era **NULL em todos os registros**, inclusive na
+  NFS-e real autorizada cujo XML traz `cStat=100`. O código de autorização existia apenas dentro do blob,
+  então "esta nota está autorizada?" exigia abrir o XML.
+- `extrair_cstat()` lê `cStat` com namespace e **nunca levanta**; `RespostaEmissao.codigo_status` é
+  preenchido pelo adapter real **e** pelo dublê (que imita o contrato: `cStat=100`), e o valor é
+  persistido no documento. 6 testes.
+- `protocolo` permanece **nulo de propósito**: a NFS-e Nacional não emite número de protocolo como a
+  NF-e — a evidência é `cStat` + `dhProc` + `nDFSe`. Teste fixa isso para ninguém "corrigir" depois
+  inventando o campo.
+
+### Documentado — ciclo NFS-e reconciliado (README contradizia a si mesmo)
+
+- O cabeçalho do README afirmava NFS-e **autorizada** em Produção Restrita; o quadro "Produção restrita"
+  dizia "falta validar o payload de emissão". As duas afirmações estavam no mesmo arquivo.
+- Evidência reconciliada: `docs/REFERENCIAS.md` §15 (25/11/2026, chave + ciclo completo) e, no banco,
+  3 `authorized` (todas homologação) e o XML autorizado com `cStat=100`/`ambGer=2`.
+- **Correção da minha própria fala:** onde eu disse "zero notas autorizadas", o correto é **zero em
+  produção**; em homologação há autorização real documentada.
+- Nenhum arquivo passou a chamar Produção Restrita de produção: o README agora diz explicitamente que
+  são níveis diferentes.

@@ -471,6 +471,9 @@ async def _persistir_autorizacao(
         chave=resposta.chave_acesso,
         xml_assinado=dps_assinada.decode("utf-8", errors="replace"),
         xml_autorizado=resposta.nfse_xml.decode("utf-8", errors="replace"),
+        # Índice do código de autorização, para não obrigar a abrir o XML (§78). `protocolo` fica
+        # nulo de propósito: a NFS-e Nacional não tem número de protocolo.
+        codigo_status=resposta.codigo_status,
         resposta_bruta=resposta.bruto or None,
         emitido_em=datetime.now(UTC),
     )

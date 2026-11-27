@@ -4076,3 +4076,83 @@ tenant **não afeta** outro.
   não como verificação. Consultar exigiria integração autenticada ao Painel do Contribuinte.
 - `producao` bloqueia sem confirmação — o que significa que **nenhuma emissão real é possível hoje
   sem parametrizar a fonte**. Isso é intencional: o projeto nunca emitiu em produção.
+
+---
+
+## 78. Reconciliação do ciclo NFS-e: README contradizia a si mesmo, e eu contradisse a evidência
+
+**Data:** 2026-11-27. **Fase:** B/F. Atende ao item "Evidências e documentação" do adendo regulatório.
+
+### Três afirmações, duas fontes, uma delas minha
+
+| Onde | O que dizia |
+|---|---|
+| `README.md` cabeçalho | NFS-e **autorizada pela Produção Restrita**, ciclo completo emitir → consultar → DANFSe → cancelar |
+| `README.md` §"Produção restrita" | "falta validar o payload de emissão"; "emissão, cancelamento e eventos seguem `[A VALIDAR]`" |
+| minhas próprias falas desta sessão | "zero notas autorizadas" |
+
+As duas primeiras **se contradiziam** dentro do mesmo arquivo. A terceira era minha, e estava errada como
+afirmação geral.
+
+### O que a evidência mostra
+
+`docs/REFERENCIAS.md` §15 (registro de 25/11/2026) traz a chave autorizada
+`5200258...2611076352769` e o ciclo: `201 status=authorized`, `GET` autorizado com XML, DANFSe de 4.014
+bytes, cancelamento aceito.
+
+Medido no banco de desenvolvimento em **2026-11-27**:
+
+```
+invoices:        3 authorized, 1 cancelled, 10 rejected, 2 pending, 1 error — TODOS ambiente=homologacao
+fiscal_documents: 4 registros, 4 com xml_autorizado e chave, 0 com protocolo
+```
+
+E o XML autorizado guardado, quando lido, é inequívoco:
+
+```
+<NFSe versao="1.01" ...><infNFSe Id="NFS5200258...">
+  <xLocEmi>Águas Lindas de Goiás</xLocEmi> ... <ambGer>2</ambGer>
+  <cStat>100</cStat><dhProc>2026-11-25T20:21:46-03:00</dhProc><nDFSe>44</nDFSe>
+```
+
+`cStat=100` é autorização; `ambGer=2` é homologação. O banco mistura chamadas reais com execuções em
+mock (chaves `6718062...`, de 27/11), mas as chaves `5200258...` de 25/11 são reais.
+
+### Correções aplicadas
+
+1. **`README.md`** — o quadro de "Produção restrita" agora reflete o medido, e há aviso explícito de que
+   **Produção Restrita ≠ produção**. A contradição interna desapareceu.
+2. **`docs/MATRIZ-COBERTURA.md`** — a linha "Autorização (emissão)" passou de `🔒` para
+   ✅ **real em homologação**, com a nota do banco reescrita para separar mock de real.
+3. **Minha fala**: onde eu disse "zero notas autorizadas", o correto é **zero em produção**. Em
+   homologação existe autorização real documentada.
+
+### A "lacuna do protocolo" que eu quase inventei
+
+Cheguei a registrar `protocolo` vazio como lacuna de persistência. Fui ao XML antes de tratar como
+defeito — e **não é**: a NFS-e Nacional não emite número de protocolo como a NF-e; a evidência de
+autorização é `cStat` + `dhProc` + `nDFSe`. Criar coluna/protocolo seria inventar requisito de leiaute.
+
+O defeito real era outro, e foi corrigido: **`codigo_status` era `NULL` em todos os documentos**,
+inclusive na NFS-e autorizada. O `cStat` existia apenas dentro do blob, então "esta nota está
+autorizada?" só se respondia abrindo o XML.
+
+- `extrair_cstat()` em `app/nfse/errors.py` lê `cStat` com namespace e **nunca levanta** (XML inesperado
+  devolve `None`; o XML guardado continua sendo a prova, o campo é índice);
+- `RespostaEmissao.codigo_status` preenchido pelo adapter real **e** pelo dublê — o dublê imita o
+  contrato (`cStat=100`), senão o teste passaria num caminho que a produção não tem;
+- `FiscalDocument.codigo_status` persistido na emissão; `protocolo` permanece nulo **de propósito**,
+  com teste que fixa isso.
+
+### Testes (`tests/test_nfse_cstat.py`, 6)
+
+Extração com namespace; aceita `bytes`; sem `cStat` → `None`; XML inválido não levanta; vazio → `None`;
+e a persistência: emissão grava `codigo_status="100"` e `protocolo is None`.
+
+### O que continua não provado
+
+- **Produção fiscal: nenhuma nota.** A autorização é de homologação;
+- o registro de 25/11 é documental — não reexecutei a emissão real nesta sessão (exigiria certificado e
+  chamada externa), então a classe de evidência é **"registro+banco"**, não "reproduzido hoje";
+- `dhProc`/`nDFSe` continuam só no XML: poderiam virar colunas, mas não são necessários para responder
+  "autorizada?", que é o que `cStat` resolve.

@@ -312,12 +312,21 @@ Esta seção existe para não haver dúvida sobre o que está pronto.
 
 ### Produção restrita (homologação) — exige A1 real
 
-| Item | O que validar |
+O que foi **executado de fato**, com A1 ICP-Brasil e certificado do solicitante (25/11/2026), está em
+[`docs/REFERENCIAS.md` §15](docs/REFERENCIAS.md): NFS-e **autorizada** pela Produção Restrita, com
+consulta, DANFSe e cancelamento aceito.
+
+| Item | Estado medido |
 |---|---|
-| Emissão na SEFIN | mTLS e `GET /dps/{id}` **já confirmados** com A1 real (ver `docs/REFERENCIAS.md` §11); falta validar o payload de emissão |
-| Contrato da API SEFIN | consulta e ADN confirmados com A1 real (§11); emissão, cancelamento e eventos seguem `[A VALIDAR]` |
-| Cancelamento e eventos | fluxo completo com nota real |
-| DANFSe | leiaute conferido contra o manual vigente (NT 008 v1.02 vs v1.01 implementada) |
+| Emissão na SEFIN | ✅ **real, autorizada** em Produção Restrita (§15); mTLS e `GET /dps/{id}` confirmados (§11) |
+| `cStat` do documento | ✅ persistido (`codigo_status = 100`) desde §78 — antes só existia dentro do XML. `protocolo` fica nulo **de propósito**: a NFS-e Nacional não emite número de protocolo |
+| Cancelamento e eventos | ✅ evento aceito pela SEFIN na nota de 25/11 (§15) |
+| DANFSe | ✅ PDF gerado (4.014 bytes) na nota autorizada; leiaute conferido contra NT 008 v1.02 |
+| Produção fiscal | ❌ **nunca**. Produção Restrita é ambiente de teste; não é prova de produção |
+
+> **Produção Restrita ≠ produção.** Uma nota autorizada em homologação prova o contrato e a assinatura,
+> não a habilitação do emitente nem o credenciamento em produção. A emissão em produção segue bloqueada
+> pelo preflight de rota (§77 da auditoria) e pela ausência de credenciamento.
 
 ### Representação de NF-e (pronta)
 
