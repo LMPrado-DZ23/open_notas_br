@@ -648,3 +648,50 @@ multi-prefeitura. Medido: **1156 testes**, 55 rotas, 15 tabelas, 7 migrations.
   build em vez de mascarar o erro; não adiciona dependência de runtime.
 - **Erro meu registrado:** a primeira edição juntou `run: |` na linha do `name:` e quebrou o YAML. O
   `yaml.safe_load` pegou antes do commit. Workflow inválido não roda e produziria vermelho sem log.
+
+### Corrigido — dois certificados ativos assinavam "um ao acaso"
+
+- `certificados.ativo()` fazia `.first()`. Com dois ativos — estado que o banco permite e que a ativação
+  concorrente com upload pode produzir — a emissão **assinava com o titular errado**, e não há como
+  detectar depois: a nota sai autorizada.
+- Agora exige exatamente um: mais de um é `CertificadoAmbiguo`, mapeado a **409** com os certificados
+  listados e a instrução de `POST /v1/me/certificados/{id}/ativar` (rota que já existia).
+- 3 testes: 409 em ambiguidade, resolução por ativação, e um ativo continua emitindo.
+
+### Adicionado — guarda `xfail(strict=True)` para o gap leiaute×XSD
+
+- O código declara homologação em `LEIAUTE_NT009`, mas o pacote de schemas é `nfse-1.01` e não declara
+  `finNFSe`/`vAjusteBC`/`indDest`. Validar "NT 009" contra esse XSD dá falsa segurança.
+- `tests/test_leiaute_nt009_guard.py` passa **como xfail enquanto o gap existir** e **falha quando o XSD
+  oficial entrar** — a marcação terá de sair, forçando a validação real. Não é expectativa relaxada: é
+  gap documentado que quebra no dia da correção.
+- O XSD oficial da NT-009 (2026-11-24) não está no repositório e não será escrito à mão (regra 9).
+
+### Auditado — quatro itens pedidos: nenhum implementado
+
+NT-009 + `indDest` ❌ · Condomínios 99.05.01 ❌ · Anexo VIII ❌ (só validação de formato) · Multi-CNPJ 🌗
+(vários certificados, sem seleção por estabelecimento; procuração 00233 ausente). Pré-requisitos
+oficiais listados em `docs/auditoria_inicial.md` §80.
+
+### Adicionado — gate de evidências oficiais (Adendo 3), com manifesto e matriz
+
+- `sources/manifest.yaml`: 5 fontes coletadas com URL direta, órgão, título, data de acesso, bytes e
+  **SHA-256 calculado sobre os arquivos baixados**; 4 requisitos registrados como **não encontrados** com
+  a lista de onde procurei.
+- `docs/REQUISITOS-FONTES.md`: matriz `REQ | tema | estado | por quê`. Estados: REQ-1..REQ-4 **BLOCKED**,
+  REQ-5 **PARTIAL**. Nenhum `PASS`.
+- `docs/adr/0005-titularidade-e-representacao.md`: decisão de **bloquear** representação por procuração até
+  haver contrato oficial; modo hospedado não aceita certificado de terceiro enquanto isso.
+- **Nenhum** schema, código fiscal, rota ou integração implementado — por exigência do adendo.
+
+### Achado — o XSD do repositório não é o oficial
+
+`tests/fixtures/schemas/nfse-1.01/DPS_v1.01.xsd` tem **678 B** e sha256 `c7dab363…`; o oficial do pacote
+`esquemas-xsd-v1.01-20260209.zip` tem **691 B** e sha256 `fe45e525…`. A validação da suíte prova
+conformidade contra um schema de proveniência **não estabelecida**. Registrado como lacuna; a substituição
+exige o pacote íntegro e revisão dos testes dependentes.
+
+### Achado — o pacote NT-009 de 2026-11-24 não existe nas páginas oficiais consultadas
+
+O mais recente publicado é de **2026-02-09**, e não declara `finNFSe`, `vAjusteBC`, `indDest` nem grupos de
+condomínio. O manual ADN v1.1 (2026-11-03) tem 5 páginas e nenhum dos termos procurados.

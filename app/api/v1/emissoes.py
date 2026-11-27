@@ -28,6 +28,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import tenant_atual
 from app.assessment.service import competencia_de
+from app.certificates.service import CertificadoAmbiguo
 from app.core.config import Settings, get_settings
 from app.danfe import ErroRepresentacao
 from app.danfe import gerar as gerar_representacao
@@ -307,6 +308,11 @@ async def emitir(
         if exc.pendencia:
             detalhe = f"{detalhe}. Pendência: {exc.pendencia}"
         raise HTTPException(status_code=HTTP_422, detail=detalhe) from exc
+    # Conflito, não validação: dois certificados ativos é estado a resolver pelo operador. 409
+    # diz "resolva o estado" e 422 diria "corrija o payload", que é o diagnóstico errado (§80).
+    except CertificadoAmbiguo as exc:
+        await db.rollback()
+        raise HTTPException(status_code=HTTP_409, detail=str(exc)) from exc
     except (ConfiguracaoFiscalAusente, CertificadoAusente, ErroDeEmissao) as exc:
         await db.commit()  # preserva o evento de erro registrado
         raise HTTPException(status_code=HTTP_422, detail=str(exc)) from exc

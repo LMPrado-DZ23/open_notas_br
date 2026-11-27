@@ -4216,3 +4216,147 @@ Que o build de `lxml` do fonte seja desejável. Se o runner voltar a não ter he
 resolve; o certo a médio prazo seria fixar uma versão de `lxml` com wheel garantida para toda matriz
 suportada — mas pin sem necessidade declarada é dívida, e o projeto não declara matriz de runners.
 O gatilho fica registrado aqui em vez de virar pin especulativo.
+
+---
+
+## 80. Certificado ambíguo e divergência leiaute×XSD: dois riscos silenciosos
+
+**Data:** 2026-11-27. **Fase:** A/B. Origem: verificação dos quatro itens pedidos (NT-009, condomínios,
+Anexo VIII, multi-CNPJ), todos **ausentes** — a checagem expôs dois riscos que já existiam.
+
+### 80.1 Dois certificados ativos assinavam "um ao acaso"
+
+`certificados.ativo()` fazia `.first()` sobre `ativo=True`. O banco não tem índice único para isso, e
+um upload concorrente com uma ativação pode deixar dois ativos. Resultado: a emissão escolhia um
+arbitrariamente e **assinava com o titular errado** — e não há como detectar depois, porque a nota sai
+autorizada.
+
+Correção: `ativo()` agora exige **exatamente um**. Zero → `None`; um → ele; mais de um →
+`CertificadoAmbiguo`, com os certificados listados (apelido, id, CNPJ) e a instrução de qual rota usar.
+Na emissão o mapeamento é **409**, não 422: é conflito de estado a resolver pelo operador, não erro de
+payload. A rota `POST /v1/me/certificados/{id}/ativar` já existia e desativa os demais — é a saída.
+
+Testes (`tests/test_certificado_ambiguo.py`, 3): dois ativos → **409** citando a ambiguidade; ativar um
+resolve e a emissão volta a **201**; um ativo único continua emitindo.
+
+### 80.2 O leiaute declarado não tem XSD no repositório
+
+`constants.py` declara homologação em `LEIAUTE_NT009`, mas o pacote de schemas é `nfse-1.01` e **não
+declara** `finNFSe`/`vAjusteBC`/`indDest`. Ou seja: validar "NT 009" contra o XSD que existe dá falsa
+segurança — o schema aceita o documento antigo e recusaria o novo.
+
+Não dá para corrigir sem o **pacote oficial da NT 009 (2026-11-24)** com origem, data e hash; escrever
+schema à mão violaria a regra 9. O que dá para fazer é impedir que o gap passe em silêncio:
+`tests/test_leiaute_nt009_guard.py` é `xfail(strict=True)`.
+
+- passa como **xfail enquanto o gap existir**, com a razão nomeando o bloqueio;
+- **falha no dia em que o XSD oficial entrar** — e aí a marcação tem de sair, forçando a validação real
+  a ocupar o lugar do "esperado falhar".
+
+É o oposto de relaxar expectativa: a suíte fica verde **com o gap documentado**, e a correção quebra o
+teste de propósito.
+
+### 80.3 Os quatro itens pedidos: estado medido
+
+| Item | Estado | Evidência |
+|---|---|---|
+| NT-009 2026-11-24 + `indDest` automático | ❌ | XSD é `nfse-1.01`; **zero** ocorrências de `indDest` em `app/`, `src/`, `tests/` |
+| Condomínios 99.05.01 + `condominios`/`unidades` | ❌ | **zero** ocorrências de `condomin`, `99.05.01`, `gCobranca`, `gDetCobranca`, `CIB` |
+| Anexo VIII (tribISSQN=4, NBS 110019000, cIndOp 020201, CST 200, cClassTrib 200046) | ❌ | só validação de **formato**: `dps.py:38-40`, `tribISSQN` como conjunto `{1,2,3,4}` em `dps.py:47` |
+| Multi-CNPJ por estabelecimento + procuração 00233 | 🌗 parcial → **endurecido** | vários certificados com `cnpj` existem; seleção por estabelecimento e procuração **não** existem |
+
+Sobre o item 3 há um **conflito declarado** com §77: o roteador hoje **bloqueia** emissão nacional em
+município não aderente fora da obrigação do Simples. A exceção de Anexo VIII exige fonte oficial que a
+sustente; sem ela, implementar seria reintroduzir a nota pela rota errada com aparência de autorizada.
+
+### O que continua bloqueado, com o pré-requisito exato
+
+1. **Pacote XSD oficial NT-009 (2026-11-24)** — arquivo + URL + data + hash;
+2. **Manual/leiaute dos grupos `condominios` e `imovel.unidades`** e a regra do 99.05.01;
+3. **Fonte oficial do Anexo VIII** que fixe os cinco códigos e a exceção de rota;
+4. **Regra de titularidade e contrato da procuração eletrônica RFB (00233)** — endpoints, campos,
+   vigência e revogação.
+
+Nenhum desses pode ser suprido por inferência; todos exigem documento oficial que eu não tenho.
+
+---
+
+## 81. Adendo 3 aplicado como bloqueio: fontes oficiais, manifestos e estados
+
+**Data:** 2026-11-27. **Fase:** gate regulatório. **Nenhum schema, código fiscal, rota ou integração foi
+implementado** nesta seção — por exigência do próprio adendo.
+
+### O que foi coletado (fontes oficiais, com hash)
+
+| Fonte | Arquivo | Bytes | SHA-256 (primeiros 16) |
+|---|---|---|---|
+| "Documentação atual" — pacote de esquemas | `esquemas-xsd-v1.01-20260209.zip` | 65.640 | `e7935cbd9470527c` |
+| "Arquivos dos esquemas XSD" (NFS-e via) | `schemas_v1-01_atualizado.zip` | 12.298 | `e17ffb5eb05ecd7e` |
+| Manual contribuintes API ADN v1.1 (2026-11-03) | `.pdf` | 325.925 | `f3c7cf067a51a768` |
+| Portarias e Resoluções CGNFS-e (índice) | `.html` | 92.942 | `2a8bed04f08b073a` |
+
+Manifesto completo, com URL direta, órgão, título, data de acesso e limitação de cada item:
+[`sources/manifest.yaml`](../sources/manifest.yaml). Os arquivos estão versionados para o hash ser
+reverificável offline.
+
+### O que **não** foi encontrado
+
+- **Pacote XSD NT-009 de 2026-11-24**: não existe link nas páginas oficiais consultadas. O pacote mais
+  recente publicado é **`esquemas-xsd-v1.01-20260209.zip`** (2026-02-09).
+- **`finNFSe`, `vAjusteBC`, `indDest`, `condominios`, `gCobranca`**: `grep` vazio nos dois pacotes oficiais
+  baixados.
+- **Manual/leiaute de `condominios` / `imovel.unidades` / 99.05.01**: não localizado.
+- **Ato do Anexo VIII** com 110019000 / 020201 / 200046: índice de resoluções localizado, vínculo **não
+  verificado**.
+- **Documentação oficial da procuração RFB (00233)**: não localizada.
+- O manual ADN v1.1 tem **5 páginas / 5.735 caracteres** e nenhum dos termos procurados — é capa, não
+  especificação.
+
+### Achado adicional: o XSD do repositório não é o oficial
+
+| Arquivo | Tamanho | SHA-256 (16) |
+|---|---|---|
+| `tests/fixtures/schemas/nfse-1.01/DPS_v1.01.xsd` (repo) | 678 | `c7dab363d8cf7c83` |
+| `Schemas/1.01/DPS_v1.01.xsd` (oficial 2026-02-09) | 691 | `fe45e5250a48e519` |
+
+**Diferentes.** O fixture do repositório é menor que o oficial: não é o arquivo publicado. Isso significa
+que a validação XSD que a suíte executa prova conformidade contra um schema **de proveniência não
+estabelecida**, não contra o oficial. Registrado como lacuna, não corrigido — substituir o schema exige o
+pacote oficial íntegro e revisão dos testes que dependem dele.
+
+### Estados (matriz completa em `docs/REQUISITOS-FONTES.md`)
+
+| REQ | Tema | Estado |
+|---|---|---|
+| REQ-1 | XSD NT-009 2026-11-24 + `indDest` | **BLOCKED** |
+| REQ-2 | `condominios` / `imovel.unidades` / 99.05.01 | **BLOCKED** |
+| REQ-3 | Anexo VIII (110019000 / 020201 / 200046) + exceção de rota | **BLOCKED** |
+| REQ-4 | Titularidade, certificado de terceiro, procuração RFB 00233 | **BLOCKED** |
+| REQ-5 | Contrato multitenant (tenant ≠ emitente ≠ certificado ≠ operador) | **PARTIAL** |
+
+Nenhum `PASS`. Nenhum `NOT_TESTED` "otimista": onde procurei e não achei, está `BLOCKED` com o item
+exato faltando.
+
+### ADR 0005 — decisão de bloqueio, não de implementação
+
+[`docs/adr/0005-titularidade-e-representacao.md`](../adr/0005-titularidade-e-representacao.md) registra:
+`tenant_id` continua a fronteira de isolamento; emitente é o CNPJ do certificado ativo; **representação
+por procuração fica bloqueada**; e o modo hospedado **não aceita certificado de terceiro** enquanto não
+houver contrato oficial — limitação declarada ao cliente, não bug.
+
+### O que continua valendo do trabalho anterior
+
+§77 (roteamento com preflight) e §80 (certificado ambíguo → 409, guarda `xfail` do gap XSD) **não** foram
+afrouxados. A exceção de rota do Anexo VIII não foi codificada justamente porque a fonte não existe — e
+implementá-la por hipótese reintroduziria o defeito que §77 corrigiu.
+
+### Pré-requisito exato para desbloquear
+
+1. URL oficial do pacote **NT-009 de 2026-11-24** (ou comunicado que o nomeie);
+2. manual/leiaute de **`condominios` e `imovel.unidades`** com cardinalidade e a regra do 99.05.01;
+3. **ato do Anexo VIII** com os três códigos, significados e a condição da rota excepcional;
+4. **documentação oficial da procuração RFB 00233**: endpoint, autenticação, campos, poderes, vigência,
+   situação e forma de consultar revogação.
+
+Com qualquer um em mão: baixar → SHA-256 → manifesto → atualizar matriz → implementar **só** o contrato
+comprovado → testes positivo e negativo → revisão independente.

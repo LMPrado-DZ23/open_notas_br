@@ -43,6 +43,10 @@ class CertificadoNaoEncontrado(ErroDeCertificadoDeTenant):
     """Não existe certificado com este id para este tenant."""
 
 
+class CertificadoAmbiguo(ErroDeCertificadoDeTenant):
+    """Há mais de um certificado ativo: assinar sem saber qual é assinar às cegas (§80)."""
+
+
 async def registrar(
     sessao: AsyncSession,
     tenant_id: uuid.UUID,
@@ -133,14 +137,32 @@ async def listar(sessao: AsyncSession, tenant_id: uuid.UUID) -> Sequence[TenantC
 
 
 async def ativo(sessao: AsyncSession, tenant_id: uuid.UUID) -> TenantCertificate | None:
-    """Certificado ativo do tenant, se houver."""
+    """Certificado ativo do tenant, se houver **exatamente um**.
+
+    Antes devolvia `.first()`. Com dois certificados ativos — estado possível porque o banco não tem
+    índice único para isso e porque a ativação pode correr com um upload — a emissão escolhia um ao
+    acaso e **assinava com o certificado errado**. Não há como detectar isso depois: a nota sai
+    autorizada com o titular errado.
+
+    Agora, mais de um ativo é ambiguidade declarada: `CertificadoAmbiguo`. O operador resolve com
+    `POST /v1/me/certificados/{id}/ativar`, que desativa os demais (§80).
+    """
     resultado = await sessao.execute(
         select(TenantCertificate).where(
             TenantCertificate.tenant_id == tenant_id,
             TenantCertificate.ativo.is_(True),
         )
     )
-    return resultado.scalars().first()
+    registros = list(resultado.scalars().all())
+    if not registros:
+        return None
+    if len(registros) == 1:
+        return registros[0]
+    raise CertificadoAmbiguo(
+        "há mais de um certificado ativo para este tenant: "
+        + ", ".join(f"{r.apelido} (id={r.id}, cnpj={r.cnpj or chr(63)})" for r in registros[:5])
+        + ". Ative apenas um em POST /v1/me/certificados/{id}/ativar."
+    )
 
 
 async def por_id(

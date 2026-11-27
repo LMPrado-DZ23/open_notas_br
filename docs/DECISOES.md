@@ -184,6 +184,7 @@ deliberado — renumerar ADR aceita reescreveria histórico — mas é preciso s
 |---|---|---|---|
 | [`0001-admin-auth`](adr/0001-admin-auth.md) | Auth mínima de admin para replay de DLQ | 2026-11-26 | aceita e implementada |
 | [`0002-dependencias`](adr/0002-dependencias.md) | `pip check` agora; `pip-audit` com gatilho | 2026-11-26 | aceita e implementada |
+| [`0005-titularidade-e-representacao`](adr/0005-titularidade-e-representacao.md) | Representação por procuração bloqueada até fonte oficial; titular ≠ contribuinte | 2026-11-27 | aceita |
 | [`0003-traces`](adr/0003-traces.md) | OpenTelemetry não agora, com gatilho | 2026-11-27 | aceita (nada instalado) |
 
 Regra prática: decisão que muda **como o projeto é construído** (dependência, auth, observabilidade,
