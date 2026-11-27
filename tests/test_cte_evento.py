@@ -52,3 +52,41 @@ class TestMontagem:
     def test_sequencia_zero_recusa(self) -> None:
         with pytest.raises(ValueError, match="sequência"):
             montar_evento(chave=CHAVE, tipo_evento="110111", cnpj=CNPJ, n_seq=0)
+
+
+class TestEnvio:
+    """`enviar_evento` repassa `cnpj` ao XML.
+
+    Regressão: a função chamava `montar_evento` sem `cnpj` e estourava
+    `TypeError: montar_evento() missing 1 required keyword-only argument: 'cnpj'`.
+    Só aparecia quando alguém realmente chamava `enviar_evento` — não havia teste de envio.
+    """
+
+    async def test_repassa_cnpj_e_chave_ao_xml(self) -> None:
+        from app.cte.evento import enviar_evento
+
+        class SefazFalso:
+            def __init__(self) -> None:
+                self.chamadas: list[dict] = []
+
+            async def chamar(self, **kwargs):
+                self.chamadas.append(kwargs)
+                return "resposta"
+
+        sefaz = SefazFalso()
+        saida = await enviar_evento(
+            sefaz,
+            url="https://exemplo.invalid/cte",
+            chave=CHAVE,
+            tipo_evento="110111",
+            cnpj=CNPJ,
+        )
+
+        assert saida == "resposta"
+        assert len(sefaz.chamadas) == 1
+        chamada = sefaz.chamadas[0]
+        assert chamada["url"] == "https://exemplo.invalid/cte"
+        assert CNPJ.encode() in chamada["xml_fiscal"]
+        assert CHAVE.encode() in chamada["xml_fiscal"]
+        assert chamada["elemento_dados"] == ELEMENTO_DADOS
+        assert chamada["soap_versao"] == SOAP_VERSAO

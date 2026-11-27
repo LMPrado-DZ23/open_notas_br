@@ -197,8 +197,9 @@ def _uma_mensagem(item: Any) -> MensagemSefin | None:
         texto = item.strip()
         return MensagemSefin(None, texto) if texto else None
     if not isinstance(item, dict):
-        texto = _achatar(item)
-        return MensagemSefin(None, texto) if texto else None
+        # Nome próprio: `texto` já foi estreitado para `str` no ramo acima.
+        solto = _achatar(item)
+        return MensagemSefin(None, solto) if solto else None
 
     minusculo = {str(k).lower(): v for k, v in item.items()}
     codigo = _achatar(

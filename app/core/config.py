@@ -177,11 +177,6 @@ class Settings(BaseSettings):
         )
         return chave_dev
 
-    def reset_ephemeral_key(self) -> None:
-        """Descarta a chave efêmera. Existe para isolamento entre testes."""
-        global _CHAVE_EFEMERA
-        _CHAVE_EFEMERA = None
-
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

@@ -18,15 +18,20 @@ class TestChaveMestra:
         settings = Settings(environment="development", master_encryption_key=chave_b64())
         assert settings.master_key() == b"\x01" * 32
 
-    def test_desenvolvimento_sem_chave_gera_efemera_estavel(self) -> None:
+    def test_desenvolvimento_sem_chave_deriva_chave_estavel(self) -> None:
+        """Sem chave no ambiente, a chave é determinística — e isso é deliberado.
+
+        API e worker são processos separados: com chave efêmera por processo, a API sela o
+        segredo e o worker não consegue abrir (`InvalidTag`). Por isso é constante derivada,
+        não sorteada. Não há `reset_ephemeral_key`: não existe chave efêmera para descartar.
+        """
         settings = Settings(environment="development", master_encryption_key="")
-        settings.reset_ephemeral_key()
 
         primeira = settings.master_key()
         segunda = settings.master_key()
 
         assert len(primeira) == 32
-        assert primeira == segunda, "a chave efêmera deve ser estável dentro do processo"
+        assert primeira == segunda, "a chave de desenvolvimento deve ser estável dentro do processo"
 
     def test_producao_sem_chave_falha(self) -> None:
         settings = Settings(environment="production", master_encryption_key="")

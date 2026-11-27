@@ -19,7 +19,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
 
 from app.api.deps import tenant_atual
-from app.danfe import ErroRepresentacao, disponiveis, obter
+from app.danfe import ErroRepresentacao, RepresentacaoImpressa, disponiveis, obter
 from app.danfe.nfe import Danfse, EtiquetasVolume, registrar_todas
 from notasbr.erros import XmlInvalido
 
@@ -72,6 +72,9 @@ async def gerar_representacao(
     if not conteudo.strip():
         raise HTTPException(status_code=HTTP_422, detail="arquivo vazio")
 
+    # Anotação explícita: sem ela o mypy infere `EtiquetasVolume` do primeiro ramo e acusa
+    # os outros dois como atribuição incompatível. O tipo real é a interface comum.
+    representacao: RepresentacaoImpressa
     # A etiqueta precisa da quantidade de volumes, que o catálogo não carrega.
     if formato == "etiquetas":
         representacao = EtiquetasVolume(quantidade_volumes=volumes)

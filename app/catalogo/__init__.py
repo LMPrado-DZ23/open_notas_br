@@ -149,7 +149,9 @@ def validar_lote(brutas: Iterable[dict[str, Any]]) -> tuple[list[LinhaEndpoints]
     """Valida o lote inteiro. Devolve (válidas, erros) sem parar no primeiro erro."""
     validas: list[LinhaEndpoints] = []
     erros: list[str] = []
-    vistos: dict[tuple[str, str, str], int] = {}
+    # A chave inclui o modelo: NF-e (55) e NFC-e (65) usam o mesmo serviço em UFs
+    # diferentes, e sem o modelo uma importação sobrescreveria a outra.
+    vistos: dict[tuple[str, str, str, str], int] = {}
 
     for indice, bruta in enumerate(brutas, start=1):
         try:

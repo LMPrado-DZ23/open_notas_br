@@ -76,14 +76,24 @@ async def enviar_evento(
     url: str,
     chave: str,
     tipo_evento: str,
+    cnpj: str,
     n_seq: int = 1,
     ambiente: str = "2",
 ) -> RespostaSefaz:
-    """Envia o evento. `url` vem do catálogo; nenhum literal de endereço aqui."""
+    """Envia o evento. `url` vem do catálogo; nenhum literal de endereço aqui.
+
+    `cnpj` é obrigatório porque o evento é assinado pelo emitente: sem ele o XML não tem
+    autor e o autorizador recusa. Antes esta função não repassava o campo e a chamada
+    estourava `TypeError` (achado por `mypy`, `call-arg`).
+    """
     return await sefaz.chamar(
         url=url,
         xml_fiscal=montar_evento(
-            chave=chave, tipo_evento=tipo_evento, n_seq=n_seq, ambiente=ambiente
+            chave=chave,
+            tipo_evento=tipo_evento,
+            cnpj=cnpj,
+            n_seq=n_seq,
+            ambiente=ambiente,
         ),
         ns_servico=NS_SERVICO,
         soap_versao=SOAP_VERSAO,

@@ -364,9 +364,10 @@ async def emitir(
     except ErroSefin as erro:
         # Timeout ambíguo: a nota pode existir. Consultar antes de acusar falha.
         if erro.pode_ter_sido_processada and id_dps:
-            resposta = await _tentar_recuperar(cliente, id_dps, erro)
-            if resposta is None:
+            recuperada = await _tentar_recuperar(cliente, id_dps, erro)
+            if recuperada is None:
                 raise
+            resposta = recuperada
             logger.warning(
                 "emissao_recuperada_apos_timeout",
                 extra={"invoice_id": str(invoice.id), "chave": resposta.chave_acesso},
