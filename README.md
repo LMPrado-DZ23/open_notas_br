@@ -479,6 +479,10 @@ motivo** — nunca aprovados silenciosamente.
 - [Decisões (ADRs)](docs/DECISOES.md)
 - [Referências e etiquetas de confiança](docs/REFERENCIAS.md)
 - [Roadmap das fases](docs/ROADMAP.md)
+- [Matriz de cobertura fiscal](docs/MATRIZ-COBERTURA.md) — o que existe por documento e qual
+  prova sustenta (teste × chamada real × bloqueado). Leia antes de acreditar em qualquer tabela.
+- [Operação](docs/OPERACAO.md) — backup, restore, migrations e rollback, rotação de chave e
+  resposta a incidente, com o modo de falha de cada componente (fail-open × fail-closed).
 
 ## Etiquetas de confiança
 

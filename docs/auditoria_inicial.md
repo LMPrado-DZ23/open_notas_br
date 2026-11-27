@@ -2681,3 +2681,55 @@ peso real (SDK + exporter) e precisa de ADR próprio.
 
 O container da API em execução **não** tem esta mudança (imagem anterior ao commit) — a verificação
 foi feita em processo, pelo cliente ASGI dos testes.
+
+---
+
+## 52. Dois entregáveis operacionais: matriz de cobertura e runbook
+
+**Data:** 2026-11-26. **Fase:** F. Ambos estavam na lista do objetivo e não existiam.
+
+### `docs/MATRIZ-COBERTURA.md`
+
+Matriz por documento e operação, com **nível de prova** explícito em cada célula: `✅ teste`
+(mock determinístico), `✅ real` (chamada medida ao autorizador), `🔒 bloqueado` (falta credencial),
+`❌ ausente`. A legenda diz, no topo, que `✅ teste` **não** é homologação.
+
+Achado ao montar a matriz: o banco de desenvolvimento tem `1` fatura `authorized` e `2` documentos
+com `xml_autorizado`, mas **`0` com `protocolo`** — e mistura execuções em mock com chamadas reais.
+Portanto **não serve como prova de autorização**; está escrito assim na matriz, em vez de virar
+"emissão homologada".
+
+### `docs/OPERACAO.md`
+
+Runbook com o que o operador executa, verificado no código:
+
+| Tema | Fato verificado |
+|---|---|
+| Backup | o banco contém **documento fiscal e dados de cliente**; o dump precisa do mesmo cuidado |
+| Chave-mestra | **não** está no banco; backup sem ela é inútil (PFX selado não abre) |
+| Rotação de chave-mestra | **não existe re-selagem** (grep por `rotacionar|rotation|resselar` em `app/core` = zero) → trocar a chave exige reenviar A1 e regravar segredos |
+| Rollback | 11 migrations, **todas** com `downgrade()`; downgrade de tabela criada **dropa dado** |
+| Rate limit | **fail-open** por desenho (`ratelimit.py`): storage fora ⇒ permite |
+| Readiness | **fail-closed**: 503 sem banco/Redis; worker só reprova com `READINESS_EXIGE_WORKER=true` |
+| Circuito | **fail-closed**: 503 sem chamar a SEFAZ |
+| DLQ replay | `X-Admin-Key`; rota responde **404** quando `ADMIN_HABILITADO=false` |
+| Retenção | **não há expurgo automático**; prazo legal é decisão do operador, não do sistema |
+
+O runbook inclui o que **não** existe (HA, PITR, rotação automática, exclusão de tenant por API) —
+lacuna declarada, não promessa.
+
+### Descoberta que muda o veredito de "pronto"
+
+A ausência de re-selagem significa que **trocar `MASTER_ENCRYPTION_KEY` invalida todos os
+certificados e segredos já gravados**. Isso não é bug de código, é limitação de operação — e agora
+está no runbook com o procedimento correto (reenvio), em vez de descoberto em produção.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| leitura de `alembic/versions` | 11/11 com `downgrade()` |
+| `docker compose exec postgres psql …` | `fiscal_documents`: 2, com `xml_autorizado` 2, com `protocolo` **0** |
+| gate completo | 9/9 (docs não alteram código) |
+
+Ambos os documentos estão linkados no README.

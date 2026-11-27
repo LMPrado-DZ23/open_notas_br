@@ -5,6 +5,21 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — matriz de cobertura fiscal e runbook de operação
+
+- `docs/MATRIZ-COBERTURA.md`: por documento e operação, com **nível de prova** explícito
+  (`✅ teste` × `✅ real` × `🔒 bloqueado` × `❌ ausente`) e a legenda dizendo que teste não é
+  homologação.
+- Achado ao montar: o banco de dev tem 1 fatura `authorized` e 2 documentos com `xml_autorizado`,
+  mas **0 com `protocolo`**, misturando mock e real — registrado como **não sendo prova** de
+  autorização, em vez de virar "emissão homologada".
+- `docs/OPERACAO.md`: backup/restore (o dump contém documento fiscal e dado de cliente), migrations
+  e rollback (11/11 com `downgrade()`, mas downgrade de tabela criada **dropa dado**), rotação de
+  chave, incidentes e a tabela fail-open × fail-closed de cada componente.
+- **Descoberta:** não existe re-selagem ao trocar `MASTER_ENCRYPTION_KEY` — trocar a chave exige
+  reenviar A1 e regravar segredos. Está no runbook com o procedimento, não escondido.
+- Ambos linkados no README.
+
 ### Adicionado — `/metrics` em formato Prometheus (sem dependência)
 
 - Não havia métrica nenhuma: só `GET /health/circuitos` em JSON, inútil para scraping. Agora
