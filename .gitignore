@@ -94,3 +94,5 @@ sources/oficiais/esq-tmp/
 sources/oficiais/schemas_v1-01/
 sources/oficiais/esquemas-oficiais-1.01/
 sources/oficiais/manual-adn-v1.1.txt
+# Árvores extraídas dos ZIPs oficiais (derivadas — o ZIP versionado é a fonte; hash no manifesto).
+sources/oficiais/nt009-xsd/

@@ -106,6 +106,102 @@ fontes:
     limitacao: >
       Documento de **requisito**, não de fonte oficial. Não é prova de regra fiscal; define o gate.
 
+  - id: F-XSD-NT009-20261124
+    requisito: [REQ-1, REQ-2]
+    orgao: cgnfs-e
+    titulo: "Esquemas XSD Produção Restrita 2026-11-24 (NT-009)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/producao-restrita/esquemas-xsd-producao-restrita-20261124.zip"
+    arquivo: sources/oficiais/esquemas-xsd-producao-restrita-20261124.zip
+    bytes: 39728
+    sha256: 1ca83c1a7929f6d5684c9a17700fe3d3a375e4ea12b7ccb832bfc369768902c0
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "pacote oficial de 10 XSD; declara finNFSe, indDest, vAjusteBC, condominios, gCobranca, gDetCobranca e unidades — é o pacote que o Adendo 3 exigia"
+
+  - id: F-ANEXO-I-DPS-20261124
+    requisito: [REQ-1, REQ-2]
+    orgao: cgnfs-e
+    titulo: "Anexo I SEFIN ADN DPS NFSe SNNFSe Produção Restrita v1.01 2026-11-24"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/producao-restrita/anexo_i-sefin_adn-dps_nfse-snnfse_prodrest-v1-01-20261124.xlsx"
+    arquivo: sources/oficiais/anexo-i-dps-nfse-prodrest-v1.01-20261124.xlsx
+    bytes: 245045
+    sha256: cf4d1d36daae5600060db2b36d9a84a703aa209cb099a0abbd7d3793c3e7e928
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "leiaute da DPS com os grupos da NT-009 (campo a campo)"
+
+  - id: F-NT-009-V1.01
+    requisito: [REQ-1, REQ-2]
+    orgao: cgnfs-e
+    titulo: "Nota Técnica SE/CGNFS-e nº 009 versão 1.01 (01/10/2026)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc/nota-tecnica-009-se-cgnfs-e-v-1-01.pdf"
+    arquivo: sources/oficiais/nt-009-se-cgnfs-e-v1.01-20261001.pdf
+    bytes: 703145
+    sha256: cc86c9402e317e84eb3a9f48bbd5e0b8e3dcd84f2645700190c84d45bf1ea58e
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "define finNFSe, vAjusteBC e os grupos de condomínio (subitem 99.05: vCobranca, vDescCond, grupo imovel)"
+
+  - id: F-ANEXO-VIII-1.02.00
+    requisito: [REQ-3]
+    orgao: cgnfs-e
+    titulo: "Anexo VIII versão 1.02.00 (26/10/2026) — correlação Item de Serv., NBS, cClassTrib e cIndOp"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc/anexo_viii-tabela-correlacao-v01-02-00-20261026.xlsx"
+    arquivo: sources/oficiais/anexo-viii-v01.02.00-20261026.xlsx
+    bytes: 151656
+    sha256: 12cc80bc92687856b47e961b98cdbaa3f8cae568c099b3ef71994e73482ac7d0
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "a própria página oficial traz AVISO: anexo em desenvolvimento e SEM regras de negócio baseadas nele no Piloto RTC nem em Produção"
+
+  - id: F-ANEXO-VI-RN-1.04.01
+    requisito: [REQ-1, REQ-2]
+    orgao: cgnfs-e
+    titulo: "Anexo VI — Leiautes e Regras de Negócio RTC IBS/CBS v1.04.01 (NT-009)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc/anexovi-leiautesrn_rtc_ibscbs-v1-04-01-nt009.xlsx"
+    arquivo: sources/oficiais/anexo-vi-leiautes-rn-rtc-ibscbs-v1.04.01-nt009.xlsx
+    bytes: 296297
+    sha256: 103a150dd6f56ec8edcaa3a453b59a1b0e096d7cd5025d7bd06a387f141ddf39
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "regras de negócio dos grupos IBS/CBS e de condomínios"
+
+  - id: F-ANEXO-VII-INDOp-1.03.00
+    requisito: [REQ-3]
+    orgao: cgnfs-e
+    titulo: "Anexo VII — IndOp IBS/CBS v1.03.00 (NT-009)"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/rtc/anexovii-indop_ibscbs_v1-03-00-nt009.xlsx"
+    arquivo: sources/oficiais/anexo-vii-indop-ibscbs-v1.03.00-nt009.xlsx
+    bytes: 27475
+    sha256: 95f30a44ee94adeea57fb92f3a0337b1e62fdc106f393e73894087889be9e5aa
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "tabela de indicador de operação (cIndOp)"
+
+  - id: F-ANEXO-B-NBS2
+    requisito: [REQ-3]
+    orgao: cgnfs-e
+    titulo: "Anexo B — NBS 2.0 lista de serviço nacional v1.01 2026-01-22"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/producao-restrita/anexo_b-nbs2-lista_servico_nacional-snnfse-prodrest-v1-01-20260122.xlsx"
+    arquivo: sources/oficiais/anexo-b-nbs2-v1.01-20260122.xlsx
+    bytes: 84980
+    sha256: 1c07fd27ea447adca6c55efef3bb1de1efd97dfe4bac019389844dad9d86fd35
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "contém o código NBS 110019000"
+
+  - id: F-ANEXO-C-INDOp
+    requisito: [REQ-3]
+    orgao: cgnfs-e
+    titulo: "Anexo C — IndOp IBS/CBS v1.01 2026-01-22"
+    url_arquivo: "https://www.gov.br/nfse/pt-br/biblioteca/documentacao-tecnica/producao-restrita/anexo_c-indop_ibscbs-snnfse-prodrest-v1-01-20260122.xlsx"
+    arquivo: sources/oficiais/anexo-c-indop-ibscbs-v1.01-20260122.xlsx
+    bytes: 17966
+    sha256: f13b08dc802e82c3c43d591d06575922095595a17c94e61bc4a37c41633a744b
+    data_acesso: "2026-11-27"
+    status_coleta: coletado
+    limitacao: "contém o código 020201"
+
 nao_encontrado:
   - requisito: REQ-1
     procurado: "pacote XSD identificado como NT-009, publicado/atualizado em 2026-11-24"

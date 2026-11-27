@@ -11,10 +11,10 @@ execução. O que existe é código anterior aos requisitos, e ele **não** foi 
 
 | REQ | Tema | Estado | Por quê |
 |---|---|---|---|
-| REQ-1 | XSD NT-009 (2026-11-24) + `indDest` | **BLOCKED** | pacote NT-009 não encontrado nas páginas oficiais; o mais recente publicado é de 2026-02-09 e não declara os elementos |
-| REQ-2 | `condominios` / `imovel.unidades` / 99.05.01 | **BLOCKED** | nenhum manual/leiaute obtido; pacotes XSD oficiais não declaram os grupos |
-| REQ-3 | Anexo VIII: 110019000 / 020201 / 200046 + exceção de rota | **BLOCKED** | índice de resoluções localizado, vínculo com o Anexo VIII não verificado |
-| REQ-4 | Titularidade, certificado de terceiro, procuração RFB 00233 | **BLOCKED** | sem documentação técnica oficial do serviço de procuração; sem endpoint confirmado |
+| REQ-1 | XSD NT-009 (2026-11-24) + `indDest` | **PARTIAL** | **fonte obtida** em 2026-11-27: `esquemas-xsd-producao-restrita-20261124.zip` (sha256 `1ca83c1a…`) declara `finNFSe`, `indDest`, `vAjusteBC`. Falta adotar o schema, documentar a regra de `indDest` e validar (implementação não feita) |
+| REQ-2 | `condominios` / `imovel.unidades` / 99.05.01 | **PARTIAL** | **fonte obtida**: NT-009 v1.01, Anexo I (DPS 2026-11-24) e Anexo VI v1.04.01; o XSD oficial declara `condominios`, `gCobranca`, `gDetCobranca`, `unidades`. Falta a tabela campo a campo e os testes |
+| REQ-3 | Anexo VIII: 110019000 / 020201 / 200046 | **NÃO IMPLEMENTAR (fonte diz que não há regra)** | Anexo VIII v1.02.00, Anexo B (NBS 110019000) e Anexo C (020201) obtidos. A **página oficial** do Anexo VIII avisa: "apenas um trabalho inicial, ainda em desenvolvimento" e "**NÃO HÁ REGRAS DE NEGÓCIO BASEADAS NESTE ANEXO** no Piloto RTC nem em Produção". Codificar roteamento a partir dele contrariaria a fonte |
+| REQ-4 | Titularidade, certificado de terceiro, procuração RFB 00233 | **BLOCKED** | documentação técnica oficial do serviço não localizada. Achado secundário (não oficial) indica **indisponibilidade** de procuração eletrônica para as APIs da NFS-e — tratado como pista, não como prova |
 | REQ-5 | Contrato multitenant (tenant ≠ emitente ≠ certificado ≠ operador) | **PARTIAL** | campos existem e são usados; falta `procurador` e vínculo certificado↔estabelecimento |
 
 ## Detalhe por requisito
@@ -108,3 +108,50 @@ sistema em vez de supor regra.
 
 Com qualquer um desses em mão, o ciclo é: baixar → hash → registrar no manifesto → atualizar esta matriz
 → implementar só o contrato comprovado → testar positivo/negativo → revisão independente.
+
+---
+
+## Atualização 2026-11-27 (segunda rodada) — a busca encontrou o que a navegação não achou
+
+**Correção de um erro meu, registrada de propósito.** Na primeira rodada eu afirmei que o pacote XSD da
+NT-009 de 24/11/2026 "não existe nas páginas oficiais" e que só havia o de 2026-02-09. **Estava errado**:
+eu tinha navegado apenas por `documentacao-atual` e `arquivos-dos-esquemas-xsd`, sem usar busca e sem
+abrir as páginas **RTC** e **Documentação Técnica (Homologação/testes)**. O usuário cobrou o uso da busca;
+com ela, os quatro itens apareceram em minutos.
+
+### Fontes obtidas agora (hash no manifesto)
+
+| Fonte | Arquivo | Bytes | SHA-256 (16) |
+|---|---|---|---|
+| **Esquemas XSD Produção Restrita 2026-11-24** | `esquemas-xsd-producao-restrita-20261124.zip` | 39.728 | `1ca83c1a7929f6d5` |
+| Anexo I — DPS NFSe v1.01 2026-11-24 | `.xlsx` | 245.045 | `cf4d1d36daae5600` |
+| NT-009 v1.01 (01/10/2026) | `.pdf` | 703.145 | `cc86c9402e317e84` |
+| Anexo VI — Leiautes/Regras RTC v1.04.01 | `.xlsx` | 296.297 | `103a150dd6f56ec8` |
+| Anexo VII — IndOp v1.03.00 | `.xlsx` | 27.475 | `95f30a44ee94adee` |
+| **Anexo VIII v1.02.00 (26/10/2026)** | `.xlsx` | 151.656 | `12cc80bc92687856` |
+| Anexo B — NBS 2.0 v1.01 | `.xlsx` | 84.980 | `1c07fd27ea447adc` |
+| Anexo C — IndOp v1.01 | `.xlsx` | 17.966 | `f13b08dc802e82c3` |
+
+O pacote de 24/11/2026 **declara** `finNFSe` (`TSRTCFinNFSe`), `indDest` (`TSRTCIndDest`), `vAjusteBC`
+(`TCInfoAjusteBC`), `condominios` (`TCRTCInfoCondominios`), `gCobranca`, `gDetCobranca` e `unidades` —
+exatamente os elementos que eu havia declarado ausentes.
+
+### O que isso muda nos estados
+
+- **REQ-1 e REQ-2 saem de BLOCKED para PARTIAL**: a fonte existe e está preservada com hash; falta
+  adotar o schema, documentar a regra de `indDest`, montar a tabela campo a campo e testar. Nada disso
+  foi implementado nesta rodada — e não será por inferência.
+- **REQ-3 muda de natureza.** O Anexo VIII foi obtido, mas a própria página oficial do gov.br diz, em
+  destaque, que ele é "apenas um trabalho inicial, ainda em desenvolvimento" e que "**NÃO HÁ REGRAS DE
+  NEGÓCIO BASEADAS NESTE ANEXO** no ambiente do Piloto RTC (Produção Restrita) nem em Produção".
+  Implementar o roteamento de Anexo VIII com códigos fixos seria **contrariar a fonte**, não cumpri-la.
+  Registro como decisão fundamentada, não como pendência.
+- **REQ-4 continua BLOCKED.** A busca trouxe apenas fonte secundária (ofício de entidade pedindo a
+  implementação de procuração para as APIs da NFS-e), o que é **pista**, não documentação oficial.
+
+### O que NÃO foi feito nesta rodada
+
+Nenhum schema foi adotado, nenhum campo de condomínio foi implementado, nenhuma regra de `indDest` foi
+escrita. A regra do projeto (prompt §9) e o Adendo 3 exigem, antes de codificar: preservar o pacote,
+validar os **dois leiautes**, documentar a regra e provar não-regressão. Isso é a próxima fatia, e ela
+começa pela adoção do XSD de 24/11/2026 com manifesto próprio.
