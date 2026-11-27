@@ -3433,3 +3433,68 @@ vencimento.
   foi restaurado ao final (`nfse_adapter: sefin`).
 - A demo usa certificado **autoassinado** gerado no próprio script; não prova aceitação pela SEFAZ.
 - Nenhum registro de documento autorizado foi produzido: o mock devolve um documento derivado da DPS.
+
+---
+
+## 65. Consolidação final da série (2026-11-27)
+
+Seção de fechamento: o que foi corrigido, o que está provado e **o que continua aberto**. Números
+medidos nesta data, não herdados.
+
+### Medições finais (executadas isoladamente)
+
+| Medida | Valor | Como |
+|---|---|---|
+| Suíte | **1479 testes, 0 falhas** | `pytest tests` (exit 0) |
+| Cobertura | **87,74%** | `pytest --cov=app` (mínimo 80) |
+| Gate | **9/9** | `python -m scripts.check_ci --tudo` |
+| mypy | **0 erros / 174 arquivos** | `mypy app src` |
+| Segredos | **nenhum em 496 arquivos** | `scripts/verificar_segredos` |
+| Demo ponta a ponta (container, mock) | **20/20** | `scripts/demo_e2e` |
+| p95 mock | **285,5 ms** | `scripts/benchmark_mock` (n=60) |
+| PR | **#24 commits**, `MERGEABLE`, CI `success` | `gh pr view 1` |
+
+### Defeitos corrigidos nesta série (13)
+
+| # | Defeito | Efeito real | Seção |
+|---|---|---|---|
+| 1 | `Settings` no lugar de `AmbienteFiscal` (3 módulos) | emissão sempre em homologação, sem mTLS | §44 |
+| 2 | `cert_pem` inexistente na rota de status | **500** sempre que havia certificado | §44 |
+| 3 | `enviar_evento` sem `cnpj` | **TypeError** em todo evento de CT-e | §44 |
+| 4 | Circuito só na emissão | cancelamento/evento queimavam timeout | §47 |
+| 5 | `reset_ephemeral_key` inútil | função que mentia | §44 |
+| 6 | Teste de contrato só em `paths` | `openapi.json` desatualizado passava | §49 |
+| 7 | `/health` sem o worker | painel verde com worker morto | §49 |
+| 8 | Sem re-selagem de chave-mestra | trocar chave invalidava tudo | §53 |
+| 9 | Webhook sem DLQ ao esgotar | entrega perdida sem aviso | §54 |
+| 10 | **Corrida de idempotência** | **500** em reenvio simultâneo | §55 |
+| 11 | Payload divergente devolvia nota antiga | nota trocada em silêncio | §57 |
+| 12 | Rate limit nunca instalado | flag ligava proteção inexistente | §58 |
+| 13 | Banco sem `statement_timeout` | uma query travada derrubava a API | §60 |
+
+### O que está provado por ambiente
+
+| Nível | Evidência |
+|---|---|
+| **Código + teste** | 1479 testes, cobertura 87,74%, gate 9/9 |
+| **Mock em container** | demo 20/20 com PostgreSQL e Redis reais |
+| **Homologação real** | consultas de status (`cStat 107`) e uma consulta de situação (`236`), registradas em §31 |
+| **Produção** | **nada** |
+
+### O que continua aberto (declarado, não escondido)
+
+1. **NFS-e multi-prefeitura não ligado** (§59) — motor existe, `servico.py` sempre usa o nacional.
+2. **Sem rotas** de transmissão CT-e/MDF-e e de consulta de situação (§59).
+3. **Worker não usa** o helper retry→DLQ genérico (§59).
+4. **Sem traces** (ADR 0003) e **sem CVE scan** (ADR 0002) — decisões com gatilho.
+5. **Exemplos de response** ausentes no OpenAPI (§63).
+6. **p95 sem folga**: p99 > 300 ms; custo dominante é assinatura RSA.
+7. **Circuito e métricas** em memória por processo.
+8. **Bloqueios externos**: credenciamento SEFAZ-GO, CSC por UF, inutilização inexistente em 4.00,
+   OAuth Melhor Envio.
+
+### Veredito
+
+**Pronto no código para a próxima validação.** Não homologado, não em produção. O que separa este
+estado de produção não é código pendente do meu lado — é credenciamento, certificado real com
+aceitação do autorizador e ambiente de homologação liberado.
