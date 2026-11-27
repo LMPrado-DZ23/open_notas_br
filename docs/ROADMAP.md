@@ -241,14 +241,17 @@ que existem.
 
 ## Critérios de go-live — verificação
 
+**Medido em 2026-11-26**, sobre `work/auditoria-e-fase-a` (base `55351cb`). Números anteriores (573 testes, 85,41%) foram substituídos pela medição atual; ver `docs/auditoria_inicial.md` §44.
+
 | Critério | Evidência | Estado |
 |---|---|---|
 | `docker compose up` sobe tudo | `down` + `up`: api, worker, postgres, redis `healthy` | ✅ |
 | `/health` responde | 200 em readiness | ✅ |
-| Testes passando | **573** | ✅ |
-| Cobertura ≥ 80% nos módulos fiscais e de segurança | total **85,41%**; servico 85%, dps 91%, signer 89%, adapter 80%, tax 90%, certificates 97%, crypto 100%, security 100%, tenants 93/100% | ✅ |
+| Testes passando | **1406** (`pytest -q`, 0 failed) | ✅ |
+| Cobertura ≥ 80% nos módulos fiscais e de segurança | total **87,98%** (`pytest --cov=app --cov=notasbr`, 10 427 statements) | ✅ |
 | Piso de cobertura imposto no CI/local | `[tool.coverage.report] fail_under = 80` | ✅ |
-| Fluxo fim-a-fim mockado demonstrável | `python -m scripts.demo_e2e` → **18/18** | ✅ |
+| Tipagem sem erros | `mypy app src` -> Success: no issues found in 173 source files; passo no CI e no gate (7/7) | ✅ |
+| Fluxo fim-a-fim mockado demonstrável | `python -m scripts.demo_e2e` — **não reexecutado em 2026-11-26**: o stack local estava com `NFSE_ADAPTER=sefin` e a demo agora recusa rodar assim (aborta com código 2 antes de escrever). Exige `NFSE_ADAPTER=mock`. | ⚠️ |
 | README diz o que é produção restrita e o que falta validar | seção "Estado de maturidade" | ✅ |
 | Nenhum segredo no repositório | testes: `.gitignore` cobre `*.pfx`/`*.p12`/`.env`; nenhum certificado no diretório | ✅ |
 | `.env.example` cobre todas as variáveis | teste compara com `Settings.model_fields` (30 campos) | ✅ |
