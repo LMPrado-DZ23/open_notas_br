@@ -5,6 +5,22 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Verificado — demo ponta a ponta em container, com 20/20 verificações
+
+- A demo estava registrada como "não reexecutada" desde a Fase 7. Executada agora em container, com
+  PostgreSQL e Redis reais e `NFSE_ADAPTER=mock`: tenant → A1 → webhook → emissão (chave de 50) →
+  DANFSe (PDF válido) → webhook assinado com HMAC válida → apuração (ISS 7,50) → guia DNA.
+- **A demo pegou uma expectativa desatualizada:** o passo de idempotência reenviava corpo **parcial**
+  com a mesma chave e esperava 200. Depois de §57 isso é **409** — corretamente. Corrigido para provar
+  os dois casos: reenvio idêntico → 200 com a mesma fatura; corpo divergente → 409.
+- **Armadilha operacional documentada** (e vivida): o compose tem **três** imagens (`api`, `worker`,
+  `migrate`). Rebuildar só duas deixa `migrate` velho e o erro aparece como
+  `alembic: Can't locate revision identified by '0011'` — que parece problema de banco, não de imagem.
+  Registrado em `docs/OPERACAO.md` §9 com o diagnóstico (`alembic current` dentro do container).
+- Provado no container: `/health` traz `nfse_adapter` e `worker.ok`, `/metrics` rotula por **template**
+  (sem UUID), circuitos respondem, flag de rate limit no-op quando desligada.
+- Adaptador real restaurado ao final (`nfse_adapter: sefin`).
+
 ### Adicionado — coleção Postman gerada do contrato, com guarda anti-drift
 
 - Medido: 67 operações no OpenAPI e **nenhuma coleção**. Agora `scripts/gerar_postman.py` gera

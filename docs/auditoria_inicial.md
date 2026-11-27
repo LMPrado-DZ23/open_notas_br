@@ -3371,3 +3371,65 @@ Resultado medido: **18 pastas**, **67 requisições**, **14 com corpo**.
   de partida, não requisição pronta; está escrito na descrição da coleção.
 - A coleção não tem testes de script (Postman test assertions). Isso exigiria runner Postman/Newman,
   que é dependência nova — regra 11, com ADR que não fiz.
+
+---
+
+## 64. Demo ponta a ponta executada em container — e um teste que estava desatualizado
+
+**Data:** 2026-11-27. **Fase:** verificação (critério F9 "fluxo mockado demonstrável"). Antes disto, a
+demo estava registrada como "não reexecutada" desde a Fase 7.
+
+### Como foi feito
+
+1. `docker compose build api worker` — os containers rodavam **imagem anterior** aos 23 commits;
+2. `docker compose up -d` com `NFSE_ADAPTER=mock`;
+3. `python -m scripts.demo_e2e` contra a API real em container, PostgreSQL e Redis reais.
+
+### Achado operacional (armadilha real)
+
+O `docker compose up` falhou com `service "migrate" didn't complete successfully: exit 255` e
+`alembic: Can't locate revision identified by '0011'`.
+
+Causa: o compose tem **três** imagens a partir do mesmo código — `api`, `worker` **e `migrate`**.
+Rebuildar só `api` e `worker` deixou a `migrate` antiga, **sem `alembic/versions`**, e o erro aponta
+para "revisão não encontrada" em vez de "imagem velha". Diagnosticado comparando
+`alembic current` dentro do container (`0011 (head)`, correto) com o serviço `migrate` falhando.
+Correção: `docker compose build migrate`. Registrado em `docs/OPERACAO.md`.
+
+### Prova de que o código dos 23 commits está no ar
+
+| Verificação | Resultado |
+|---|---|
+| `GET /health` | traz `nfse_adapter` **e** `worker: {ok: true, ultimo_batimento: ...}` (§49) |
+| `GET /metrics` | série com `metodo`, `rota` (**template**, sem UUID) e `status` (§51) |
+| `GET /v1/health/circuitos` | `sefaz:NACIONAL:autorizacao` = `fechado` (0) |
+| rate limit | registrado e no-op com a flag desligada (§58) |
+| tempos de banco | `statement_timeout` aplicado; worker com teto próprio (§60/§62) |
+
+### Achado na demo: reenvio "idêntico" que não era idêntico
+
+O passo 6 reenviava a emissão com a mesma `Idempotency-Key` mas com corpo **parcial** (sem
+`competencia`, `tomador_nome`, `tomador_documento`) e esperava **200**. Depois de §57 isso virou
+**409** — corretamente.
+
+Ou seja: a demo tinha a expectativa antiga (e errada), que só passava porque o sistema devolvia a nota
+anterior em silêncio. Corrigido no script:
+
+- reenvio **idêntico** → `200`, `ja_existia: true` e **mesma fatura**;
+- corpo **divergente** com a mesma chave → **`409`** explícito.
+
+Resultado final: **20 de 20 verificações passaram**.
+
+### Fluxo comprovado ponta a ponta (mock, em container)
+
+tenant → upload de A1 (CNPJ extraído `11222333000181`) → webhook com segredo → emissão NFS-e (201,
+chave de 50 dígitos) → reenvio idêntico (200) → divergente (409) → DANFSe 4 012 bytes PDF válido →
+webhook assinado recebido com HMAC **válida** → apuração da competência (ISS 7,50) → guia DNA com
+vencimento.
+
+### Limites
+
+- É **mock**: nada foi enviado a autorizador. O adaptador real continua sendo o padrão do compose e
+  foi restaurado ao final (`nfse_adapter: sefin`).
+- A demo usa certificado **autoassinado** gerado no próprio script; não prova aceitação pela SEFAZ.
+- Nenhum registro de documento autorizado foi produzido: o mock devolve um documento derivado da DPS.

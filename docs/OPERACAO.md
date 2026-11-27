@@ -140,3 +140,24 @@ reenviar A1 e regravar segredos à mão. Esse caminho continua válido como últ
 - Restauração point-in-time (WAL): depende do PostgreSQL do operador, não do código.
 - Runbook de vazamento de credencial: o passo 1 é sempre rotacionar (5.1/5.2) e revogar; o
   procedimento jurídico/LGPD é do operador.
+
+## 9. Armadilha ao rebuildar: o compose tem TRÊS imagens
+
+`api`, `worker` **e `migrate`** saem do mesmo `Dockerfile`. Rebuildar só `api` e `worker` deixa o
+`migrate` antigo — e o sintoma não aponta para isso:
+
+```
+service "migrate" didn't complete successfully: exit 255
+alembic: Can't locate revision identified by '0011'
+```
+
+A causa é a imagem velha sem `alembic/versions`, não o banco. Diagnóstico: `alembic current` **dentro
+do container da API** (se responde `0011 (head)`, o banco está certo e o problema é imagem).
+
+```bash
+docker compose build api worker migrate
+docker compose up -d
+```
+
+Regra prática: depois de qualquer mudança em `app/`, `alembic/` ou `pyproject.toml`, rebuilde as
+**três**.
