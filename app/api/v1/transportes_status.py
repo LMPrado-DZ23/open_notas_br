@@ -23,7 +23,15 @@ from app.cte import consulta as cte_consulta
 from app.db.models.tenant import Tenant
 from app.db.models.webservice_sefaz import ServicoSefaz, WebserviceSefaz
 from app.mdfe import consulta as mdfe_consulta
-from app.nfe.transporte import ClienteSefaz, ErroSefazDefinitivo, ErroTransporte, TransporteHTTP
+from app.nfe.transporte import (
+    ClienteSefaz,
+    ErroSefazDefinitivo,
+    ErroTransporte,
+    RespostaSefaz,
+    TransporteHTTP,
+)
+from app.nfse.injecao import executar_com_circuito
+from app.nfse.resiliencia import registro_padrao
 
 logger = logging.getLogger(__name__)
 
@@ -100,13 +108,21 @@ async def consultar_status_transporte(
     )
     sefaz = ClienteSefaz(transporte, timeout_s=30.0)
 
-    try:
+    async def _consultar() -> RespostaSefaz:
         if documento == "cte":
-            resposta = await cte_consulta.consultar_status(
+            return await cte_consulta.consultar_status(
                 sefaz, url=url, cuf=_cuf(uf), ambiente=ambiente
             )
-        else:
-            resposta = await mdfe_consulta.consultar_status(sefaz, url=url, ambiente=ambiente)
+        return await mdfe_consulta.consultar_status(sefaz, url=url, ambiente=ambiente)
+
+    try:
+        # Leitura também passa pelo circuito, escopada por **UF**: este endpoint recebe a UF do
+        # autorizador, e a queda de GO não pode consumir timeout de SP. Antes, só as escritas
+        # (emissão, cancelamento, evento) tinham circuito; a consulta queimava 30 s por requisição
+        # enquanto a SEFAZ da UF estivesse fora (§85).
+        resposta = await executar_com_circuito(
+            registro_padrao, uf=uf.upper(), operacao="consulta_status", acao=_consultar
+        )
     except ErroSefazDefinitivo as exc:
         raise HTTPException(status_code=HTTP_504, detail=str(exc)) from exc
     except ErroTransporte as exc:

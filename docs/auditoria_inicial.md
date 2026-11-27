@@ -4536,3 +4536,49 @@ divergência real no manifesto (arquivo listado e inexistente), que é o caso de
 | `pytest tests/test_boot_integridade_xsd.py` | **4 passed** |
 | `scripts.check_ci` (rápido) | **10/10** |
 | `mypy app src` | zero erros / 176 arquivos |
+
+---
+
+## 85. Consulta de status ia à SEFAZ sem circuito — e o escopo por UF estava disponível
+
+**Data:** 2026-11-27. **Fase:** F (resiliência). Missão §3: "circuit breaker ligado às chamadas externas
+reais, escopado por serviço/UF/município".
+
+### Medição
+
+Varredura por chamadas ao transporte externo e por uso de `executar_com_circuito`:
+
+| Caminho | Circuito antes |
+|---|---|
+| emissão (`POST /v1/emissoes`) | ✅ `emitir_com_circuito` |
+| cancelamento | ✅ `executar_com_circuito(..., OPERACAO_CANCELAMENTO)` |
+| evento | ✅ `executar_com_circuito(..., OPERACAO_EVENTO)` |
+| **status de transporte** (`GET /v1/transportes/status`) | ❌ **direto no `ClienteSefaz`** |
+
+O endpoint recebe `uf` como parâmetro — exatamente o escopo que o circuito já sabe usar — e não usava.
+Com a SEFAZ de uma UF fora, cada requisição queimava **30 s** de timeout do transporte, sem que o
+circuito abrisse para as seguintes.
+
+### Correção
+
+`executar_com_circuito(registro_padrao, uf=uf.upper(), operacao="consulta_status", acao=_consultar)`,
+com a chamada de CT-e/MDF-e dentro da closure. A chave fica `sefaz:<UF>:consulta_status`:
+
+- **por UF**: GO fora não abre o circuito de SP (o teste fixa isso);
+- **por operação**: queda de consulta não bloqueia emissão.
+
+`CircuitoAberto` já tem handler global (503 + `Retry-After`), então não houve mudança de contrato: o 504
+de transporte continua para recusa definitiva, e o 503 aparece quando o circuito está aberto.
+
+### Testes (`tests/test_circuito_consulta_status.py`, 2)
+
+Chave por UF (`sefaz:GO:consulta_status` ≠ `sefaz:SP:consulta_status`) e separação entre consulta e
+autorização. Mais os 11 de `test_transporte_status_rota.py`, que seguem verdes.
+
+### Incidente meu nesta rodada
+
+Rodei a suíte de cobertura **em segundo plano** enquanto executava testes — no mesmo banco de teste. O
+resultado foi contaminação: `test_transporte_status_rota.py` falhou com **401 "credencial inválida"**,
+erro que não existia. Matei o job e a mesma suíte passou (11/11). É a **terceira vez** que cometo esse
+erro nesta sessão; o registro fica para não repetir: medição de cobertura e testes de banco são
+sequenciais, nunca concorrentes.

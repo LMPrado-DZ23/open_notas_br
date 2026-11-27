@@ -733,3 +733,15 @@ condomínio. O manual ADN v1.1 (2026-11-03) tem 5 páginas e nenhum dos termos p
 - 4 testes. Um deles foi descartado no caminho porque não exercitava a função (trocava `Path` por
   monkeypatch, mas o caminho é fixo) — substituído por divergência real no manifesto.
 - Gate rápido 10/10; mypy zero.
+
+### Corrigido — consulta de status de transporte sem circuito (escopo por UF ignorado)
+
+- `GET /v1/transportes/status` chamava a SEFAZ **direto**: emissão, cancelamento e evento tinham
+  circuito; a leitura não. Com a SEFAZ da UF fora, cada requisição queimava 30 s de timeout.
+- O endpoint já recebe `uf` — exatamente o escopo que o circuito usa — e não aproveitava.
+  Agora: `executar_com_circuito(..., uf=uf.upper(), operacao="consulta_status")`, chave
+  `sefaz:<UF>:consulta_status` (GO fora não abre SP; consulta não bloqueia emissão).
+- Contrato preservado: `CircuitoAberto` → 503 + `Retry-After` (handler global); 504 segue para recusa
+  definitiva. 2 testes novos + 11 existentes verdes.
+- **Incidente meu:** rodei cobertura em segundo plano durante testes, no mesmo banco, e colhi 401 falso.
+  Matei o job e a suíte passou. Terceira vez; anotado: medição e testes de banco são sequenciais.
