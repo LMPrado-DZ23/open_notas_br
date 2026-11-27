@@ -3549,3 +3549,60 @@ real, a primeira chamada levantaria antes de sair para a rede. A lacuna não é 
 
 Nenhuma mudança de código: só documentação, porque o código já estava correto (o `Protocol` é a
 decisão certa). O erro era meu, na descrição.
+
+---
+
+## 67–68. Isolamento nos downloads e travas de contrato para `tenant_id`
+
+**Data:** 2026-11-27. **Fase:** A (isolamento de tenant). Dois testes que faltavam, nenhum código
+alterado — o código já estava correto.
+
+### 67. Downloads de documento não tinham teste de isolamento
+
+O prompt exige teste de vazamento entre tenants em **arquivos**. O arquivo aqui é o documento fiscal:
+`GET /v1/emissoes/{id}/danfse` e `GET /v1/emissoes/{id}/representacao`.
+
+As rotas filtram por `tenant.id` no `where` — verificado por leitura — mas **não havia teste**. Um
+`where` esquecido numa refatoração passaria, e o resultado seria um tenant baixando a nota de outro
+pelo id.
+
+`tests/test_isolamento_downloads.py` (4 testes), com dois emissores reais e nota de cada um:
+
+| Teste | O que prova |
+|---|---|
+| B tenta DANFSe de A | **404** |
+| B tenta representação de A | **404** |
+| **A baixa a própria** | **200** e `%PDF` — contraprova: sem ela, um 404 geral "passaria" como isolamento |
+| sem `X-API-Key` | **401** |
+
+### 68. `tenant_id` no contrato: trava de regressão
+
+Regra 7 do objetivo: derivar o tenant da credencial, nunca aceitar `tenant_id` do cliente. Medido no
+`openapi.json`: **nenhum** schema de entrada expõe `tenant_id`; apenas duas saídas
+(`TenantFiscalConfigOut`, `TenantKeyRotacionadaOut`).
+
+Isso estava certo e indefeso. `tests/test_contrato_tenant.py` (4 testes) trava:
+
+- nenhum `requestBody` (qualquer content-type) tem `tenant_id` na primeira propriedade;
+- nenhuma rota comum tem `tenant_id` como **query param**;
+- a exceção `/v1/admin` existe de fato — o teste falha se a lista de rotas admin estiver vazia,
+  senão ele estaria apenas ignorando admin;
+- `POST /v1/emissoes` sem chave devolve **401**.
+
+A exceção do admin é por **prefixo de rota** e está explicada no arquivo: operação de plataforma
+atravessa tenants por natureza (ADR 0001), e deixar o tenant implícito esconderia qual cliente está
+sendo afetado.
+
+### Por que nenhum dos dois mudou código
+
+`consulta.py` não guarda dado de tenant (é CEP público), e as duas rotas de download já filtram por
+tenant. O defeito era de **cobertura de teste**, não de implementação — e cobertura de isolamento é
+exatamente o que o objetivo exige que exista antes de chamar algo de pronto.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_isolamento_downloads.py` | **4 passed** |
+| `pytest tests/test_contrato_tenant.py` | **4 passed** |
+| gate completo | **9/9** |

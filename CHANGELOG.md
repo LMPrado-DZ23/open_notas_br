@@ -5,6 +5,18 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — testes de isolamento em downloads e travas de `tenant_id` no contrato
+
+- **Downloads de documento não tinham teste de isolamento:** `GET /v1/emissoes/{id}/danfse` e
+  `.../representacao` filtram por tenant no `where` (verificado), mas nenhum teste provava. Agora dois
+  emissores reais: B recebe **404** nos arquivos de A, **A baixa o próprio (200, `%PDF`)** como
+  contraprova, e sem chave é **401**. O arquivo aqui é o documento fiscal do cliente.
+- **Trava da regra 7:** medido no contrato, nenhum schema de entrada expõe `tenant_id` (só duas
+  saídas). Isso estava certo e indefeso — agora um teste reprova se qualquer `requestBody` ou query
+  passar a aceitar `tenant_id`, com a exceção `/v1/admin` declarada por prefixo e verificada (o teste
+  falha se a exceção ficar sem objeto).
+- Nenhuma mudança de código: o defeito era de cobertura de teste, não de implementação.
+
 ### Documentado (correção de precisão) — o motor ABRASF não tem transporte real
 
 - §59 e o painel diziam "contrato, roteamento e motor ABRASF existem e são testados", o que sugere
