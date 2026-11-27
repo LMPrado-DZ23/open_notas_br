@@ -20,6 +20,7 @@ from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -29,7 +30,7 @@ from app.api.v1 import health
 from app.api.v1.router import router as v1_router
 from app.core.circuit import CircuitoAberto
 from app.core.config import get_settings, validar_ambiente_de_execucao
-from app.core.errors import de_http_exception
+from app.core.errors import de_http_exception, validacao
 from app.core.logging import configurar_logging
 from app.core.redis import fechar_redis
 from app.db.session import dispose_engine
@@ -252,6 +253,30 @@ def criar_app() -> FastAPI:
                 "retryable": True,
             },
             headers={"Retry-After": str(max(1, int(exc.retry_after_s)))},
+            media_type="application/problem+json",
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def _validacao_rfc7807(request: Request, exc: RequestValidationError) -> JSONResponse:
+        """Erro de validação também em problem+json — **preservando `detail` como lista**.
+
+        Até aqui o 422 saía como `application/json` do handler padrão do FastAPI, enquanto 401,
+        404, 405 e 409 saíam como `application/problem+json`: o cliente tinha de tratar dois
+        formatos de erro. Medido em container antes da correção.
+
+        O campo `detail` mantém **exatamente** a forma antiga (lista de `loc`/`msg`/`type`), porque
+        cliente existente lê isso; os campos RFC 7807 entram ao lado. `jsonable_encoder` é
+        necessário: `exc.errors()` pode carregar `ctx` com objetos que `json.dumps` recusa.
+        """
+        from fastapi.encoders import jsonable_encoder
+
+        erros = jsonable_encoder(exc.errors())
+        problema = validacao("requisição inválida: confira os campos enviados").para_dict()
+        problema["detail"] = erros
+        problema["errors"] = erros
+        return JSONResponse(
+            status_code=422,
+            content=problema,
             media_type="application/problem+json",
         )
 

@@ -5,6 +5,21 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido — 422 era o único erro fora do padrão RFC 7807
+
+- Medido em container: 401, 404 e 405 saíam `application/problem+json`; o **422 saía
+  `application/json`** (handler padrão do FastAPI para `RequestValidationError`), obrigando o cliente
+  a tratar dois formatos de erro — e o que fugia era o mais comum em integração nova.
+- Agora 422 responde problem+json com `type`/`title`/`status`/`origem`/`retryable` **e mantém o
+  `detail` como a lista de erros do Pydantic**, exatamente como antes: contrato existente preservado,
+  campos novos ao lado (`errors` espelha `detail`).
+- `jsonable_encoder` no caminho: sem ele, `exc.errors()` com `ctx` não serializável estouraria 500
+  dentro do tratamento de erro.
+- 5 testes, incluindo contraprova de que o 401 continua problem+json.
+- **Limite:** o corpo do 422 cresceu (lista duplicada em `detail` e `errors` — duplicação deliberada).
+  Os `HTTPException(422)` levantados de propósito por algumas rotas continuam com `detail` em texto;
+  são dois formatos por origem, agora documentados.
+
 ### Adicionado — testes de isolamento em downloads e travas de `tenant_id` no contrato
 
 - **Downloads de documento não tinham teste de isolamento:** `GET /v1/emissoes/{id}/danfse` e

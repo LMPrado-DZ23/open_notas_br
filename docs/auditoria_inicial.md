@@ -3606,3 +3606,62 @@ exatamente o que o objetivo exige que exista antes de chamar algo de pronto.
 | `pytest tests/test_isolamento_downloads.py` | **4 passed** |
 | `pytest tests/test_contrato_tenant.py` | **4 passed** |
 | gate completo | **9/9** |
+
+---
+
+## 69. O 422 não era problem+json — o único erro fora do padrão
+
+**Data:** 2026-11-27. **Fase:** A/E (contrato de erro). Medido contra a API em container.
+
+### O que a medição mostrou
+
+| Resposta | `Content-Type` |
+|---|---|
+| 401 sem chave | `application/problem+json` ✅ |
+| 404 rota inexistente | `application/problem+json` ✅ |
+| 405 método errado | `application/problem+json` ✅ |
+| **422 validação** | **`application/json`** ❌ |
+
+O handler de `HTTPException` já convertia tudo para RFC 7807. O 422 não passa por ele: o FastAPI
+trata `RequestValidationError` em handler próprio. Resultado: o cliente tinha de tratar **dois**
+formatos de erro, e o único que fugia era justamente o mais frequente em integração nova.
+
+### A correção
+
+Handler para `RequestValidationError` em `criar_app()`, retornando `application/problem+json` com
+`type`/`title`/`status`/`origem`/`retryable` **e mantendo `detail` como a lista de erros do
+Pydantic**, exatamente como antes.
+
+Por que manter `detail` como lista em vez de trocar por texto: contrato existente. Todo cliente que
+lê `detail[0]["msg"]` continua funcionando; os campos RFC 7807 entram **ao lado**. Também adicionei
+`errors` com o mesmo conteúdo, para quem preferir um nome inequívoco.
+
+`jsonable_encoder` é obrigatório: `exc.errors()` pode carregar `ctx` com objetos que `json.dumps`
+recusa — sem ele o handler estouraria 500 dentro do próprio tratamento de erro.
+
+### Testes (`tests/test_erros_rfc7807.py`, 5)
+
+| Teste | O que prova |
+|---|---|
+| 422 tem `content-type` problem+json | o defeito medido |
+| 422 tem `status`/`title`/`type`/`origem`/`retryable` | é RFC 7807 de verdade, não só o header |
+| `detail` continua **lista** com `loc`/`msg`/`type` | compatibilidade com cliente existente |
+| `errors` espelha `detail` | nome inequívoco, sem divergir |
+| 401 continua problem+json | contraprova: o handler novo não roubou o caminho do `HTTPException` |
+
+### Limite
+
+- O corpo do 422 cresceu (campos RFC + lista duplicada em `detail` e `errors`). Em erro de payload
+  gigante isso dobra o tamanho da lista. Aceitável — erro de validação é resposta curta por
+  natureza —, mas é uma duplicação deliberada, não descuido.
+- Não mexi no `422` que algumas rotas levantam **de propósito** via `HTTPException(422)` (ex.:
+  certificado ausente): esse já saía problem+json com `detail` em texto, e mudá-lo quebraria quem
+  lê string ali. São dois formatos por origem, e agora estão documentados.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_erros_rfc7807.py` | **5 passed** |
+| gate completo | **9/9** |
+| `mypy` | zero erros |
