@@ -3716,3 +3716,60 @@ já se faz com XSD em `data/xsd_manifest.json`.
 ### Verificação
 
 Documentação apenas; nenhum código alterado nesta seção. Gate da rodada: 9/9.
+
+---
+
+## 71–72. Auditoria de uso do certificado (com migração) e o incidente de teste que chamou a SEFIN
+
+**Data:** 2026-11-27. **Fase:** A/B. Atende ao adendo §5 ("auditoria de uso", "exclusão registrada sem
+expor segredo").
+
+### 71. O que foi implementado
+
+Era impossível responder "este A1 foi usado para quê, e quando?" — pergunta obrigatória ao operar
+credencial fiscal de terceiros.
+
+| Peça | Onde |
+|---|---|
+| Tabela `certificado_usos` | migração **0012** (upgrade e downgrade testados; `alembic check` sem drift) |
+| Modelo | `app/db/models/certificado_uso.py` |
+| Registro | `certificados.abrir_para_uso()` — abre e grava; **grava também a falha** |
+| Pontos de uso | emissão, cancelamento, evento, consulta de transporte, status de transporte |
+| Consulta | `GET /v1/me/certificados/{id}/usos` (404 para certificado de outro tenant) |
+
+**O que a linha guarda:** `operacao`, `ambiente`, `sucesso` e o **tipo** da exceção.
+**O que nunca guarda:** PFX, senha, XML, payload, mensagem de erro (mensagem pode carregar CNPJ,
+município ou caminho — a auditoria viraria um segundo vazamento). Teste proíbe `pfx`/`senha`/
+`signature`/`xml` no registro.
+
+Por que registrar falha: "chave-mestra trocada" e "envelope corrompido" só aparecem no uso. Sem a
+linha de falha, o operador descobre por reclamação do cliente.
+
+A linha entra na **mesma transação** da operação fiscal: rollback da operação remove o uso — coerente,
+porque nada foi assinado.
+
+### 72. Incidente: um teste meu emitiu contra a borda real da SEFIN
+
+Ao escrever o teste de auditoria, esqueci o override de `Settings` com `nfse_adapter="mock"`. O
+padrão do projeto é `sefin`, então a emissão do teste saiu para a **borda real**.
+
+- Resultado: **403** na borda (certificado autoassinado recusado), **nenhum documento emitido**;
+- resposta 502 no teste, com a mensagem da SEFIN preservada;
+- **mesma classe** do incidente de §48 (benchmark): o padrão do repositório é o adaptador real, e
+  teste que esquece o override fala com o autorizador.
+
+**Correção estrutural**, não só do teste: `tests/conftest.py` agora define
+`os.environ["NFSE_ADAPTER"] = "mock"` para **toda** a suíte. Antes, cada teste que quisesse o dublê
+precisava lembrar; agora o esquecimento é que precisa ser explícito.
+
+Isto não substitui o override de `Settings` em testes que injetam configuração — complementa. E não
+impede o *build* de chamar o real: a guarda é da suíte de testes.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `pytest tests/test_certificado_usos.py` | **5 passed** |
+| `alembic upgrade head` / `downgrade 0011` / `check` | aplica, reverte e **sem drift** |
+| gate completo | **9/9** |
+| contrato + coleção Postman | regenerados (rota nova incluída) |

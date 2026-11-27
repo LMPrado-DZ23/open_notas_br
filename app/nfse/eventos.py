@@ -122,7 +122,9 @@ async def registrar(
             "nenhum certificado A1 ativo: o pedido de evento precisa ser assinado "
             "por quem responde pela nota"
         )
-    certificado = certificados.abrir_em_memoria(registro_cert, settings=conf)
+    certificado = await certificados.abrir_para_uso(
+        sessao, registro_cert, operacao="evento", settings=conf
+    )
     if not certificado.cnpj:
         raise ErroDeEvento(
             "o certificado A1 ativo não identifica CNPJ no titular; "

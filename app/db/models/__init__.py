@@ -5,6 +5,7 @@ depende disso: um modelo que não é importado aqui simplesmente não existe par
 autogenerate nem para o `create_all` de teste, e o erro aparece só em runtime.
 """
 
+from app.db.models.certificado_uso import CertificadoUso
 from app.db.models.credencial_municipal import CredencialMunicipalTenant
 from app.db.models.dlq import ItemDLQ
 from app.db.models.enums import (
@@ -31,6 +32,7 @@ __all__ = [
     "AmbienteFiscal",
     "BatchJob",
     "CalculoAudit",
+    "CertificadoUso",
     "CredencialMunicipalTenant",
     "FiscalDocument",
     "FreteCredencial",

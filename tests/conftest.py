@@ -22,6 +22,12 @@ from tests.construir import cte, nfe
 # configuração é lida no import e fica em cache por processo.
 # ---------------------------------------------------------------------------
 os.environ["ENVIRONMENT"] = "test"
+#: Cinto de segurança: **nenhum teste** pode falar com autorizador real. Sem isto, um teste que
+#: esqueça o override de `Settings` emite contra a borda da SEFIN — aconteceu em 2026-11-27 e
+#: voltou 403 (certificado autoassinado recusado), sem documento emitido, mas com requisição real
+#: saindo da máquina (auditoria §72). O padrão do projeto é `sefin`, então o padrão do teste precisa
+#: ser o dublê.
+os.environ["NFSE_ADAPTER"] = "mock"
 os.environ["DATABASE_URL"] = suporte.url_teste()
 os.environ.setdefault("MASTER_ENCRYPTION_KEY", "")
 os.environ["LOG_JSON"] = "false"

@@ -117,7 +117,9 @@ async def cancelar(
             "nenhum certificado A1 ativo: o pedido de cancelamento precisa ser "
             "assinado por quem responde pela nota"
         )
-    certificado = certificados.abrir_em_memoria(registro_cert, settings=conf)
+    certificado = await certificados.abrir_para_uso(
+        sessao, registro_cert, operacao="cancelamento", settings=conf
+    )
     if not certificado.cnpj:
         # Sem CNPJ no titular não há autor identificável no XML assinado. Falhar aqui,
         # antes de qualquer chamada, evita mandar pedido inválido e gastar a tentativa.

@@ -323,7 +323,9 @@ async def emitir(
         raise CertificadoAusente(
             "nenhum certificado A1 ativo. Envie o .pfx em POST /v1/me/certificados."
         )
-    certificado = certificados.abrir_em_memoria(registro_cert, settings=conf)
+    certificado = await certificados.abrir_para_uso(
+        sessao, registro_cert, operacao="emissao", settings=conf
+    )
 
     numero_dps = await _reservar_numero_dps_no_banco(sessao, config)
 

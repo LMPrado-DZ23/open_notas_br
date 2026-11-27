@@ -5,6 +5,28 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Adicionado — auditoria de uso do certificado (migração 0012)
+
+- Era impossível responder "este A1 foi usado para quê, e quando?" — pergunta obrigatória ao operar
+  credencial fiscal de terceiros.
+- Tabela `certificado_usos` (migração **0012**, upgrade/downgrade testados, `alembic check` sem
+  drift), registrada em **todos** os pontos de uso: emissão, cancelamento, evento, consulta e status
+  de transporte.
+- `abrir_para_uso()` grava **também a falha** (com tipo da exceção): chave-mestra trocada ou envelope
+  corrompido só aparecem no uso, e sem isso o operador descobre por reclamação do cliente.
+- **Nunca** guarda PFX, senha, XML, payload nem mensagem de erro — só operação, ambiente, sucesso e
+  tipo do erro. Teste proíbe `pfx`/`senha`/`signature`/`xml` no registro.
+- `GET /v1/me/certificados/{id}/usos` (404 para certificado de outro tenant). 5 testes.
+- Mesma transação da operação fiscal: rollback remove o uso, porque nada foi assinado.
+
+### Corrigido — teste que chamou a borda real da SEFIN (guarda na suíte)
+
+- Um teste meu esqueceu o override de `nfse_adapter="mock"`; como o padrão do projeto é `sefin`, a
+  emissão saiu para a **borda real**: **403** (certificado autoassinado recusado), **nenhum documento
+  emitido**. Mesma classe do incidente de §48.
+- Correção estrutural: `tests/conftest.py` define `NFSE_ADAPTER=mock` para **toda** a suíte — o
+  esquecimento passou a ser explícito em vez de padrão.
+
 ### Documentado — dois modos de operação, com as lacunas do modo hospedado
 
 - `docs/MODOS-DE-OPERACAO.md`: auto-hospedado × serviço hospedado. Verificado antes de escrever:

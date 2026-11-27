@@ -203,3 +203,64 @@ def abrir_em_memoria(
         tem_senha=True,
     )
     return CertificadoA1.de_pfx(pfx, senha)
+
+
+async def registrar_uso(
+    sessao: AsyncSession,
+    registro: TenantCertificate,
+    *,
+    operacao: str,
+    ambiente: str | None = None,
+    sucesso: bool = True,
+    erro_tipo: str | None = None,
+) -> None:
+    """Grava uma linha em `certificado_usos`. **Não faz commit** — quem chama controla.
+
+    Guarda operação, ambiente e o **tipo** da exceção. Nunca a mensagem: ela pode conter dado do
+    cliente (CNPJ, município, caminho de arquivo) e a auditoria viraria um segundo vazamento.
+    """
+    from app.db.models.certificado_uso import CertificadoUso
+
+    sessao.add(
+        CertificadoUso(
+            tenant_id=registro.tenant_id,
+            certificado_id=registro.id,
+            operacao=operacao[:40],
+            ambiente=(ambiente or None) and ambiente[:20],
+            sucesso=sucesso,
+            erro_tipo=(erro_tipo[:80] if erro_tipo else None),
+        )
+    )
+    await sessao.flush()
+
+
+async def abrir_para_uso(
+    sessao: AsyncSession,
+    registro: TenantCertificate,
+    *,
+    operacao: str,
+    ambiente: str | None = None,
+    settings: Settings | None = None,
+) -> CertificadoA1:
+    """Abre o certificado **e registra o uso**, inclusive quando a abertura falha.
+
+    Por que registrar a falha: "chave-mestra trocada" e "envelope corrompido" só aparecem no momento
+    do uso. Sem a linha de falha, o operador descobre por reclamação do cliente, não por auditoria.
+
+    A linha entra na mesma transação da operação fiscal: se a operação der rollback, o uso também
+    desaparece — coerente, porque nada foi assinado.
+    """
+    try:
+        certificado = abrir_em_memoria(registro, settings=settings)
+    except Exception as exc:
+        await registrar_uso(
+            sessao,
+            registro,
+            operacao=operacao,
+            ambiente=ambiente,
+            sucesso=False,
+            erro_tipo=type(exc).__name__,
+        )
+        raise
+    await registrar_uso(sessao, registro, operacao=operacao, ambiente=ambiente)
+    return certificado

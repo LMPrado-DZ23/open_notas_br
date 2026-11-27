@@ -1567,6 +1567,84 @@
         }
       }
     },
+    "/v1/me/certificados/{certificado_id}/usos": {
+      "get": {
+        "tags": [
+          "certificados"
+        ],
+        "summary": "Histórico de uso do certificado (auditoria)",
+        "description": "Quem usou este A1, quando e para qual operação (§71).\n\n`404` quando o certificado não é do tenant: a existência de um id de outro cliente não é\ninformação que este endpoint deva revelar.\n\nO registro traz operação, ambiente, sucesso e o **tipo** do erro — nunca mensagem, nunca\nsegredo, nunca XML. É auditoria de uso, não cópia da operação.",
+        "operationId": "usos_do_certificado_v1_me_certificados__certificado_id__usos_get",
+        "parameters": [
+          {
+            "name": "certificado_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Certificado Id"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limite"
+            }
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "API key do tenant",
+              "title": "X-Api-Key"
+            },
+            "description": "API key do tenant"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsoCertificadoOut"
+                  },
+                  "title": "Response Usos Do Certificado V1 Me Certificados  Certificado Id  Usos Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/emissoes": {
       "post": {
         "tags": [
@@ -7205,6 +7283,59 @@
         ],
         "title": "TenantOut",
         "description": "Visão pública do tenant. Nunca inclui hash nem segredo."
+      },
+      "UsoCertificadoOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "operacao": {
+            "type": "string",
+            "title": "Operacao"
+          },
+          "ambiente": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ambiente"
+          },
+          "sucesso": {
+            "type": "boolean",
+            "title": "Sucesso"
+          },
+          "erro_tipo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Erro Tipo"
+          },
+          "em": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Em"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "operacao",
+          "sucesso",
+          "em"
+        ],
+        "title": "UsoCertificadoOut",
+        "description": "Uma linha de auditoria de uso. Sem mensagem de erro, sem segredo, sem XML."
       },
       "ValidationError": {
         "properties": {

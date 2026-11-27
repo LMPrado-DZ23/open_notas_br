@@ -9,7 +9,9 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import tenant_atual
@@ -17,6 +19,7 @@ from app.certificates import service
 from app.certificates.cofre import ErroCertificado
 from app.certificates.schemas import CertificadoOut, SaudeCertificadoOut
 from app.certificates.service import CertificadoDuplicado, CertificadoNaoEncontrado
+from app.db.models.certificado_uso import CertificadoUso
 from app.db.models.tenant import Tenant
 from app.db.session import get_session
 
@@ -26,6 +29,18 @@ HTTP_422 = 422
 
 #: PFX é arquivo pequeno. Limite apertado evita upload acidental de outra coisa.
 TAMANHO_MAXIMO_PFX = 1024 * 1024
+
+
+class UsoCertificadoOut(BaseModel):
+    """Uma linha de auditoria de uso. Sem mensagem de erro, sem segredo, sem XML."""
+
+    id: uuid.UUID
+    operacao: str
+    ambiente: str | None = None
+    sucesso: bool
+    erro_tipo: str | None = None
+    em: datetime
+
 
 router = APIRouter(tags=["certificados"])
 
@@ -160,3 +175,55 @@ async def remover_certificado(
     except CertificadoNaoEncontrado as exc:
         await db.rollback()
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.get(
+    "/me/certificados/{certificado_id}/usos",
+    response_model=list[UsoCertificadoOut],
+    summary="Histórico de uso do certificado (auditoria)",
+)
+async def usos_do_certificado(
+    certificado_id: uuid.UUID,
+    tenant: Tenant = Depends(tenant_atual),
+    db: AsyncSession = Depends(get_session),
+    limite: int = Query(default=50, ge=1, le=200),
+) -> list[UsoCertificadoOut]:
+    """Quem usou este A1, quando e para qual operação (§71).
+
+    `404` quando o certificado não é do tenant: a existência de um id de outro cliente não é
+    informação que este endpoint deva revelar.
+
+    O registro traz operação, ambiente, sucesso e o **tipo** do erro — nunca mensagem, nunca
+    segredo, nunca XML. É auditoria de uso, não cópia da operação.
+    """
+    try:
+        await service.por_id(db, tenant.id, certificado_id)
+    except CertificadoNaoEncontrado:
+        raise HTTPException(status_code=404, detail="certificado não encontrado") from None
+
+    linhas = (
+        (
+            await db.execute(
+                select(CertificadoUso)
+                .where(
+                    CertificadoUso.tenant_id == tenant.id,
+                    CertificadoUso.certificado_id == certificado_id,
+                )
+                .order_by(CertificadoUso.created_at.desc())
+                .limit(limite)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return [
+        UsoCertificadoOut(
+            id=linha.id,
+            operacao=linha.operacao,
+            ambiente=linha.ambiente,
+            sucesso=linha.sucesso,
+            erro_tipo=linha.erro_tipo,
+            em=linha.created_at,
+        )
+        for linha in linhas
+    ]

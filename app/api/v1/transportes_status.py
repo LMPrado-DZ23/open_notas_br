@@ -86,7 +86,9 @@ async def consultar_status_transporte(
                 "Envie o .pfx em POST /v1/me/certificados."
             ),
         )
-    certificado = certificados.abrir_em_memoria(registro, settings=conf)
+    certificado = await certificados.abrir_para_uso(
+        sessao, registro, operacao="status_transporte", ambiente=ambiente, settings=conf
+    )
 
     modulo = cte_consulta if documento == "cte" else mdfe_consulta
     transporte = TransporteHTTP(

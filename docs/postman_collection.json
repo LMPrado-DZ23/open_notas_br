@@ -427,6 +427,37 @@
             },
             "description": ""
           }
+        },
+        {
+          "name": "Histórico de uso do certificado (auditoria)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{api_key}}",
+                "description": "Chave do tenant. Deriva o tenant — nunca envie tenant_id no corpo."
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/v1/me/certificados/{certificado_id}/usos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v1",
+                "me",
+                "certificados",
+                "{certificado_id}",
+                "usos"
+              ]
+            },
+            "description": "Quem usou este A1, quando e para qual operação (§71).\n\n`404` quando o certificado não é do tenant: a existência de um id de outro cliente não é\ninformação que este endpoint deva revelar.\n\nO registro traz operação, ambiente, sucesso e o **tipo** do erro — nunca mensagem, nunca\nsegredo, nunca XML. É auditoria de uso, não cópia da operação."
+          }
         }
       ]
     },
