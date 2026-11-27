@@ -3217,3 +3217,58 @@ O segundo teste é o que importa: pergunta ao Postgres. A primeira versão inspe
 - `pool_recycle` de 30 min pode cortar conexão no meio de uma transação longa legítima; com teto de
   60 s por consulta, é improvável, mas é uma interação entre os dois números que quem mudar precisa
   conferir.
+
+---
+
+## 61. O painel contradizia a auditoria — e a correção é no gerador
+
+**Data:** 2026-11-27. **Fase:** documentação (sincronização exigida pelo objetivo).
+
+### O problema
+
+`docs/PAINEL.md` é vista derivada: o bloco de **métricas** é medido, mas as tabelas narrativas eram
+texto fixo em `scripts/gerar_painel.py` e nunca acompanharam o projeto. Estado encontrado:
+
+| Afirmação do painel | Realidade medida |
+|---|---|
+| CT-e e MDF-e "Geração ❌ / Assinatura ❌" | gerador, XSD e assinatura existem e são testados (§44.5) |
+| CT-e/MDF-e "Consulta ❌" | consulta de status **real** medida, `cStat 107` (§31) |
+| "Transporte SOAP DF-e ❌ AUSENTE" | transporte existe, testado, com status real; **autorização** é que falta |
+| "`pip-audit` não instalado (exige ADR)" | ADR 0002 decidiu, com gatilho — não é pendência esquecida |
+| "Admin auth — decisão do proprietário" | ADR 0001 implementado e testado |
+| "F9.6 DANFE do nfeProc ⬜" | DANFE existe e é testado |
+
+Um painel que diz "❌ geração" para um documento cuja geração é testada é pior que painel nenhum:
+quem lê decide com informação errada.
+
+### A correção
+
+Editado **o gerador**, não o arquivo gerado (regra do próprio objetivo). As tabelas agora apontam
+para `docs/MATRIZ-COBERTURA.md` e usam a distinção que passou a existir em §59:
+
+- "transmissão" de CT-e/MDF-e é `🔒 módulo, sem rota` — não "❌";
+- consulta é `✅ real (status)` para NF-e/CT-e/MDF-e;
+- bloqueio `pip-audit` e admin auth aparecem como **resolvidos**, com o ADR que os decidiu;
+- acrescentado CSC por UF e inutilização de CT-e/MDF-e (serviço inexistente no leiaute) à lista de
+  bloqueios externos.
+
+`docs/PAINEL.md` foi regenerado por comando — nenhuma edição manual.
+
+### Incidente desta rodada (registrado, não escondido)
+
+Rodei `pytest --cov` em segundo plano **e** `gerar_painel.py` ao mesmo tempo. O gerador toca o banco
+para contar tabelas/migrations; a suíte usa o **mesmo** banco de teste e trunca tabelas entre testes.
+Resultado: um teste falhou com `NoResultFound` e a cobertura saiu com 86,77%.
+
+**Não era regressão.** A suíte rodada isolada terminou com `exit=0`, e o gate completo voltou 9/9.
+É exatamente o erro que a auditoria já documentava ("nunca dois processos de teste no mesmo banco") e
+que eu repeti. A cobertura válida continua sendo a medida em execução isolada; a de 86,77% está
+contaminada e **não deve ser citada**.
+
+### Verificação
+
+| Comando | Resultado |
+|---|---|
+| `python -m scripts.gerar_painel` | painel regenerado: rotas 58, tabelas 15, migrations 11, testes 1468 |
+| `pytest tests` (isolado) | `exit=0` — verde |
+| `scripts.check_ci --tudo` (isolado) | **9/9** |

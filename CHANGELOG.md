@@ -5,6 +5,20 @@ Versionamento [SemVer](https://semver.org/lang/pt-BR/).
 
 ## [Não lançado]
 
+### Corrigido — painel contradizia a auditoria (correção no gerador, não no arquivo)
+
+- `docs/PAINEL.md` tinha tabelas narrativas fixas em `scripts/gerar_painel.py` que nunca acompanharam
+  o projeto: dizia **"CT-e/MDF-e geração ❌ / assinatura ❌"** e **"consulta ❌"** para documentos
+  cuja geração, XSD, assinatura e consulta de status (real, `cStat 107`) existem e são testados.
+  Também listava como pendentes o admin auth (ADR 0001 implementado) e o `pip-audit` (ADR 0002
+  decidido).
+- Corrigido **na fonte geradora**, como manda a regra do projeto. As tabelas agora distinguem
+  `🔒 módulo, sem rota` de `❌ ausente` e apontam para `docs/MATRIZ-COBERTURA.md`.
+- **Incidente registrado:** rodei `pytest --cov` e o gerador ao mesmo tempo, no mesmo banco de teste —
+  erro que a própria auditoria já documentava. Um teste falhou com `NoResultFound` e a cobertura saiu
+  86,77%. Não era regressão: isolado, a suíte passa (`exit=0`) e o gate dá 9/9. **A cobertura de
+  86,77% está contaminada e não deve ser citada.**
+
 ### Corrigido — banco sem `statement_timeout` podia derrubar a API
 
 - O engine não definia `statement_timeout`, `idle_in_transaction_session_timeout` nem
