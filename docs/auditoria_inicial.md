@@ -5424,3 +5424,32 @@ para não repetir consulta de CNPJ inexistente.
 
 `invalidar` engole `CnpjInvalido` de propósito: limpar cache não é operação de negócio, e explodir ali
 derrubaria um caminho de manutenção.
+
+---
+
+## 110. Cliente de frete: 84% → 100%
+
+**Data:** 2026-11-28. `tests/test_frete_client.py` (19). Medição por módulo: **100%** (109 statements).
+
+| Situação | Desfecho provado |
+|---|---|
+| sem `access_token` | recusa na construção ("o lojista precisa autorizar") |
+| sem produto | recusa antes da chamada |
+| CEP curto | recusa **antes** de gastar chamada (`chamadas == []`) |
+| falha de rede | `ErroDeCotacao` "falha de rede" |
+| **401** | mensagem que manda reautorizar o app |
+| 4xx/5xx | inclui trecho do corpo devolvido |
+| corpo não-JSON | "resposta não é JSON" |
+| JSON que não é lista | "formato inesperado" + o que veio |
+| sucesso | opções interpretadas, `mais_barata` correta, preço `Decimal` |
+| saldo | `Decimal` do campo `balance`; rede e HTTP com mensagem própria |
+| preço com vírgula | convertido para ponto (resposta localizada) |
+
+### Erros meus nesta fatia (quatro)
+
+1. Nomeei `ProvedorMelhorEnvio`; a classe é `MelhorEnvioClient`.
+2. Esqueci de importá-la no bloco de imports (duas rodadas perdidas).
+3. Montar produto vazio não serve: `cotar` recusa antes de qualquer rede — usei `Produto` real.
+4. O dublê de transporte devolvia `{}` para qualquer resposta com `_json` preenchido, mascarando os dois
+   caminhos de erro; só depois de serializar o dict o teste passou a exercitar "formato inesperado".
+   E `SERVICOS_IGNORADOS = ("1","2")` fez o serviço `id=1` sumir da cotação — troquei para `id=3`.
