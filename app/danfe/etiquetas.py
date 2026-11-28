@@ -174,10 +174,15 @@ def extrair_etiquetas(xml: bytes | str, *, quantidade_volumes: int | None = None
     for elemento in raiz.iter():
         if local(elemento.tag) != "vol":
             continue
+        declarado = _procurar(elemento, "qVol")
         try:
-            quantidade_de_volumes = max(1, int(_procurar(elemento, "qVol") or "1"))
+            quantidade_de_volumes = max(1, int(declarado or "1"))
         except ValueError:
+            # `qVol` ilegível não pode virar 1 etiqueta em silêncio: imprimir menos
+            # etiquetas que caixas faz o volume viajar sem identificação. Registra a
+            # ausência para o operador passar `quantidade_volumes` explicitamente.
             quantidade_de_volumes = 1
+            nota.ausentes.append(f"transp/vol/qVol ilegível ({declarado!r}): 1 etiqueta por grupo")
         for _ in range(quantidade_de_volumes):
             nota.volumes.append(
                 Volume(
@@ -210,7 +215,9 @@ def extrair_etiquetas(xml: bytes | str, *, quantidade_volumes: int | None = None
         "emitente_nome": nota.emitente_nome,
         "destinatario_nome": nota.destinatario_nome,
     }
-    nota.ausentes = [campo for campo, valor in obrigatorios.items() if not valor]
+    # Preserva o que a extração já registrou (ex.: `qVol` ilegível): sobrescrever aqui
+    # apagaria o aviso de contagem de etiquetas.
+    nota.ausentes = nota.ausentes + [campo for campo, valor in obrigatorios.items() if not valor]
     return nota
 
 

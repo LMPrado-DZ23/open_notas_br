@@ -5916,3 +5916,48 @@ O subagente pegou o relay de portas do Docker fechando conexões no primeiro com
 base após `docker compose restart postgres redis` — a tabela "antes" é dessa execução válida. Verifiquei
 o arquivo novo por execução (passa) e o achado 1 lendo o código, porque a sonda HTTP que tentei esbarrou
 na criação de tenant (422 por campos obrigatórios) e não provaria o caminho de forma limpa.
+
+---
+
+## 125. As duas decisões que o senhor delegou
+
+**Data:** 2026-11-28. Ambas tomadas por mim, com o código lido antes.
+
+### 1. `cadastros.py:75` — **mantido o `pragma`** (não remover a checagem)
+
+Razão: `_valor_caractere` faz `ord(c) - 48` **sem validar**. A guarda é o que garante que, se
+`normalizar_cnpj` um dia aceitar um caractere fora de `[0-9A-Za-z]`, o resultado seja **exceção** e não
+**DV silenciosamente errado**. Em documento fiscal, DV errado é rejeição na SEFAZ com mensagem que não
+aponta a causa.
+
+Escolha registrada: **defesa morta hoje, barulhenta amanhã** — com o motivo e a prova escritos no
+código (`# pragma: no cover` + comentário). Remover economizaria três linhas e compraria um risco de
+falha silenciosa.
+
+### 2. `Volume.quantidade` / `qVol` ilegível — **corrigido**
+
+Investigando, o campo não era o problema: `qVol` **é** usado para decidir quantas etiquetas imprimir. O
+defeito real era o `except ValueError → 1` **silencioso**: `qVol="duas"` imprimia 1 etiqueta para um
+grupo que pode ter várias caixas, sem nenhum aviso — e o volume viaja sem identificação.
+
+`app/danfe/etiquetas.py`:
+
+- `qVol` ilegível agora entra em `nota.ausentes` com o valor recebido:
+  `"transp/vol/qVol ilegível ('duas'): 1 etiqueta por grupo"`;
+- a montagem de `ausentes` no fim da extração passou a **somar** em vez de sobrescrever (antes, a
+  atribuição apagaria o aviso — defeito que eu teria introduzido).
+
+Contrato fixado por teste (`tests/test_danfe_ramos.py`):
+
+| Caso | Esperado |
+|---|---|
+| `qVol="duas"` | 1 volume **e** aviso em `ausentes` citando `"duas"` |
+| `qVol="3"` | 3 volumes e **sem** aviso |
+
+`app/danfe/etiquetas.py` segue em **100%** (229 statements; eram 227 — as duas linhas novas).
+
+### Não fiz
+
+Não mexi no leiaute da etiqueta para "imprimir a quantidade": o rótulo já diz `Volume i/n`, e `qVol` é
+quantidade do grupo, não do volume. Imprimir os dois criaria duas numerações concorrentes no mesmo
+papel. O que faltava era **avisar**, não desenhar mais.

@@ -327,3 +327,23 @@ class TestDamdfeRamos:
         corpo = texto_do_pdf(gerar_damdfe(dados))
         assert "INFORMAÇÕES COMPLEMENTARES" in corpo
         assert "Pedido 1234 do cliente" in corpo
+
+    def test_qvol_ilegivel_fica_registrado_nas_ausencias(self) -> None:
+        """1 etiqueta por grupo é aceitável; imprimir menos caixas sem avisar, não.
+
+        O aviso precisa sobreviver à montagem de `ausentes` (que é reescrita no fim da
+        extração) e precisa dizer o valor recebido, para o operador corrigir o XML ou
+        passar `quantidade_volumes` na mão.
+        """
+        dados = extrair_etiquetas(nfe(volumes=[{"qVol": "duas", "esp": "CAIXA"}]))
+
+        aviso = [a for a in dados.ausentes if "qVol" in a]
+        assert aviso, f"ausentes sem o aviso de qVol: {dados.ausentes}"
+        assert "duas" in aviso[0]
+        assert len(dados.volumes) == 1
+
+    def test_qvol_valido_nao_gera_aviso(self) -> None:
+        dados = extrair_etiquetas(nfe(volumes=[{"qVol": "3", "esp": "CAIXA"}]))
+
+        assert not [a for a in dados.ausentes if "qVol" in a]
+        assert len(dados.volumes) == 3
