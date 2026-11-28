@@ -5608,3 +5608,25 @@ teste alternativo citado no comentário — como já feito no `healthcheck`.
 
 **Não vou baixar o piso nem marcar em bloco.** A lista acima é o plano de trabalho, e cada exclusão será
 proposta individualmente.
+
+---
+
+## 116. Rotas de tributação: 67% → 100%
+
+**Data:** 2026-11-28. `tests/test_rota_tax.py` (11). Medição por módulo: **100%** (43 statements).
+
+| Rota | Casos provados |
+|---|---|
+| `GET /tax/aliquotas` | lista ordenada por ano, com todas as entradas da tabela |
+| `GET /tax/aliquotas/{ano}` | ano sem referência → **404** com instrução de informar alíquotas; ano com referência devolve |
+| `POST /tax/simular` | simulação válida devolve base e valores; base negativa → **422 com `erros` e `base_calculo`**; ano sem tabela → 422 |
+| `GET /tax/classificacoes` | limite respeitado; busca; filtro por ano (vigência); catálogo vazio não explode |
+| `GET /tax/classificacoes/catalogo` | metadados com total |
+| `GET /tax/classificacoes/{codigo}` | inexistente → 404; existente devolve o mesmo código |
+
+### Erro meu
+
+Montei o helper com **strings** (`"100.00"`) e campos `None`, mas `SimulacaoIn` exige `Decimal` e
+`ano_fato_gerador >= 2026`. Sete erros de validação de uma vez. Corrigi o helper, não o schema — o
+schema está certo em ser estrito: simulação com string livre é o tipo de entrada que esconde
+arredondamento.
