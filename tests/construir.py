@@ -21,6 +21,9 @@ CNPJ_EMITENTE = "11222333000181"
 CNPJ_DESTINATARIO = "11222333000181"
 
 _VALOR_DIGEST = base64.b64encode(b"\x00" * 20).decode()
+#: `SignatureValue` de um RSA-2048 tem 256 bytes. O stub usava o mesmo valor de 20 bytes do
+#: digest, o que não é assinatura possível — e o auditor passou a dizer isso.
+_VALOR_ASSINATURA = base64.b64encode(b"\x00" * 256).decode()
 
 
 # ----------------------------------------------------------------------
@@ -100,7 +103,7 @@ def _assinatura(pai: ET.Element, referencia: str) -> None:
     referencia_elem = _sub(info, "Reference", URI=f"#{referencia}")
     _sub(referencia_elem, "DigestMethod", algorithm="http://www.w3.org/2000/09/xmldsig#sha1")
     _sub(referencia_elem, "DigestValue", _VALOR_DIGEST)
-    _sub(assinatura, "SignatureValue", _VALOR_DIGEST)
+    _sub(assinatura, "SignatureValue", _VALOR_ASSINATURA)
 
 
 def _endereco(

@@ -34,6 +34,9 @@ class Contexto:
     #: para não colidir com o método :meth:`info` de registro de achado.
     chave_parseada: Any = None
     arquivo: str | None = None
+    #: Bytes como chegaram. Necessário para verificação criptográfica: re-serializar a árvore
+    #: muda prefixos de namespace e invalida o digest C14N.
+    bytes_originais: bytes | None = None
     extras: dict[str, Any] = field(default_factory=dict)
     achados: list[Achado] = field(default_factory=list)
     puladas: list[Pulada] = field(default_factory=list)

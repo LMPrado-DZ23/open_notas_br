@@ -4997,3 +4997,48 @@ disso: cobri-las exigiria afirmar que a assinatura confere, e ela não confere.
 2. A NF-e de fixture **já traz** uma `Signature` stub; assinei ao lado dela e o auditor leu a primeira,
    caindo em "sem X509Certificate". Passei a remover as assinaturas antes de assinar.
 3. `_primeiro_com_id` só olha filhos **diretos** da raiz: `Id` em `infNFe` nunca seria encontrado.
+
+---
+
+## 96. ASSIN-004 fechado — e dois bugs reais no auditor de assinatura
+
+**Data:** 2026-11-28. Continuação de §95.
+
+### O achado de §95 era do meu fixture, não do gerador
+
+Experimento isolado, com o mesmo caminho de assinatura da emissão:
+
+| Documento | `lxml.tostring` | `xml.etree.tostring` |
+|---|---|---|
+| DPS assinada | **verifica** | — |
+| NF-e sintética | **verifica** | **não verifica** |
+
+Causa: `ET.tostring` reescreve prefixos de namespace (`ns0:`) e o digest C14N deixa de casar. O gerador
+sempre esteve correto. Registrado como aviso de produto: **auditar bytes re-serializados gera falso
+negativo** — o auditor precisa dos bytes originais.
+
+### Mas o mesmo defeito existia no código, e foi corrigido
+
+`src/notasbr/regras/assinatura.py` fazia `etree.fromstring(ET.tostring(ctx.raiz))` — o mesmo round-trip,
+dentro do auditor. Resultado: **toda** assinatura válida era reportada como inválida. Correção: o
+`Contexto` passou a carregar `bytes_originais`, preenchido em `auditar_bytes`, e a verificação parseia
+esses bytes.
+
+### Dois falsos negativos adicionais corrigidos
+
+| Problema | Consequência antes | Correção |
+|---|---|---|
+| `X509Certificate` com quebras de linha + `b64decode(validate=True)` | erro "certificado não pôde ser lido" em qualquer documento formatado | remover espaços antes de decodificar |
+| `ASSIN-003` aplicava tamanhos de **digest** (20/32/48/64) também ao `SignatureValue` | aviso de "tamanho atípico" em **toda** assinatura RSA-2048 (256 bytes) | `SignatureValue` passa a esperar 128/256/384/512 |
+
+### Efeito colateral tratado no fixture, não afrouxando teste
+
+A `Signature` stub de `tests/construir.py` usava 20 bytes no `SignatureValue`. Com a regra correta, isso
+virou aviso — como deve ser, porque 20 bytes não é assinatura RSA possível. Em vez de mudar a expectativa
+do teste antigo (`test_unico_aviso_e_a_ausencia_de_certificado`), dei ao stub um `SignatureValue` de 256
+bytes, mantendo o `DigestValue` de 20 (SHA-1). O teste antigo continua valendo sem alteração.
+
+### Números
+
+`src/notasbr/regras/assinatura.py`: **73% → 94%** (108 statements, 6 faltantes: ramo de namespace
+divergente, leitura de certificado inválido e o `info` final, que exigem cenários mais exóticos).

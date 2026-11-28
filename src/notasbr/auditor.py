@@ -154,6 +154,7 @@ def _preparar_contexto(
     tipo: str,
     nome_corpo: str,
     arquivo: str | None,
+    bytes_originais: bytes | None = None,
 ) -> Contexto:
     corpo = navegar(raiz, nome_corpo)
     if corpo is None:
@@ -185,6 +186,7 @@ def _preparar_contexto(
         chave=chave,
         chave_parseada=chave_parseada,
         arquivo=arquivo,
+        bytes_originais=bytes_originais,
     )
     from .xml_util import namespace as _ns
 
@@ -217,7 +219,7 @@ def auditar_bytes(
     inicio = time.perf_counter()
     raiz = parse_seguro(dados, limite=limite_bytes)
     tipo, nome_corpo = _detectar(raiz)
-    contexto = _preparar_contexto(raiz, tipo, nome_corpo, arquivo)
+    contexto = _preparar_contexto(raiz, tipo, nome_corpo, arquivo, bytes_originais=dados)
 
     regras = regras_para(tipo)
     for definicao in regras:

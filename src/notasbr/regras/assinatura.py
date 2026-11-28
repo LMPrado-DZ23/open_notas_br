@@ -109,7 +109,9 @@ def valores(ctx: Contexto) -> None:
             )
             continue
         try:
-            decodificado = base64.b64decode(valor, validate=True)
+            # XMLDSig quebra base64 em linhas de 64 colunas; validar sem remover espaços recusaria
+            # qualquer assinatura formatada.
+            decodificado = base64.b64decode("".join(valor.split()), validate=True)
         except (binascii.Error, ValueError):
             ctx.erro_em(
                 "ASSIN-003",
@@ -118,7 +120,11 @@ def valores(ctx: Contexto) -> None:
                 campo=nome,
             )
             continue
-        if len(decodificado) not in (20, 32, 48, 64):
+        # DigestValue é um hash (20/32/48/64 bytes). SignatureValue é o RSA cifrado: 128/256/384/512
+        # bytes para 1024..4096 bits. Aplicar a lista de digest ao SignatureValue acusava toda
+        # assinatura RSA-2048 válida.
+        esperados = (20, 32, 48, 64) if nome == "DigestValue" else (128, 256, 384, 512)
+        if len(decodificado) not in esperados:
             ctx.aviso_em(
                 "ASSIN-003",
                 f"{nome} decodifica para {len(decodificado)} bytes, tamanho atípico "
@@ -155,7 +161,7 @@ def verificacao_criptografica(ctx: Contexto) -> None:
         return
 
     try:
-        der = base64.b64decode(certificado, validate=True)
+        der = base64.b64decode("".join(certificado.split()), validate=True)
         certificado_obj = x509.load_der_x509_certificate(der)
         pem = certificado_obj.public_bytes(Encoding.PEM)
     except (binascii.Error, ValueError) as exc:
@@ -167,7 +173,12 @@ def verificacao_criptografica(ctx: Contexto) -> None:
         return
 
     try:
-        raiz_lxml = etree.fromstring(ET.tostring(ctx.raiz))
+        # Usar os bytes originais: `ET.tostring` reescreve prefixos de namespace e invalida o digest
+        # C14N, fazendo toda assinatura válida parecer inválida (§95 fechado).
+        if ctx.bytes_originais is not None:
+            raiz_lxml = etree.fromstring(ctx.bytes_originais)
+        else:
+            raiz_lxml = etree.fromstring(ET.tostring(ctx.raiz))
         # signxml aceita PEM como str; aqui o PEM vem como bytes de `public_bytes`.
         XMLVerifier().verify(raiz_lxml, x509_cert=pem.decode("ascii"), expect_references=1)
     except Exception as exc:  # a biblioteca levanta tipos próprios

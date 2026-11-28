@@ -32,15 +32,19 @@ def certificado():
 
 @pytest.fixture
 def nfe_assinada(certificado) -> bytes:
+    """NF-e assinada no mesmo arranjo do documento real: `Signature` dentro de `NFe`.
+
+    `_primeiro_com_id` só olha filhos diretos, então o alvo é o elemento `NFe` — cujo filho `infNFe`
+    já traz o `Id` da fixture. Assinar o `nfeProc` exigiria inventar um segundo `Id`, e aí o auditor
+    acusaria ASSIN-002 por divergência entre `Reference` e o `Id` do corpo.
+    """
     raiz = etree.fromstring(nfe())
-    # A fixture traz uma `Signature` stub (sem certificado). Sem removê-la, o auditor lê a
-    # primeira e a verificação criptográfica cai em "sem X509Certificate".
     _remover_signatures(raiz)
-    # `_primeiro_com_id` só olha filhos DIRETOS da raiz; a NF-e sintética não traz `Id`.
-    corpo = next(e for e in raiz if etree.QName(e).localname == "NFe")
-    corpo.set("Id", "NFe112223330001815500100000000110000000010")
-    assinada = assinar(raiz, certificado)
-    return ET.tostring(assinada)
+    elemento_nfe = next(e for e in raiz if etree.QName(e).localname == "NFe")
+    assinado = assinar(elemento_nfe, certificado)
+    raiz.replace(elemento_nfe, assinado)
+    # Serializar com xml.etree reescreve prefixos (ns0:) e quebra o C14N; use lxml.
+    return etree.tostring(raiz)
 
 
 def _remover_signatures(raiz) -> None:
@@ -143,26 +147,24 @@ class TestEstrutural:
 
 
 class TestCriptografico:
-    def test_assinatura_do_proprio_gerador_e_avaliada(self, nfe_assinada: bytes) -> None:
-        """Achado aberto: o `signxml` não aceita a assinatura que o nosso gerador produz.
+    def test_assinatura_do_proprio_gerador_verifica(self, nfe_assinada: bytes) -> None:
+        """Achado §95 fechado: a assinatura confere quando os bytes não são re-serializados.
 
-        O teste não afirma que a assinatura é válida — registra que o verificador emite
-        ASSIN-004 (erro) sobre um documento assinado pelo próprio `app.nfse.signer`. Isso é
-        divergência a investigar, não comportamento aprovado. Enquanto não for resolvida,
-        nenhum teste deve declarar "assinatura íntegra" em cima deste gerador.
-
-        Ver docs/auditoria_inicial.md §95 (achado aberto).
+        A causa era o fixture, não o gerador: `ET.tostring` reescreve prefixos de namespace e o digest
+        C14N deixa de bater. Com `lxml.tostring` — o mesmo documento canônico que o assinador gerou — a
+        verificação passa e o auditor emite ASSIN-004 como **info**.
         """
         relatorio = auditar_bytes(nfe_assinada)
-        achados = {a.codigo for a in relatorio.achados}
 
-        assert "ASSIN-004" in achados, (
-            "o esperado hoje é a divergência; se sumir, investigue e atualize"
-        )
+        assert relatorio.por_severidade(Severidade.ERRO) == []
+        infos = [a for a in relatorio.achados if a.codigo == "ASSIN-004"]
+        assert infos, "a verificação criptográfica precisa rodar, não ser pulada"
+        assert "não foi validada" in infos[0].mensagem.lower()
 
     def test_assinatura_adulterada_e_recusada(self, nfe_assinada: bytes) -> None:
         """Mexer no corpo depois de assinar tem que invalidar o digest."""
         xml = nfe_assinada.replace(b"<vNF>", b"<vNF>1")
+        assert xml != nfe_assinada, "a mutação precisa realmente alterar o documento"
 
         assert "ASSIN-004" in _codigos(xml, Severidade.ERRO)
 
