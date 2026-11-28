@@ -153,3 +153,86 @@ class TestClientePara:
         )
 
         assert isinstance(cliente, MelhorEnvioClient)
+
+
+class TestRenovacao:
+    """Renovação do token: perto de vencer renova; falha desativa a credencial e explica."""
+
+    def _credencial(self, settings, tenant_id, *, valido: bool):
+        from datetime import UTC, datetime, timedelta
+
+        cofre = service._cofre(settings)
+        aad = service.aad_do_tenant(tenant_id)
+        return SimpleNamespace(
+            ativo=True,
+            tenant_id=tenant_id,
+            expira_em=(datetime.now(UTC) + timedelta(hours=5))
+            if valido
+            else (datetime.now(UTC) - timedelta(hours=1)),
+            access_token_selado=cofre.selar(b"access", aad=aad),
+            refresh_token_selado=cofre.selar(b"refresh", aad=aad),
+            sandbox=True,
+        )
+
+    async def test_token_valido_nao_renova(self) -> None:
+        settings = _settings()
+        tenant_id = uuid.uuid4()
+        credencial = self._credencial(settings, tenant_id, valido=True)
+
+        token = await service._token_valido(SessaoFalsa(credencial), credencial, settings)
+
+        assert token.access_token == "access"
+
+    async def test_vencido_renova_e_grava(self, monkeypatch) -> None:
+        settings = _settings()
+        tenant_id = uuid.uuid4()
+        credencial = self._credencial(settings, tenant_id, valido=False)
+        gravados: list = []
+
+        monkeypatch.setattr(service, "renovar", lambda **k: _token(access_token="novo"))
+
+        async def salvar(sessao, tenant_id_, token, *, sandbox, settings=None):
+            gravados.append(token)
+            return credencial
+
+        monkeypatch.setattr(service, "salvar", salvar)
+
+        token = await service._token_valido(SessaoFalsa(credencial), credencial, settings)
+
+        assert token.access_token == "novo"
+        assert gravados and gravados[0].access_token == "novo"
+
+    async def test_falha_na_renovacao_desativa_e_explica(self, monkeypatch) -> None:
+        settings = _settings()
+        tenant_id = uuid.uuid4()
+        credencial = self._credencial(settings, tenant_id, valido=False)
+        sessao = SessaoFalsa(credencial)
+
+        def renovar(**kwargs):
+            raise RuntimeError("refresh recusado")
+
+        monkeypatch.setattr(service, "renovar", renovar)
+
+        with pytest.raises(service.NaoAutorizado) as erro:
+            await service._token_valido(sessao, credencial, settings)
+
+        assert "autorizar de novo" in str(erro.value)
+        assert credencial.ativo is False
+        assert sessao.flushes == 1
+
+
+class TestStateMalformado:
+    def test_state_sem_tres_partes_recusa(self) -> None:
+        """`state` de callback chega do cliente: qualquer formato é possível."""
+        from app.core.config import Settings
+
+        settings = Settings(
+            environment="test",
+            nfse_adapter="mock",
+            master_encryption_key=base64.b64encode(b"k" * 32).decode(),
+        )
+
+        with pytest.raises(service.EstadoInvalido) as erro:
+            service.ler_estado("sem-pontos", settings)
+
+        assert "malformado" in str(erro.value)

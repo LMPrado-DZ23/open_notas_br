@@ -5510,3 +5510,30 @@ com aspas triplas e **quebrei a sintaxe** de `tests/test_frete_service.py`. Reve
 
 Resultado: a renovação fica para a próxima rodada, agora com `edit`/`write` em vez de replace de shell.
 O gate teria barrado o commit de qualquer forma, mas aqui quem barrou foi a verificação manual antes.
+
+---
+
+## 113. Frete: renovação de token e `state` malformado — módulo em 100%
+
+**Data:** 2026-11-28. `app/frete/service.py` **89% → 100%** (114 statements, 0 faltantes), somando os
+dois arquivos de teste de frete.
+
+| Caminho | Provado |
+|---|---|
+| token válido | não renova (usa o selado) |
+| **vencido** | renova, grava o novo token e devolve o novo |
+| **falha na renovação** | `ativo=False`, flush e `NaoAutorizado` com "autorizar de novo" |
+| `state` sem três partes | `EstadoInvalido` "malformado" |
+
+### Correção de método
+
+A rodada anterior quebrou a sintaxe do arquivo por usar `replace` de PowerShell com aspas triplas.
+Desta vez usei `edit` para inserir no ponto exato e `write` para acrescentar o último bloco — sem
+replace de shell. O resultado passou de primeira.
+
+### Números
+
+- `app/frete/service.py`: **100%** (era 86% sob a suíte completa antes das duas fatias de frete)
+- `app/frete/client.py`: **100%** (fatia 110)
+- Juntos, o subsistema de frete está coberto por **29 testes** (`test_frete_client.py`,
+  `test_frete_service.py`, `test_frete_persistencia.py`, `test_rota_fretes.py`).
