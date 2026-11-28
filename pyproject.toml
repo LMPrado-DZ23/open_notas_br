@@ -138,10 +138,15 @@ ignore_missing_imports = true
 [tool.coverage.run]
 source = ["notasbr", "app"]
 omit = ["*/alembic/*", "*/tests/*", "*/scripts/*"]
+# SQLAlchemy async retoma a execução em greenlet depois de cada `await`. Sem declarar isso, o
+# coverage perde os frames seguintes e **subnotifica** a cobertura de rotas e serviços: ramos
+# cobertos por teste apareciam como descobertos (§100).
+concurrency = ["greenlet", "thread"]
 
 [tool.coverage.report]
-# Piso de cobertura do projeto. Módulos fiscais e de segurança devem ficar acima
-# de 80% (critério de go-live); o total medido é 85%.
-fail_under = 80
+# Piso de cobertura do projeto. Medido em 2026-11-28, com `concurrency = greenlet`:
+# total 95% (10.867 statements, 547 descobertos), 83 de 176 arquivos em 100%.
+# O piso fica em 90 para travar regressão sem exigir o impossível.
+fail_under = 90
 show_missing = true
 exclude_also = ["if TYPE_CHECKING:", "pragma: no cover"]

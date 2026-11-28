@@ -5118,3 +5118,47 @@ incompleta (`optante_mei` ausente). Dois ajustes no dublê, nenhum no código.
 confirmada e bloqueio), `387-392` (erro de DPS/assinatura marcando `ERRO`), `415-416` (timeout
 ambíguo recuperado), `425`. São exatamente os caminhos de `emitir`, que exigem sessão e certificado
 montados — ficam para a fatia de `emissoes`.
+
+---
+
+## 100. Cobertura de 87,98% era subnotificação — a real é 95%
+
+**Data:** 2026-11-28. Descoberta ao revisar a entrega da fatia de `emissoes`.
+
+### O defeito estava na medição, não no código
+
+`pyproject.toml` não declarava `concurrency` no coverage. SQLAlchemy async retoma a execução em
+**greenlet** depois de cada `await`; sem essa declaração o coverage perde os frames seguintes. Efeito
+medido:
+
+| Configuração | Total | Descobertos |
+|---|---|---|
+| sem `concurrency` | 87,98% | **1.306** |
+| `concurrency = ["greenlet", "thread"]` | **95%** | **547** |
+
+Ou seja: **759 linhas** que os testes já executavam eram contadas como descobertas. Todos os números de
+cobertura anteriores nesta auditoria estavam pessimistas. Correção: uma linha no `pyproject.toml`, com o
+motivo escrito ao lado. Piso elevado de 80 para **90** (o medido é 95).
+
+Distribuição atual: **83 de 176 arquivos em 100%**; 21 abaixo de 90%; o pior arquivo tem 22 linhas
+descobertas (`app/nfse/errors.py`, 85%).
+
+### Fatia 10 — `emissoes.py` e `servico.py`
+
+`tests/test_emissoes_ramos.py` (82 testes). Medido com o arquivo novo sozinho: `emissoes.py` **47% →
+100%**, `servico.py` 90% → 91% (o resto vem da interação com a suíte). Cobre: DANFSe (PDF real, 404, sem
+XML), representação (formatos, 404, 422), catálogos, cancelamento (404/409/422/502/sucesso), registro de
+evento e seus erros, listagem, consulta, ramos de emissão e o timeout ambíguo recuperado.
+
+### Achados relatados na entrega que **não reproduzi** — precisam de triagem
+
+| # | Achado | Situação |
+|---|---|---|
+| 1 | Coverage sem `greenlet` subnotifica | **verificado por mim** (medido) |
+| 2 | Reenvio de fatura **não autorizada** responde **201** em vez de 200 | relatado, não reproduzido |
+| 3 | Timeout ambíguo **sem** nota deixa fatura em `PROCESSANDO`, sem evento de erro | relatado, não reproduzido |
+| 4 | 502 da SEFIN chega ao cliente como `repr` de dict, não JSON estruturado | relatado, não reproduzido |
+| 5 | Chave no body e depois no header gera **409 falso** (payload compara `idempotency_key`) | relatado, não reproduzido |
+
+Os itens 2 a 5 são contratos de API e comportamento fiscal; **não** foram corrigidos nesta fatia —
+corrigir sem reproduzir seria trocar um defeito por outro. Próxima fatia começa por reproduzi-los.
