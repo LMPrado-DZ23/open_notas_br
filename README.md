@@ -187,7 +187,7 @@ open_notas_br/
 │   ├── batches/ webhooks/    # Fase 5
 │   └── integrations/{dz23,brizu}/  # Fase 6
 ├── src/notasbr/              # biblioteca de auditoria de XML (sem dependências)
-├── tests/                    # 212 testes
+├── tests/                    # 2.437 testes
 ├── docs/                     # arquitetura, decisões, escopo, referências, roadmap
 └── openapi.json              # contrato gerado do FastAPI
 ```
@@ -297,18 +297,27 @@ Verificação de referência em `scripts/receptor_webhook.py` — validar o time
 
 Esta seção existe para não haver dúvida sobre o que está pronto.
 
+### Limites do que está provado
+
+- Cobertura é de **linha**, não de ramo: combinações de condição não exercitadas continuam possíveis.
+- **Nenhuma nota real foi transmitida.** A emissão foi validada com transporte simulado, contra os XSD
+  oficiais e com o certificado A1 local; produção segue com zero documentos emitidos por este código.
+- Achados abertos conhecidos estão listados em `docs/auditoria_inicial.md` (§130 e seguintes), com
+  gravidade e dono da decisão — inclusive o fail-open de `escopos: []` na rotação de chave.
+
 ### Pronto e verificado
 
 | Área | Evidência |
 |---|---|
 | `docker compose up` sobe API, worker, PostgreSQL e Redis | 4 containers `healthy`, `/health` 200 |
-| **567 testes** passando, cobertura total **85%** | `pytest --cov=app --cov=notasbr` |
-| Módulos fiscais e de segurança ≥ 80% | servico 85%, dps 91%, signer 89%, adapter 80%, tax/rtc 90%, certificates 97%, core/crypto 100%, core/security 100%, tenants 93/100% |
+| **2.437 testes** passando, cobertura total **100%** | `pytest --cov=app --cov=src/notasbr` |
+| Cobertura de linha em **100%** (10.902 statements, 0 descobertos) | `pytest --cov=app --cov=src/notasbr --cov-report=term-missing`; 94 de 176 arquivos em 100% antes da varredura final, hoje todos |
 | Fluxo fim-a-fim mockado | `python -m scripts.demo_e2e` → **18/18 verificações** |
 | Cofre A1 AES-256-GCM, assinatura XMLDSig | testes de cifra/decifra e validação de assinatura |
 | Webhook HMAC-SHA256 com retry/backoff | receptor real recebeu e validou a assinatura |
 | Idempotência em emissão, lote e parceiros | reenvio devolve 200 com a nota existente |
 | Configuração documentada sem divergir do código | teste compara `.env.example` com `Settings` |
+| Gate de CI completo (lint, formatação, tipos, segredos, deps, contrato OpenAPI, 115 XSD) | `python -m scripts.check_ci` → **9/9** |
 
 ### Produção restrita (homologação) — exige A1 real
 
@@ -365,7 +374,7 @@ existe** — nunca PDF incompleto.
 - Migração inicial com as 9 tabelas, sem drift (`alembic check`).
 - Multi-tenant com API key, rotação, isolamento e configuração fiscal por município.
 - Worker ARQ com batimento e healthcheck próprio.
-- 526 testes passando; `openapi.json` gerado do app (34 rotas, 43 schemas).
+- 2.437 testes passando; `openapi.json` gerado do app.
 
 **Caminho real da emissão (Fase 2 concluída, Fase 3 parcial)**
 

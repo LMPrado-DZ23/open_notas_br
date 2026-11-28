@@ -6190,3 +6190,26 @@ Cobertura de linha não é cobertura de ramo: combinações de condição não e
 possíveis. Também não prova comportamento de campo — as notas reais seguem proibidas e não foram
 enviadas. É por isso que o documento mantém a lista de achados abertos: cobertura mede o que foi
 executado, não o que está correto.
+
+---
+
+## 131. README fiel ao estado medido e limites declarados
+
+**Data:** 2026-11-28. O README ainda anunciava **212 testes / 567 testes / 85%** e "34 rotas".
+
+| Campo | Antes | Agora (medido) |
+|---|---|---|
+| Árvore de testes | "212 testes" | **2.437 testes** (soma de `--collect-only`) |
+| Status | "567 testes, cobertura 85%" | **2.437 testes, cobertura 100%** |
+| Módulos | lista de percentuais por módulo (80-100%) | cobertura de linha **100%** (10.902 statements, 0 descobertos) |
+| Migração | "526 testes; 34 rotas, 43 schemas" | **2.437 testes**; `openapi.json` gerado do app |
+
+Acrescentado ao README:
+
+- linha do **gate de CI** (`python -m scripts.check_ci` → 9/9), que faltava;
+- seção **"Limites do que está provado"** — cobertura de linha não é de ramo; **nenhuma nota real foi
+  transmitida**; achados abertos listados no documento de auditoria, inclusive o fail-open de
+  `escopos: []`.
+
+Motivo: um README que anuncia 85% quando a medição diz 100% é tão errado quanto o contrário. E anunciar
+100% sem dizer o que ele **não** cobre seria pior.
