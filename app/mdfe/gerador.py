@@ -15,6 +15,7 @@ from decimal import Decimal
 
 from lxml import etree
 
+from app.core.fiscal import dh_emi
 from app.mdfe import validar
 
 NS = "http://www.portalfiscal.inf.br/mdfe"
@@ -96,7 +97,7 @@ def gerar(dados: DadosMDFe) -> etree._Element:
     _sub(ide, "cMDF", dados.chave[35:43])
     _sub(ide, "cDV", dados.chave[-1])
     _sub(ide, "modal", "1")  # 1 = rodoviário
-    _sub(ide, "dhEmi", dados.data_emissao.strftime("%Y-%m-%dT%H:%M:%S-03:00"))
+    _sub(ide, "dhEmi", dh_emi(dados.data_emissao))
     _sub(ide, "tpEmis", "1")
     _sub(ide, "procEmi", "0")
     _sub(ide, "verProc", "open-notas-br")

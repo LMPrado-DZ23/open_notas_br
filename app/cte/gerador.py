@@ -12,6 +12,7 @@ from decimal import Decimal
 
 from lxml import etree
 
+from app.core.fiscal import dh_emi
 from app.cte import PapelTomador, validar
 
 NS = "http://www.portalfiscal.inf.br/cte"
@@ -100,7 +101,7 @@ def gerar(dados: DadosCTe) -> bytes:
     _sub(ide, "mod", "57")
     _sub(ide, "serie", dados.serie)
     _sub(ide, "nCT", dados.numero)
-    _sub(ide, "dhEmi", dados.data_emissao.strftime("%Y-%m-%dT%H:%M:%S-03:00"))
+    _sub(ide, "dhEmi", dh_emi(dados.data_emissao))
     _sub(ide, "tpImp", "1")
     _sub(ide, "tpEmis", "1")
     _sub(ide, "cDV", dados.chave[-1])

@@ -7,6 +7,7 @@ from decimal import Decimal
 
 from lxml import etree
 
+from app.core.fiscal import dh_emi
 from app.nfe.base import (
     NS_NFE,
     VERSAO,
@@ -58,7 +59,7 @@ def gerar_nfe(nota: NotaFiscal) -> bytes:
     _sub(ide, "mod", "55")
     _sub(ide, "serie", nota.serie)
     _sub(ide, "nNF", nota.numero)
-    _sub(ide, "dhEmi", emissao.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%S-03:00"))
+    _sub(ide, "dhEmi", dh_emi(emissao))
     _sub(ide, "tpNF", "1")
     _sub(ide, "idDest", "1" if nota.destinatario.uf == nota.emitente.uf else "2")
     _sub(ide, "cMunFG", nota.emitente.codigo_municipio)
@@ -173,8 +174,10 @@ def gerar_nfe(nota: NotaFiscal) -> bytes:
     _sub(det_pag, "tPag", "01")
     _sub(det_pag, "vPag", _t(total_bruto))
     if nota.informacoes_adicionais:
-        _sub(inf, "infAdic", None)
-        _sub(_sub(inf, "infAdic", None), "infCpl", nota.informacoes_adicionais)
+        # UM `infAdic` com `infCpl` dentro. Antes criava dois: um vazio e outro com o
+        # texto, e o XSD (maxOccurs=1) recusava toda NF-e com informação adicional.
+        inf_adic = _sub(inf, "infAdic", None)
+        _sub(inf_adic, "infCpl", nota.informacoes_adicionais)
 
     return b'<?xml version="1.0" encoding="UTF-8"?>' + etree.tostring(raiz)
 

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import contextlib
 import hashlib
+import logging
 import re
 import ssl
 import tempfile
@@ -35,6 +36,8 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import Encoding, NoEncryption, PrivateFormat
 from cryptography.hazmat.primitives.serialization.pkcs12 import load_key_and_certificates
 from cryptography.x509.oid import NameOID
+
+logger = logging.getLogger(__name__)
 
 #: OID do CNPJ no SAN (padrão ICP-Brasil para e-CNPJ).
 OID_CNPJ = x509.ObjectIdentifier("2.16.76.1.3.3")
@@ -199,6 +202,12 @@ class CertificadoA1:
         """
         contexto = ssl.create_default_context()
         contexto.minimum_version = ssl.TLSVersion.TLSv1_2
+        # `create_default_context` no Windows confia só no bundle do Python/OpenSSL, e as
+        # cadeias do SVRS/SEFAZ-SP sobem para raízes ICP-Brasil: sem isto o handshake falha
+        # com CERTIFICATE_VERIFY_FAILED. A função existia e nunca era chamada.
+        carregadas = _carregar_raizes_do_sistema(contexto)
+        if carregadas:
+            logger.debug("raizes_do_sistema_carregadas", extra={"quantidade": carregadas})
 
         with _diretorio_privado() as pasta:
             arquivo_cert = pasta / "cert.pem"

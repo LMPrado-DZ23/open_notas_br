@@ -6050,3 +6050,56 @@ linhas e o teste é determinístico. Corrigir agora custou menos que registrar d
 - `tax/auditoria_service.registrar` aceita `invoice_id` de outro tenant (leituras filtram).
 - Rate limit fail-open: documentado, risco aceito.
 - Fail-open de `escopos: []`: **segue com o senhor**, é mudança de contrato de segurança.
+
+---
+
+## 128. Três defeitos graves corrigidos (dhEmi, infAdic, raízes TLS) e 24 módulos em 100%
+
+**Data:** 2026-11-28. `tests/test_cofre_geradores_ramos.py` (61, subagente) +
+`tests/test_correcoes_fiscais.py` (9). `app` passou de 104 para **31 descobertos**.
+
+### Correção 1 — `dhEmi` deslocado (data fiscal errada)
+
+| Gerador | Antes | Depois |
+|---|---|---|
+| NF-e | `emissao.astimezone(UTC).strftime("...-03:00")` → **15:00-03:00** para instante de 12:00 | `dh_emi(emissao)` → `12:00:00-03:00` |
+| CT-e | `data.strftime("...-03:00")` sem converter | idem |
+| MDF-e | idem | idem |
+
+Regra única em `app/core/fiscal.py`: converte para `America/Sao_Paulo` e deixa o `isoformat` escrever o
+offset. Data sem fuso é tratada como já local (convenção do projeto). Teste cobre instante UTC, instante
+já local e **virada do dia** (01:00 UTC do dia 26 = 22:00 do dia 25).
+
+### Correção 2 — `<infAdic>` duplicado (NF-e recusada pelo XSD)
+
+`gerar_nfe` criava **dois** `infAdic` (um vazio e outro com `infCpl`); o XSD tem `maxOccurs=1`. Toda NF-e
+com informação adicional era inválida. Agora cria um só, e o teste **valida contra o leiaute oficial**
+depois de assinar — o teste que faltava.
+
+### Correção 3 — raízes ICP-Brasil nunca carregadas
+
+`_carregar_raizes_do_sistema` existia e **não era chamada** por `ssl_context()`. No Windows o contexto
+ficava restrito ao bundle do OpenSSL, e SVRS/SEFAZ-SP (raízes ICP-Brasil) falhavam com
+`CERTIFICATE_VERIFY_FAILED` — sintoma que parecia credencial. Agora é chamada, com log da quantidade.
+
+**Correção de registro:** a §28 deste documento afirmava que a função era "chamada por `ssl_context()`".
+Era **falso**: o código nunca a chamou. Fica retificado aqui, e a função agora é código vivo, com teste.
+
+### Ainda relatados, não corrigidos
+
+| Achado | Gravidade |
+|---|---|
+| Fault SOAP 1.1 não reconhecido (`nfe/soap.py:117` procura só 1.2) — SVRS/SP usam `.asmx` 1.1; o Fault vira `ErroDeRetorno` não classificado | **alto** |
+| `impressao_arquivo()` diz "SHA-256 do DER" mas hasheia o PEM (`cofre.py:189`) | baixo |
+| `CertificadoA1.de_pfx` não recusa certificado expirado; nenhum ponto da emissão consulta `expirado` | médio |
+| `cte/gerador.py:78-79` (`com_cep=True`) inalcançável pela API pública | — |
+| `nfse/constants.py:68` (fallback UTC-3) inalcançável com `tzdata` instalado | — |
+
+Material de chave em log/erro: **não encontrado** — `_cert_pem`/`_key_pem` são `repr=False`, `saude()`
+não inclui chave, e nenhuma mensagem carrega PEM. Controle positivo nos testes: `repr` e `saude()` sem
+`PRIVATE KEY`.
+
+### Cobertura
+
+24 módulos em **100%**: `certificates/cofre`, `nfe/*` (10), `nfse/*` (8), `cte/*` (4), `mdfe/*` (3),
+`danfse/*` (2). Suíte: 2.394 testes, exit 0.
