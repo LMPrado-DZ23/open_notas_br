@@ -5821,3 +5821,56 @@ grave da lista.
 
 Escrevi um teste extra para a linha 520 do A4 assumindo que remover `natOp` a popularia em `ausentes`.
 Não popula — e a linha já era coberta pela suíte completa. Removi o teste em vez de forçar a asserção.
+
+---
+
+## 123. Biblioteca `notasbr`: 95% → 100% (72 → 0) e o primeiro `pragma` justificado
+
+**Data:** 2026-11-28. 46 testes novos (4 arquivos, subagente com briefing fechado, verificado por
+execução). `src/notasbr` **95% → 100%**: 1.394 statements, **0 descobertos**.
+
+| Arquivo | Antes | Depois |
+|---|---|---|
+| `cli.py` | 94% (11) | **100%** |
+| `regras/chave_regras.py` | 92% (11) | **100%** |
+| `regras/estrutura.py` | 88% (9) | **100%** |
+| `auditor.py` | 94% (8) | **100%** |
+| `regras/tributos.py` | 95% (7) | **100%** |
+| `regras/base.py` | 95% (5) | **100%** |
+| `xml_util.py` | 95% (5) | **100%** |
+| `cadastros.py` | 95% (4) | **100%** (com `pragma`) |
+| `regras/assinatura.py` | 96% (4) | **100%** |
+| `regras/totais.py` | 97% (3) | **100%** |
+| `api.py`, `chave.py`, `modelos.py` | 96-99% | **100%** |
+
+### O `pragma` — e por que ele não é atalho
+
+Uma linha resistia: `cadastros.py:75`, `raise ValueError("base de CNPJ com caractere inválido")`.
+**Verifiquei a inalcançabilidade por medição, não por leitura:** varredura dos 0x110000 code points
+mostrou **zero** caracteres que sobrevivam ao regex de `normalizar_cnpj` (`[0-9A-Za-z]`) e falhem em
+`isdigit() or isalpha()`. Tentativas com `!`, espaço e `Ã` caem no `raise` anterior (comprimento).
+
+É **ramo morto**, não ramo não testado. Marquei com `# pragma: no cover` e o motivo escrito no código,
+incluindo a prova. Se a normalização mudar um dia, o comentário diz o que revalidar. Registro aqui para
+o senhor poder discordar: a alternativa seria **remover a checagem** (código de produção), o que não fiz
+sem sua decisão.
+
+### Comportamentos suspeitos que os testes revelaram
+
+1. **Item sem CFOP passa em silêncio** (`tributos.py:65`): o comentário diz que `OBRIG` cobre, mas
+   `OBRIGATORIOS["nfe"]` só lista `ide`, `emit` e `total`. `<det>` sem `prod/CFOP` **não gera achado
+   algum**.
+2. **`dhEmi` curto não deixa rastro** (`chave_regras.py:211`): retorna sem achado e sem `pular()`; o
+   relatório não distingue "conferido" de "não deu para conferir".
+3. **413 é defesa em profundidade** (`api.py:94-95`): a rota entrega o mesmo limite ao parser, então o
+   parser nunca discorda dela.
+4. **`cli.py:127-132`** (ramo `OSError`) não tem caso portátil no Windows; o contrato está fixado via
+   injeção, mas o caminho não é exercitado por arquivo real.
+5. **`xml_util.caminho_de`** para nó de outra árvore devolve só o nome da raiz, sem marcador de "não
+   localizado".
+6. **`cadastros.py:74-75`** era código morto defensivo (o item acima).
+
+### Minha verificação
+
+Rodei os quatro arquivos novos (passam), a suíte completa (exit 0) e medi `src/notasbr` isoladamente:
+**100%, 0 descobertos**. Não aceitei o relatório do subagente sem executar.

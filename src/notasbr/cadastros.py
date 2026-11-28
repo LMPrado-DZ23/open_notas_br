@@ -71,7 +71,11 @@ def dv_cnpj(base: str) -> str:
     base = normalizar_cnpj(base)
     if len(base) != 12:
         raise ValueError(f"base de CNPJ deve ter 12 posições, recebeu {len(base)}")
-    if not all(c.isdigit() or c.isalpha() for c in base):
+    # Inalcançável por construção: `normalizar_cnpj` só deixa passar [0-9A-Za-z], e todo caractere
+    # desse conjunto passa em `isdigit() or isalpha()`. Verificado por varredura dos 0x110000 code
+    # points (nenhum sobrevive ao regex e falha no teste). Fica como defesa para o dia em que a
+    # normalização mudar; excluída da medição por ser ramo morto, não ramo não testado.
+    if not all(c.isdigit() or c.isalpha() for c in base):  # pragma: no cover
         raise ValueError(f"base de CNPJ com caractere inválido: {base!r}")
     d1 = _digito_mod11(base, _PESOS_CNPJ_1)
     d2 = _digito_mod11(base + d1, _PESOS_CNPJ_2)
