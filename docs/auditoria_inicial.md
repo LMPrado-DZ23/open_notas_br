@@ -4843,3 +4843,44 @@ Estado final desta continuação, com o que foi **executado** (não herdado):
 2. Condomínios, Anexo VIII e representação em XML dependem de publicação oficial futura.
 3. Autorização NF-e/CT-e/MDF-e e NFC-e dependem de credenciamento/CSC do contribuinte.
 4. Produção fiscal: **zero notas**. Homologação: uma NFS-e autorizada documentada (§15).
+
+---
+
+## 90. Cobertura de todos os estados e municípios — o que é testável e o que não é
+
+**Data:** 2026-11-28. **Pedido:** validar em todos os estados e municípios, mantendo o gate 10/10.
+
+### O que foi testado (determinístico, sem rede)
+
+`tests/test_ufs_e_municipios.py` — **39 testes** sobre os dados versionados:
+
+| Verificação | Escopo |
+|---|---|
+| código IBGE com 7 dígitos | **5.571 municípios** |
+| prefixo do código coerente com a UF declarada | **5.571** |
+| código único e nome não vazio | **5.571** |
+| as **27 UFs** presentes, cada uma com município | 27 |
+| catálogo SEFAZ só com UF existente | **180 endpoints** |
+| endpoints sempre `https://` | 180 |
+| modelos conhecidos (55 NF-e, 57 CT-e, 58 MDF-e, 65 NFC-e, 67 CT-e OS) | 180 |
+| sem chave (UF, modelo, ambiente, serviço) duplicada | 180 |
+| UF fora do catálogo é 503 documentado, não URL inventada | 27 parametrizados |
+
+**Erro meu encontrado pelo próprio teste:** a primeira versão listava modelos `55/57/58` e falhou ao
+achar `65` (NFC-e). O dado estava certo; a expectativa, errada. Corrigi a expectativa e registrei para
+ninguém "consertar" o catálogo depois.
+
+### O que NÃO foi testado, e por quê
+
+1. **Emissão real por UF**: depende de autorizador e credenciamento do contribuinte. O catálogo
+   versionado tem **10 UFs** de NF-e (AM, BA, GO, MG, MS, MT, PE, PR, RS, SP); as demais usam
+   autorizador virtual. Não existe teste honesto de transmissão para UF sem endpoint e sem credencial.
+2. **Prefeitura por município**: na NFS-e nacional o município entra como código IBGE; a emissão vai ao
+   ambiente nacional, não a 5.571 webservices. Testar "todos os municípios" como transmissão seria
+   fabricar uma arquitetura que o padrão não tem.
+3. **Credencial municipal** (`exige_credencial_municipal`): o campo existe e é validado no schema; não
+   há credencial das 5.571 prefeituras para exercitar o caminho real.
+
+### Gate
+
+`scripts.check_ci` continua **10/10** — os testes novos não tocam rede, banco nem relógio.
