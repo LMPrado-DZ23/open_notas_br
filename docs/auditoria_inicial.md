@@ -4913,3 +4913,24 @@ O primeiro `test_worker_lote.py` montava o dicionário de modelos **antes** do `
 com `ops.BatchJob` **depois** — a comparação dava sempre falso e o dublê devolvia `None`, fazendo os
 três testes falharem com "lote não encontrado". Corrigido capturando a classe real antes do patch e
 documentado no próprio helper.
+
+---
+
+## 92. Fatia 3 de cobertura — rotas de certificado e de status de transporte em 100%
+
+**Data:** 2026-11-28. `tests/test_rota_certificados.py` (18) + `tests/test_rota_transportes_status.py` (10).
+
+| Módulo | Antes | Depois | Contratos provados |
+|---|---|---|---|
+| `app/api/v1/certificados.py` | 65% | **100%** | vazio→422, grande→413, duplicado→409, PFX ilegível→422 (todos com rollback), sucesso commita e devolve metadados sem PFX; saúde com três avisos distintos (sem certificado, expirado, expira em N dias); ativar/remover 404; uso de outro tenant 404 e histórico sem mensagem de erro |
+| `app/api/v1/transportes_status.py` | 75% | **100%** | 503 sem endpoint para a UF, 422 sem A1 ativo, 504 autorizador inacessível, 504 recusa definitiva com motivo; CT-e e MDF-e; circuito recebe **UF em maiúsculas**; `_cuf` para as **27 UFs** e 422 para UF desconhecida |
+
+### Detalhe que vale registro
+
+`_cuf` **reusa** a tabela UF→código da NF-e de propósito (comentário no código). O teste percorre as 27
+UFs e exige 27 códigos distintos — se a tabela da NF-e mudar, quebra aqui e não na emissão.
+
+### Nota sobre o certificado real
+
+Os testes de rota usam dublê do cofre: nenhum PFX entra na suíte. O certificado verdadeiro foi exercitado
+em prova local separada (§90): assinatura de DPS + validação no XSD oficial de 24/11/2026, sem transmissão.
