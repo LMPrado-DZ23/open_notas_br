@@ -5090,3 +5090,31 @@ Supus que `consultar_evento` levantasse em 404. A assinatura é `bytes | None` e
 `aliquota_municipal` documenta que o caminho de parametrização **não existe** (probe de 25/11/2026 com
 A1 real: 404 do IIS). Os testes fixam a diferença entre "não encontrado" (404), "não sei" (400/outros) e
 "recusado" (401/5xx): confundir os três faz o sistema zerar alíquota em silêncio.
+
+---
+
+## 99. Fatia 9 — serviço de emissão de 83% para 90%
+
+**Data:** 2026-11-28. `tests/test_nfse_servico_ramos.py` (14). Medido **sob a suíte completa**:
+`app/nfse/servico.py` **83% → 90%** (162 statements, 16 faltantes).
+
+| Regra | O que passou a ser provado |
+|---|---|
+| Configuração ausente | recusa citando `PUT /v1/me/config-fiscal` |
+| Configuração **ambígua** | tenant com dois municípios recusa e **lista os dois**, exigindo `municipio_ibge` — a nota não escolhe município |
+| IBS/CBS | vazio → `None`; **incompleto** → recusa dizendo o que falta ("todos ou nenhum"); completo → `Ibscbs` com `ind_final` padrão |
+| `_montar_entrada` | sem `cTribNac` recusa; sem CNPJ de prestador recusa; configuração válida monta `DpsInput` com município, valor e documento |
+| Recuperação após timeout | sem chave → `None`; chave sem NFS-e → `None`; chave com NFS-e → resposta recuperada |
+| Alíquota | `None` continua `None`; fração vira percentual |
+
+### Erro meu nesta fatia
+
+`_montar_entrada` é **keyword-only** e recebe `numero_dps`; chamei posicionalmente e depois com config
+incompleta (`optante_mei` ausente). Dois ajustes no dublê, nenhum no código.
+
+### O que falta (16 linhas)
+
+`155-156` (falha ao enfileirar webhook), `252/257` (desconto ≥ valor), `348-357/359` (rota não
+confirmada e bloqueio), `387-392` (erro de DPS/assinatura marcando `ERRO`), `415-416` (timeout
+ambíguo recuperado), `425`. São exatamente os caminhos de `emitir`, que exigem sessão e certificado
+montados — ficam para a fatia de `emissoes`.
