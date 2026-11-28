@@ -5537,3 +5537,31 @@ replace de shell. O resultado passou de primeira.
 - `app/frete/client.py`: **100%** (fatia 110)
 - Juntos, o subsistema de frete está coberto por **29 testes** (`test_frete_client.py`,
   `test_frete_service.py`, `test_frete_persistencia.py`, `test_rota_fretes.py`).
+
+---
+
+## 114. Adaptador: operações ADN, eventos e identificação da DPS
+
+**Data:** 2026-11-28. 11 testes acrescentados a `tests/test_adapter_descodificacao.py`.
+
+| Caso | Provado |
+|---|---|
+| `consultar_evento` 404 | devolve `None` (evento inexistente não é falha de transporte) |
+| `consultar_evento` 200 sem XML | levanta `ErroSefin` |
+| `distribuicao_dfe` | envia `cnpjConsulta` quando informado; **não** envia quando ausente |
+| `eventos_nfse` | devolve lote vazio com status `NENHUM_DOCUMENTO_LOCALIZADO` |
+| `_extrair_id_dps` | XML inválido → `None`; `infDPS` e variante `infDps`; sem `infDPS` → `None` |
+| `_nfse_de_dps` com XML inválido | não explode (gera documento com campos vazios) |
+
+### O teste que removi
+
+Escrevi um teste para `_chamar` repassar `timeout`, mas meu helper `_cliente()` **substitui** `_chamar`
+por um lambda — o teste nunca chegava ao código real e falhava com `KeyError`. Tentei construir o
+cliente sem o atalho, não funcionou de primeira e **removi o teste** em vez de deixá-lo verde por
+motivo errado. A linha 236 continua descoberta e registrada.
+
+### Medição
+
+Por módulo (`--cov=app.nfse.adapter` só com este arquivo): 74% — número que não compara com os 95% da
+suíte completa, porque vários caminhos do adaptador são exercitados por testes de emissão. A medição
+global fica para a próxima rodada, junto com o fechamento do que resta.

@@ -238,3 +238,82 @@ class TestOperacoesComChamarDublado:
 
         assert lote.status == "NENHUM_DOCUMENTO_LOCALIZADO"
         assert lote.documentos == []
+
+
+class TestOperacoesRestantes:
+    def test_consultar_evento_devolve_none_em_404(self) -> None:
+        cliente = _cliente(chamar=lambda *a, **k: _resultado(404))
+
+        assert cliente.consultar_evento("chave", "101101", 1) is None
+
+    def test_consultar_evento_sem_xml_levanta(self) -> None:
+        cliente = _cliente(chamar=lambda *a, **k: _resultado(200, {"outro": 1}))
+
+        with pytest.raises(ErroSefin):
+            cliente.consultar_evento("chave", "101101", 1)
+
+    def test_distribuicao_dfe_envia_cnpj_consulta(self) -> None:
+        visto: dict = {}
+
+        def chamar(metodo, url, operacao, **kwargs):
+            visto.update(kwargs)
+            return _resultado(
+                200, {"StatusProcessamento": "NENHUM_DOCUMENTO_LOCALIZADO", "LoteDFe": []}
+            )
+
+        cliente = _cliente(chamar=chamar)
+
+        cliente.distribuicao_dfe(0, cnpj_consulta="11222333000181")
+
+        assert visto["params"]["cnpjConsulta"] == "11222333000181"
+
+    def test_distribuicao_dfe_sem_cnpj_nao_envia_parametro(self) -> None:
+        visto: dict = {}
+
+        def chamar(metodo, url, operacao, **kwargs):
+            visto.update(kwargs)
+            return _resultado(
+                200, {"StatusProcessamento": "NENHUM_DOCUMENTO_LOCALIZADO", "LoteDFe": []}
+            )
+
+        _cliente(chamar=chamar).distribuicao_dfe(0)
+
+        assert "cnpjConsulta" not in visto["params"]
+
+    def test_eventos_nfse_devolve_lote(self) -> None:
+        cliente = _cliente(
+            chamar=lambda *a, **k: _resultado(
+                200, {"StatusProcessamento": "NENHUM_DOCUMENTO_LOCALIZADO", "LoteDFe": []}
+            )
+        )
+
+        lote = cliente.eventos_nfse("chave")
+
+        assert lote.documentos == []
+
+
+class TestIdentificacaoDaDps:
+    def test_extrair_id_de_xml_invalido_devolve_none(self) -> None:
+        from app.nfse.adapter import _extrair_id_dps
+
+        assert _extrair_id_dps(b"<nao-fechado>") is None
+
+    def test_extrair_id_encontra_infdps(self) -> None:
+        from app.nfse.adapter import _extrair_id_dps
+
+        assert _extrair_id_dps(b'<DPS><infDPS Id="DPS1"/></DPS>') == "DPS1"
+
+    def test_extrair_id_aceita_variante_infdps(self) -> None:
+        from app.nfse.adapter import _extrair_id_dps
+
+        assert _extrair_id_dps(b'<DPS><infDps Id="DPS2"/></DPS>') == "DPS2"
+
+    def test_extrair_id_sem_infdps_devolve_none(self) -> None:
+        from app.nfse.adapter import _extrair_id_dps
+
+        assert _extrair_id_dps(b"<DPS><outro/></DPS>") is None
+
+    def test_nfse_de_dps_com_xml_invalido_nao_explode(self) -> None:
+        from app.nfse.adapter import _nfse_de_dps
+
+        assert b"</" in _nfse_de_dps(b"<nao-fechado>", "chave")
