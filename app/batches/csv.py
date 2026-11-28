@@ -178,8 +178,12 @@ def ler_csv(conteudo: bytes) -> LoteLido:
             linha.erro = (
                 f"idempotency_key repetida (já usada na linha {vistos[linha.idempotency_key]})"
             )
-        elif linha.idempotency_key:
-            vistos[linha.idempotency_key] = indice
+        else:
+            # `_validar` roda SEMPRE: antes ele só era chamado quando havia chave, então
+            # linha sem `idempotency_key` passava como válida e ia para o banco com chave
+            # vazia — todas colidindo na busca de idempotência depois.
+            if linha.idempotency_key:
+                vistos[linha.idempotency_key] = indice
             _validar(linha)
 
         lote.linhas.append(linha)

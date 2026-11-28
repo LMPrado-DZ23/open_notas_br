@@ -5961,3 +5961,54 @@ Contrato fixado por teste (`tests/test_danfe_ramos.py`):
 Não mexi no leiaute da etiqueta para "imprimir a quantidade": o rótulo já diz `Volume i/n`, e `qVol` é
 quantidade do grupo, não do volume. Imprimir os dois criaria duas numerações concorrentes no mesmo
 papel. O que faltava era **avisar**, não desenhar mais.
+
+---
+
+## 126. Dois defeitos reais corrigidos (CSV e CEP) + serviços em 100%
+
+**Data:** 2026-11-28. `tests/test_servicos_ramos.py` (49, subagente) + `tests/test_correcoes_csv_cep.py` (6).
+**21 módulos de serviço em 100%**; `app` total: 9.484 statements, 104 descobertos.
+
+### Defeito 1 — bypass de `idempotency_key` vazia (`app/batches/csv.py`)
+
+`_validar` só era chamada dentro de `elif linha.idempotency_key:`. Linha **sem** chave nunca era
+validada: passava como válida e `batches/service.py:187` gravava `idempotency_key=""`. Todas as linhas
+sem chave colidiam na busca de idempotência, e o relatório saía como "uma deu certo, o resto já existe"
+em vez de recusar na leitura.
+
+Correção: `_validar` roda **sempre**; a chave só entra no controle de repetidas quando existe.
+
+| Caso | Antes | Depois |
+|---|---|---|
+| linha sem chave | aceita | `idempotency_key vazia` |
+| chave com 3 caracteres | recusada | recusada (inalterado) |
+| linha válida | aceita | aceita (inalterado) |
+
+### Defeito 2 — **500** na segunda consulta de CEP inexistente (`app/cep/service.py`)
+
+O "não existe" é cacheado como `{"nao_encontrado": True}` e o cache ia direto para `Endereco(**...)`:
+`TypeError` na segunda consulta dentro do TTL de 5 min — **500 em vez de 404**, e o cache negativo
+documentado nunca era aproveitado.
+
+Correção: o marcador é reconhecido e vira `CepNaoEncontrado`. Teste prova que a segunda consulta dá 404
+**e não vai à fonte** (`chamadas == ["99999999"]`).
+
+### Outros achados do bloco de serviços (relatados, não corrigidos)
+
+1. **`frete/oauth.py:145`** — `"resposta sem access_token: " + str(dados_resposta)[:300]` pode colocar
+   `refresh_token` no texto da exceção (log/corpo). Correção sugerida: listar só as **chaves**.
+2. **`core/circuit.py`** — MEIO_ABERTO diz "deixa passar uma tentativa", mas `permite()` não conta:
+   enquanto ninguém registrar sucesso/falha, **todos** passam. Divergência contrato × implementação.
+3. **`tax/auditoria_service.py:registrar`** aceita `invoice_id` de outro tenant (FK garante existência,
+   não posse). As **leituras** filtram por tenant — verificado. Defesa em profundidade.
+4. **Rate limit fail-open** (`core/ratelimit.py:123-130`): deliberado e documentado; com N instâncias sem
+   Redis a cota real é N×limite. Risco aceito, não defeito.
+5. **Isolamento entre tenants**: nada encontrado nos módulos tocados; os testes fixam chave revogada,
+   `do_documento` e DLQ invisíveis para outro tenant.
+
+### Nota de execução
+
+A primeira suíte completa deu ~60 erros de `connection was closed in the middle of operation` — relay de
+portas do Docker degradado, **não** as correções. Recriei `postgres` e `redis`, esperei `accepting
+connections` e rodei de novo: **exit 0, zero falhas**. Registro porque um "verde" obtido com o banco
+meio aberto não valeria nada.

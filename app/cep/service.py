@@ -56,6 +56,10 @@ class ServicoCep:
 
         em_cache = await self._ler_cache(chave)
         if em_cache is not None:
+            # O "não existe" também é cacheado. Sem este ramo, `Endereco(**{"nao_encontrado": True})`
+            # levantava `TypeError` e a segunda consulta do mesmo CEP inexistente virava 500.
+            if em_cache.get("nao_encontrado"):
+                raise CepNaoEncontrado(f"CEP {normalizado} não encontrado")
             return Endereco(**em_cache)
 
         try:
