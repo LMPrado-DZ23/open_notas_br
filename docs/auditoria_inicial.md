@@ -5162,3 +5162,44 @@ evento e seus erros, listagem, consulta, ramos de emissão e o timeout ambíguo 
 
 Os itens 2 a 5 são contratos de API e comportamento fiscal; **não** foram corrigidos nesta fatia —
 corrigir sem reproduzir seria trocar um defeito por outro. Próxima fatia começa por reproduzi-los.
+
+---
+
+## 101. Dois defeitos de contrato confirmados e corrigidos na emissão
+
+**Data:** 2026-11-28. Reprodução dos achados 2 e 5 de §100 — os dois **confirmados no código**, não
+apenas relatados.
+
+### 1. `Idempotency-Key` no body e depois no header gerava 409 falso
+
+**Causa:** `payload=dados.model_dump(mode="json")` guardava o body inteiro, incluindo
+`idempotency_key`. `_recusar_payload_divergente` comparava esse dump com o do novo pedido. Como a
+chave pode viajar pelo header **ou** pelo body (dois contratos válidos, o header vence), o mesmo
+pedido enviado uma vez de cada forma parecia "corpo diferente" e era recusado com 409.
+
+**Correção:** helper `_payload_comparavel` remove `idempotency_key` dos **dois** lados da comparação;
+o payload gravado também passa a ser o comparável.
+
+**Prova:** `test_chave_no_body_e_depois_no_header_nao_e_conflito` (201 na primeira, **200** na
+segunda) e `test_corpo_realmente_diferente_continua_409` — a correção não cegou a comparação: valor
+diferente continua 409.
+
+### 2. Reenvio de fatura **não autorizada** respondia 201
+
+**Causa:** só o ramo autorizado devolvia `JSONResponse(200)` explícito. O ramo "existe mas não está
+autorizada" devolvia o modelo e herdava `status_code=201` da rota — anunciando "criado" para algo que
+já existia. O comentário do próprio código dizia "devolve o estado atual".
+
+**Correção:** os dois ramos de estado atual (não autorizada e perdedor da corrida de
+`IntegrityError`) devolvem `JSONResponse(200)`.
+
+**Efeito nos testes:** dois testes da suíte afirmavam **201** — ou seja, fixavam o defeito. Foram
+atualizados para 200, com o motivo escrito no próprio teste. Isso é mudança de expectativa por
+correção de comportamento, não para deixar a suíte verde: o teste que falhava era o que exigia 200.
+
+### Achados que continuam **não reproduzidos**
+
+- **3**: timeout ambíguo sem nota deixaria a fatura em `PROCESSANDO`, sem evento de erro.
+- **4**: o 502 da SEFIN chegaria ao cliente como `repr` de dict em vez de JSON estruturado.
+
+Seguem sem correção até serem reproduzidos; não vou alterar caminho fiscal por relato de terceiro.

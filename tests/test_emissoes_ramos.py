@@ -24,6 +24,7 @@ externa, o dublê é instalado por `monkeypatch` no teste.
 
 from __future__ import annotations
 
+import json
 import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -469,10 +470,9 @@ class TestEmissaoHttp:
 
         segunda = await emitir(cliente, pronto["tenant"], "estado-nao-autorizado")
 
-        # 201, não 200: só o ramo *autorizado* devolve `JSONResponse(200)` explícito; o ramo
-        # "existe mas não está autorizada" devolve o modelo e herda o `status_code` da rota.
-        # Fica registrado como comportamento suspeito no relatório da auditoria.
-        assert segunda.status_code == 201, segunda.text
+        # 200, não 201: nada foi criado nesta chamada. Antes o ramo "existe mas não está
+        # autorizada" herdava o 201 da rota e anunciava criação que não houve (§101).
+        assert segunda.status_code == 200, segunda.text
         corpo = segunda.json()
         assert corpo["ja_existia"] is True
         assert corpo["status"] == StatusFatura.ERRO.value
@@ -585,7 +585,7 @@ class TestEmissaoHttp:
         monkeypatch.setattr(SefinMockAdapter, "emitir", contar_e_falhar)
         segunda = await emitir(cliente, pronto["tenant"], "nao-reprocessa")
 
-        assert segunda.status_code == 201
+        assert segunda.status_code == 200, segunda.text
         assert segunda.json()["ja_existia"] is True
         assert chamadas == 0, "fatura não autorizada não deve ser transmitida de novo"
 
@@ -633,11 +633,13 @@ class TestMapeamentoDeErros:
             settings=settings_mock(),
         )
 
-        assert isinstance(saida, emissoes.EmissaoOut)
-        assert saida.ja_existia is True
-        assert saida.status is StatusFatura.REJEITADA
-        assert saida.chave is None
-        assert saida.erro == "rejeitada pela SEFIN"
+        # Estado atual é 200 com corpo JSON: nada foi criado nesta chamada (§101).
+        assert saida.status_code == 200
+        corpo = json.loads(saida.body)
+        assert corpo["ja_existia"] is True
+        assert corpo["status"] == StatusFatura.REJEITADA.value
+        assert corpo["chave"] is None
+        assert corpo["erro"] == "rejeitada pela SEFIN"
 
     async def test_payload_divergente_da_409(self) -> None:
         existente = fatura(status=StatusFatura.AUTORIZADA, payload={"valor": "99.00"})
@@ -673,8 +675,10 @@ class TestMapeamentoDeErros:
         )
 
         assert sessao.rollbacks == 1, "transação perdedora precisa ser abandonada"
-        assert saida.ja_existia is True
-        assert saida.chave == CHAVE_MOCK
+        assert saida.status_code == 200
+        corpo = json.loads(saida.body)
+        assert corpo["ja_existia"] is True
+        assert corpo["chave"] == CHAVE_MOCK
 
     async def test_corrida_sem_fatura_visivel_da_409(self) -> None:
         sessao = SessaoFalsa(None, None)
@@ -1616,3 +1620,41 @@ class TestServicoEmitir:
 
         assert doc is existente
         assert not adapter.emitidos
+
+    async def test_chave_no_body_e_depois_no_header_nao_e_conflito(self, cliente, pronto) -> None:
+        """Mesma chave por canais diferentes é o mesmo pedido — 200, não 409 (§101).
+
+        Antes, o `payload` guardava o body inteiro, incluindo `idempotency_key`. O primeiro envio
+        levava a chave no body e o segundo no header (ambos contratos válidos, o header vence); a
+        comparação via diferença de campo e respondia 409 "corpo diferente" para um reenvio legítimo.
+        """
+        corpo = corpo_emissao("chave-dois-canais")
+        primeira = await cliente.post(
+            "/v1/emissoes", json=corpo, headers=cabecalho(pronto["tenant"])
+        )
+        assert primeira.status_code == 201, primeira.text
+
+        # Mesmo pedido de negócio; a chave agora só no header.
+        corpo_sem_chave = {k: v for k, v in corpo.items() if k != "idempotency_key"}
+        segunda = await cliente.post(
+            "/v1/emissoes",
+            json=corpo_sem_chave,
+            headers={**pronto["cabecalho"], "Idempotency-Key": "chave-dois-canais"},
+        )
+
+        assert segunda.status_code == 200, segunda.text
+        assert segunda.json()["ja_existia"] is True
+
+    async def test_corpo_realmente_diferente_continua_409(self, cliente, pronto) -> None:
+        """A correção não pode cegar a comparação: valor diferente é 409."""
+        primeira = await emitir(cliente, pronto["tenant"], "chave-corpo-diferente")
+        assert primeira.status_code == 201, primeira.text
+
+        segunda = await cliente.post(
+            "/v1/emissoes",
+            json=corpo_emissao("chave-corpo-diferente", valor="99.00"),
+            headers={**pronto["cabecalho"], "Idempotency-Key": "chave-corpo-diferente"},
+        )
+
+        assert segunda.status_code == 409, segunda.text
+        assert "corpo diferente" in segunda.text

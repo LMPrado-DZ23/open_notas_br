@@ -108,6 +108,16 @@ def _trava_de_idempotencia(tenant_id: uuid.UUID, chave: str) -> int:
     return int.from_bytes(resumo, "big", signed=True)
 
 
+def _payload_comparavel(payload: dict) -> dict:
+    """Payload sem a chave de idempotência.
+
+    A chave viaja no header `Idempotency-Key` **ou** no campo do body, e os dois são contratos
+    válidos. Comparar o dump inteiro fazia o mesmo pedido, enviado uma vez de cada forma, parecer
+    divergente e devolver 409 — recusa falsa de um reenvio legítimo.
+    """
+    return {k: v for k, v in payload.items() if k != "idempotency_key"}
+
+
 def _recusar_payload_divergente(existente: Invoice, dados: BaseModel) -> None:
     """Mesma `Idempotency-Key` com corpo diferente é **409**, não 200 silencioso.
 
@@ -119,8 +129,8 @@ def _recusar_payload_divergente(existente: Invoice, dados: BaseModel) -> None:
     então não precisa de coluna nova nem de migração. Corpo idêntico continua devolvendo **200** com
     `ja_existia: true`, que é o comportamento que o cliente que repete espera.
     """
-    original = existente.payload or {}
-    atual = dados.model_dump(mode="json")
+    original = _payload_comparavel(existente.payload or {})
+    atual = _payload_comparavel(dados.model_dump(mode="json"))
     if original == atual:
         return
     raise HTTPException(
@@ -223,9 +233,13 @@ async def emitir(
             return JSONResponse(  # type: ignore[return-value]
                 status_code=200, content=corpo.model_dump(mode="json")
             )
-        # Fatura existe mas não está autorizada: reprocessar seria duplicar
-        # tentativa sem o parceiro saber. Devolve o estado atual.
-        return _emissao_out(existente, documento, ja_existia=True)
+        # Fatura existe mas não está autorizada: reprocessar seria duplicar tentativa sem o
+        # parceiro saber. Devolve o estado atual — com **200**, porque nada foi criado agora
+        # (herdar o 201 da rota anunciava "criado" para uma fatura que já existia).
+        return JSONResponse(  # type: ignore[return-value]
+            status_code=200,
+            content=_emissao_out(existente, documento, ja_existia=True).model_dump(mode="json"),
+        )
 
     invoice = Invoice(
         tenant_id=tenant.id,
@@ -243,7 +257,7 @@ async def emitir(
         tomador_nome=dados.tomador_nome,
         tomador_email=str(dados.tomador_email) if dados.tomador_email else None,
         referencia_externa=dados.referencia_externa,
-        payload=dados.model_dump(mode="json"),
+        payload=_payload_comparavel(dados.model_dump(mode="json")),
     )
     db.add(invoice)
     try:
@@ -255,7 +269,12 @@ async def emitir(
             raise HTTPException(
                 status_code=HTTP_409, detail="conflito de idempotência ao criar a fatura"
             ) from None
-        return _emissao_out(existente, await _documento_da_fatura(db, existente), ja_existia=True)
+        return JSONResponse(  # type: ignore[return-value]
+            status_code=200,
+            content=_emissao_out(
+                existente, await _documento_da_fatura(db, existente), ja_existia=True
+            ).model_dump(mode="json"),
+        )
 
     # Laudo do cálculo na MESMA transação da fatura. Commitado à parte, uma emissão
     # que falhasse depois deixaria laudo de um cálculo que nunca virou nota — prova
