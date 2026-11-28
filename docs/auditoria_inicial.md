@@ -5772,3 +5772,52 @@ Confirmações que a medição trouxe: `tax/rtc.py`, `nfe/assinatura.py`, `core/
 `api/v1/tax.py`, `api/v1/consulta.py`, `frete/client.py`, `frete/service.py` estão **em 100%** —
 alguns já estavam antes da fatia que os mirou, o que mostra o valor de remedir em vez de confiar na lista
 anterior.
+
+---
+
+## 122. DANFE: 52 linhas descobertas → 0 (38 testes, delegado e verificado)
+
+**Data:** 2026-11-28. `tests/test_danfe_ramos.py` (38 testes, escrito por subagente com briefing fechado,
+**verificado por execução** antes do commit).
+
+| Módulo | Antes | Depois |
+|---|---|---|
+| `app/danfe/a4.py` | 97% (8) | **100%** |
+| `app/danfe/cte.py` | 97% (7) | **100%** |
+| `app/danfe/etiquetas.py` | 96% (9) | **100%** |
+| `app/danfe/mdfe.py` | 96% (8) | **100%** |
+| `app/danfe/nfce.py` | 93% (14) | **100%** |
+| `app/danfe/nfe.py` | 97% (6) | **100%** |
+| **Total** | 96% (52) | **100%** (0) |
+
+`Stmts` idêntico (1.322) antes e depois: **nenhuma linha de produção mudou**.
+
+### Comportamentos suspeitos que os testes revelaram (não corrigidos)
+
+Estes são achados do subagente, **fixados por teste** para não regredirem. Não foram corrigidos nesta
+fatia — cada um pede decisão de produto, não de teste:
+
+1. **Tomador assimétrico no DACTE**: `tomador_nome` lê `toma4/xNome` **e** `toma3/xNome`;
+   `tomador_documento` lê só `toma4`. CT-e com apenas `toma3` imprime nome sem documento, e `ausentes`
+   não acusa.
+2. **Documento fora do padrão passa calado**: `_formatar_documento` devolve o valor cru quando não tem
+   11 nem 14 dígitos. CNPJ truncado é impresso como se fosse válido, sem aviso.
+3. **`Volume.quantidade` é morto**: `qVol` é extraído e **nunca impresso**; `qVol` não numérico cai no
+   `except` e vira **1 volume** em silêncio — pode imprimir menos etiquetas que caixas.
+4. **QR Code de qualquer lugar no NFC-e**: falhando os dois caminhos do suplemento, aceita qualquer
+   `qrCode` do documento.
+5. **Contrato divergente**: `_formatar_moeda` do `nfe.py` não tem a guarda `if not valor` que os outros
+   quatro têm; funciona por `Decimal("")` levantar, mas é contrato diferente.
+6. **Truncamento sem reticência**: `a4 [:150]`, etiquetas `[:60]/[:96]`, `nfce [:70]/[:92]/[:52]`.
+   Razão social longa é cortada sem aviso.
+7. **MDF-e por varredura global**: `infMunCarrega`, `infMunDescarga`, `infPercurso` e `infCTe` usam
+   `raiz.iter()`; lista de chaves e `tot/qCTe` podem divergir sem acusar.
+
+Sobre a delegação: o briefing exigia medir antes/depois, não tocar em produção e relatar em vez de
+consertar. O subagente entregou as três coisas — e o item 3 (etiquetas a menos que caixas) é o mais
+grave da lista.
+
+### Meu erro nesta fatia
+
+Escrevi um teste extra para a linha 520 do A4 assumindo que remover `natOp` a popularia em `ausentes`.
+Não popula — e a linha já era coberta pela suíte completa. Removi o teste em vez de forçar a asserção.
