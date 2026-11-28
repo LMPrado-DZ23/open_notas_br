@@ -4884,3 +4884,32 @@ ninguém "consertar" o catálogo depois.
 ### Gate
 
 `scripts.check_ci` continua **10/10** — os testes novos não tocam rede, banco nem relógio.
+
+---
+
+## 91. Fatia 2 de cobertura — quatro módulos em 100%
+
+**Data:** 2026-11-28. `tests/test_rotas_cnpj_auditoria.py` (16) + `tests/test_worker_lote.py` (5).
+
+| Módulo | Antes | Depois | O que passou a ser provado |
+|---|---|---|---|
+| `app/api/v1/auditoria.py` | 59% | **100%** | 404 (não 403) para laudo de outro tenant; serialização com `data_emissao` nula; lista vazia; integridade verdadeira, falsa e ausente |
+| `app/api/v1/cnpj.py` | 47% | **100%** | cadeia de fontes com/sem token Serpro e com fallback ligado/desligado; 422 × 404 × 503 com `transitorio: true` |
+| `app/core/logging.py` | 36% | **100%** | redação dos 13 campos sensíveis, estruturas, bytes; JSON válido; logger raiz idempotente |
+| `app/worker/healthcheck.py` | 0% | **100%** | 3 saídas de `verificar()` + entrypoint executado como **subprocesso** (`python -m`) |
+| `app/worker/main.py` | 40% | **100%** | lote inexistente, tenant inexistente, lote válido, relatório nulo; `ping`, `heartbeat` com TTL, `entregar_webhooks` commitando |
+
+### Duas decisões que valem registro
+
+1. **`# pragma: no cover` em um único ponto** (`healthcheck.py`, guarda `__main__`): cobertura não mede
+   subprocesso, e o teste que prova a linha é o que executa o comando do Docker (`returncode == 1` com
+   Redis inacessível). O comentário no código aponta o teste — sem isso, a exclusão seria fé cega.
+2. **Nenhum teste novo toca rede ou banco**: dublês de sessão, de Redis e de serviço. O teste de
+   subprocesso usa `REDIS_URL` apontando para porta fechada, de propósito.
+
+### Erro meu encontrado no caminho
+
+O primeiro `test_worker_lote.py` montava o dicionário de modelos **antes** do `monkeypatch` e comparava
+com `ops.BatchJob` **depois** — a comparação dava sempre falso e o dublê devolvia `None`, fazendo os
+três testes falharem com "lote não encontrado". Corrigido capturando a classe real antes do patch e
+documentado no próprio helper.

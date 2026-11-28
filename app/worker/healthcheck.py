@@ -42,5 +42,7 @@ def main() -> int:
     return asyncio.run(verificar())
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover - só roda como `python -m`; provado por subprocesso
+    # Cobertura não mede subprocesso: `tests/test_worker_lote.py::TestEntrypointDoHealthcheck`
+    # executa este módulo como o Docker faz e exige saída 1 com Redis inacessível.
     raise SystemExit(main())
