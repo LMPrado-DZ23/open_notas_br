@@ -5673,3 +5673,37 @@ Nenhum dos três era defeito de código: em todos, o teste estava errado.
 
 A distinção 404 × 503 é o ponto: confundir faz o checkout dizer "CEP errado" quando as fontes é que
 caíram — e o cliente corrige um dado que estava certo.
+
+---
+
+## 119. Assinatura por risco: NF-e em 100%, recusas do assinador cobertas
+
+**Data:** 2026-11-28. `tests/test_assinatura_modulos.py` (10). Priorização **por risco** (assinatura
+primeiro), como propus em §118.
+
+| Módulo | Antes | Depois |
+|---|---|---|
+| `app/nfe/assinatura.py` | 81% | **100%** (31 statements) |
+| `app/nfse/signer.py` | 90% | 90% (as 6 linhas restantes são o `except` do `assinar` com dublê de `XMLSigner`, que tentarei na próxima fatia) |
+
+| Caso | Provado |
+|---|---|
+| NF-e assinada | contém `Signature`, algoritmo `rsa-sha1` (exigido pelo XSD) e namespace XMLDSig |
+| XML mal formado | `ErroAssinatura` "mal formada" |
+| sem `Id` | `ErroAssinatura` "sem atributo Id" |
+| `_primeiro_com_id` | ignora comentário |
+| `assinatura_sem_prefixo` | sem prefixo → `True`; XML quebrado → `False`; sem `Signature` → `False` |
+| falha do `signxml` na NF-e | vira `ErroAssinatura` "falha ao assinar a NF-e" |
+
+### Por que SHA-1 aqui não é descuido
+
+O XSD da NF-e fixa `SignatureMethod = rsa-sha1` e C14N inclusiva. O `signxml` recusa SHA-1 por padrão, e
+a subclasse `_AssinadorNFe` desliga a guarda **isoladamente**, com o motivo no código. O teste garante
+que a saída usa exatamente os algoritmos que o schema exige — se alguém "modernizar" para SHA-256, o
+teste quebra.
+
+### Erros meus
+
+Escrevi dois testes de verificação que não exercitavam o alvo (um deles com nome contradizendo a
+asserção) e passei `object()` como certificado, que falha antes do dublê. Removi os dois primeiros e
+passei certificado real.
