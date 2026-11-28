@@ -5657,3 +5657,19 @@ coberto em conjunto com os testes de emissão; esta fatia fecha o envelope e as 
    não existe no conftest — passei a gerar o PFX dentro do teste.
 
 Nenhum dos três era defeito de código: em todos, o teste estava errado.
+
+---
+
+## 118. Rota de CEP: 63% → 100%
+
+**Data:** 2026-11-28. `tests/test_rota_consulta_cep.py` (4). Medição por módulo: **100%** (27 statements).
+
+| Desfecho | Provado |
+|---|---|
+| sucesso | endereço com `codigo_ibge` (o campo que a emissão usa) |
+| formato inválido | **422** |
+| não encontrado | **404** |
+| fontes fora | **503** |
+
+A distinção 404 × 503 é o ponto: confundir faz o checkout dizer "CEP errado" quando as fontes é que
+caíram — e o cliente corrige um dado que estava certo.
