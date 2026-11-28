@@ -376,7 +376,7 @@ existe** — nunca PDF incompleto.
 - Worker ARQ com batimento e healthcheck próprio.
 - 2.437 testes passando; `openapi.json` gerado do app.
 
-**Caminho real da emissão (Fase 2 concluída, Fase 3 parcial)**
+**Caminho real da emissão (Fases 2–4 implementadas; transmissão pendente de credenciamento)**
 
 O fluxo completo funciona: **tenant → configuração fiscal → upload do A1 →
 DPS montada → assinada → enviada → XML autorizado persistido**.
@@ -397,8 +397,13 @@ DPS montada → assinada → enviada → XML autorizado persistido**.
 | `POST /v1/emissoes` idempotente | implementado |
 | Timeout de emissão tratado como **ambíguo** (consulta antes de reenviar) | implementado |
 | CNPJ alfanumérico (IN RFB 2.229/2024) | implementado, validado contra o exemplo oficial |
-| Consulta de CNPJ com cache/fallback, simulação IBS/CBS | **falta** (Fase 3) |
-| DANFSe/DANFE, apuração, lotes, webhooks, conectores | **falta** (Fases 4–9) |
+| Consulta de CNPJ com cache Redis e cadeia de fontes (404 ≠ 503) | **implementado**: `GET /v1/cnpj/{cnpj}`, `app/cnpj/service.py` |
+| Simulação IBS/CBS (RTC) com alíquotas por ano e catálogo `cClassTrib` | **implementado**: `POST /v1/tax/simular`, `GET /v1/tax/aliquotas`, `GET /v1/tax/classificacoes` |
+| DANFSe e documentos auxiliares (DANFE, cupom, DACTE, DAMDFE, etiquetas) | **implementado**: `POST /v1/representacoes` |
+| Apuração (SIMPLE/Presumido, guia) | **implementado**: `GET /v1/apuracoes`, `GET /v1/apuracoes/{id}/guia` |
+| Lotes assíncronos via CSV | **implementado**: `POST /v1/lotes`, `GET /v1/lotes/{id}` |
+| Webhooks assinados (HMAC-SHA256) com retry, backoff e DLQ | **implementado**: `/v1/me/webhook` |
+| Conectores de parceiros (DZ23, Brizu) | **implementado**: `/v1/integracoes/*` |
 
 ### Experimente agora, sem certificado real
 

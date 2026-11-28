@@ -151,9 +151,10 @@ async def rotacionar_chave(
     tenant.api_key_rotacionada_em = agora
     tenant.api_key_revogada_em = None
     tenant.api_key_expira_em = agora + timedelta(days=dias_validade) if dias_validade else None
-    # `None` = sem restrição. Lista vazia negaria tudo, então nunca é gravada por engano:
-    # `escopos or None` preserva o comportamento amplo nesse caso.
-    tenant.api_key_escopos = escopos or None
+    # `None` = sem restrição (chaves legadas/amplas). Lista vazia = **nenhum escopo**, e agora é
+    # gravada como veio: antes `escopos or None` transformava `[]` em "sem restrição", ou seja, pedir
+    # nenhum escopo concedia todos — fail-open. Quem quer chave ampla omite o campo.
+    tenant.api_key_escopos = list(escopos) if escopos is not None else None
     await sessao.flush()
     return tenant, chave_completa
 

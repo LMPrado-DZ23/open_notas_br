@@ -6213,3 +6213,58 @@ Acrescentado ao README:
 
 Motivo: um README que anuncia 85% quando a medição diz 100% é tão errado quanto o contrário. E anunciar
 100% sem dizer o que ele **não** cobre seria pior.
+
+---
+
+## 132. Fail-open de escopos corrigido e README sem "falta" que já existe
+
+**Data:** 2026-11-28.
+
+### Correção — `escopos: []` não concede mais tudo
+
+`app/tenants/service.py` gravava `tenant.api_key_escopos = escopos or None`. Como `deps.py` trata
+`None` como **sem restrição**, pedir **nenhum** escopo entregava **todos**: a chave mais restrita
+pedida era a mais ampla concedida.
+
+Agora:
+
+```python
+tenant.api_key_escopos = list(escopos) if escopos is not None else None
+```
+
+| Entrada | Antes | Agora |
+|---|---|---|
+| campo omitido / `None` | amplo | **amplo** (chaves legadas seguem funcionando) |
+| `[]` | **amplo** (fail-open) | **nenhum escopo** → 403 em leitura e emissão |
+| `["leitura"]` | só leitura | só leitura |
+
+`tests/test_correcoes_escopos.py` (8) fixa os quatro casos, incluindo `[]` negando `GET` **e** `POST`
+com `HTTPException` 403.
+
+### README — duas linhas de "falta" que estavam erradas
+
+O senhor apontou:
+
+```
+| Consulta de CNPJ com cache/fallback, simulação IBS/CBS | falta (Fase 3) |
+| DANFSe/DANFE, apuração, lotes, webhooks, conectores   | falta (Fases 4–9) |
+```
+
+Verifiquei por evidência, não por memória:
+
+| Item | Existe? | Prova |
+|---|---|---|
+| Consulta de CNPJ com cache e cadeia de fontes | **sim** | `GET /v1/cnpj/{cnpj}` no `openapi.json`; `app/cnpj/service.py` (100% coberto) |
+| Simulação IBS/CBS | **sim** | `POST /v1/tax/simular`, `GET /v1/tax/aliquotas`, `GET /v1/tax/classificacoes` |
+| DANFSe / DANFE / cupom / DACTE / DAMDFE / etiquetas | **sim** | `POST /v1/representacoes`; `app/danfe/*` e `app/danfse/*` |
+| Apuração | **sim** | `GET /v1/apuracoes`, `/v1/apuracoes/{id}`, `/v1/apuracoes/{id}/guia` |
+| Lotes | **sim** | `POST /v1/lotes`, `GET /v1/lotes/{id}` |
+| Webhooks | **sim** | `/v1/me/webhook`, `/v1/me/webhook/entregas` |
+| Conectores | **sim** | `/v1/integracoes/dz23/vendas`, `/v1/integracoes/brizu/atendimentos` |
+
+`openapi.json` tem **61 rotas** (o README dizia 34). As duas linhas viraram sete, cada uma com a rota e
+o módulo. O título "Fase 2 concluída, Fase 3 parcial" virou "Fases 2–4 implementadas; transmissão
+pendente de credenciamento" — porque o que falta **não** é código, é credenciamento e CSC.
+
+O que continua marcado como não pronto no README é o que de fato não está: transmissão de NF-e/NFC-e/
+CT-e/MDF-e (sem credenciamento), produção fiscal, NFP-e (fora de escopo) e MAN/DNA reais.
