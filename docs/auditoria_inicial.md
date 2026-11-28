@@ -5565,3 +5565,46 @@ motivo errado. A linha 236 continua descoberta e registrada.
 Por módulo (`--cov=app.nfse.adapter` só com este arquivo): 74% — número que não compara com os 95% da
 suíte completa, porque vários caminhos do adaptador são exercitados por testes de emissão. A medição
 global fica para a próxima rodada, junto com o fechamento do que resta.
+
+---
+
+## 115. Medição global após 25 fatias: **96%** (391 linhas, 88 arquivos)
+
+**Data:** 2026-11-28. Medido com `--cov=app --cov=src/notasbr`, `concurrency = greenlet`, suíte completa
+(0 skipped).
+
+| Métrica | Valor |
+|---|---|
+| Total | **96%** — 10.878 statements, **391 descobertos** |
+| Arquivos em 100% | **88** de 176 |
+| Arquivos abaixo de 90% | 12 |
+| Pior arquivo | 15 linhas (`app/certificates/cofre.py`, 90%) |
+
+### Comparação com o início da varredura
+
+| Momento | Total | Descobertos |
+|---|---|---|
+| Medição original (sem `greenlet`) | 87,98% | 1.306 |
+| Após corrigir a medição | 95% | 547 |
+| **Agora** | **96%** | **391** |
+
+### Mapa do que resta (por tamanho)
+
+15: `certificates/cofre.py` · 14: `api/v1/tax.py`, `danfe/nfce.py` · 11: `notasbr/cli.py`,
+`regras/chave_regras.py` · 10: `api/v1/consulta.py`, `tax/rtc.py` · 9: `danfe/etiquetas.py`,
+`nfse/drivers_abrasf.py`, `regras/estrutura.py` · 8: `api/v1/transportes.py`, `catalogo/__init__.py`,
+`danfe/a4.py`, `danfe/mdfe.py`, `nfe/gerador.py`, `notasbr/auditor.py` · 7: `batches/csv.py`,
+`core/redis.py`, `danfe/cte.py`, `frete/oauth.py`, `integrations/base.py`, `tenants/service.py`,
+`regras/tributos.py` · **≤6: 55 arquivos**, somando 154 linhas.
+
+Nenhum arquivo concentra mais de 15 linhas: o trabalho restante é de **dispersão**, não de bloco.
+
+### O que isso significa para o alvo de 100%
+
+Para chegar a 100% de linha seria preciso tocar **88 arquivos** — cerca de 22 fatias no ritmo atual. Desse
+total, uma parte não é alcançável sem dublar plataforma (subprocesso do worker, `httpx.AsyncClient`
+próprio, `sys.platform`, `if __name__`), e nesses casos a resposta correta é `# pragma: no cover` com o
+teste alternativo citado no comentário — como já feito no `healthcheck`.
+
+**Não vou baixar o piso nem marcar em bloco.** A lista acima é o plano de trabalho, e cada exclusão será
+proposta individualmente.
