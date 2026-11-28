@@ -4969,3 +4969,31 @@ em prova local separada (§90): assinatura de DPS + validação no XSD oficial d
 ### Números do espelho
 
 `cancelamento` 73 statements, `eventos` 75 — **ambos 0 faltantes**.
+
+---
+
+## 95. Fatia 6 — DPS em 100% e auditor de assinatura em 88%, com achado aberto
+
+**Data:** 2026-11-28. `tests/test_dps_validacao.py` (33) + `tests/test_auditor_assinatura.py` (13).
+
+| Módulo | Antes | Depois | O que ficou provado |
+|---|---|---|---|
+| `app/nfse/dps.py` | 91% | **100%** (300 statements) | todas as recusas: documento ausente/inválido, `cLocEmi`, série, `nDPS`, `dhEmi` sem fuso, valor zero, descrição vazia/longa, `cTribNac`/`cTribMun`, `opSimpNac`, `regEspTrib`, Simples sem `regApTribSN`, `tribISSQN`, `tpRetISSQN`, tomador sem nome, endereço (município/UF/CEP), IBS/CBS (`cIndOp`/`cClassTrib`/NBS/`indDest`); ramos de CPF do tomador e do prestador, `pAliq`, `pTotTribSN`, `indTotTrib` do MEI, leiaute anterior com `finNFSe` no grupo, descontos e `extrair_id` (válido, XML quebrado, sem `infDPS`) |
+| `src/notasbr/regras/assinatura.py` | 73% | **88%** | ASSIN-001 (sem Signature e namespace errado), ASSIN-002 (sem Reference, sem URI, URI divergente), ASSIN-003 (vazio, base64 inválido, tamanho atípico), ASSIN-005, e o ramo criptográfico avaliando documento assinado pelo próprio gerador |
+
+### Achado aberto (não é "pronto")
+
+O `signxml` **recusa** a assinatura produzida pelo nosso `app.nfse.signer` sobre a NF-e sintética:
+`ASSIN-004` sai como erro. Não sei ainda se a causa é (a) o gerador, (b) a estrutura artificial usada
+no teste (Signature referenciando `NFe`, com `infNFe` dentro) ou (c) o `signxml` exigindo
+`expect_references` diferente. O teste ficou **declarando a divergência**, não a aprovando, e falha se
+ela desaparecer sem investigação. Linhas 82-83, 145-150, 160 e 169-182 seguem descobertas por causa
+disso: cobri-las exigiria afirmar que a assinatura confere, e ela não confere.
+
+### Erros meus nesta fatia
+
+1. Supus que `cLocEmi` não era validado — é. Depois supus de novo que `cTribMun` aceitava qualquer
+   coisa — só aceita dígitos. Os dois testes foram reescritos.
+2. A NF-e de fixture **já traz** uma `Signature` stub; assinei ao lado dela e o auditor leu a primeira,
+   caindo em "sem X509Certificate". Passei a remover as assinaturas antes de assinar.
+3. `_primeiro_com_id` só olha filhos **diretos** da raiz: `Id` em `infNFe` nunca seria encontrado.
