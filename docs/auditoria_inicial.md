@@ -5289,3 +5289,22 @@ Escrevi um teste para `CRT=1` com grupo CST esperando erro de incoerência de re
 regra só acusa quando há CSOSN **e** CST no mesmo grupo (ou o inverso); CRT sozinho com CST não é
 incoerência para ela. Removi o teste e registro aqui, porque a próxima pessoa pode fazer a mesma
 leitura errada.
+
+---
+
+## 105. Erros fiscais: 85% → 100%
+
+**Data:** 2026-11-28. `tests/test_nfse_errors.py` (31). Medido **sob a suíte completa**:
+`app/nfse/errors.py` **85% → 100%** (151 statements, 0 faltantes).
+
+| Função | Casos provados |
+|---|---|
+| `_resumir` | colapsa espaços; HTML vira rótulo (página do IIS não é mensagem); texto longo trunca com `…` |
+| `_achatar` | `None`; texto; número; dict pelas cinco chaves conhecidas; dict desconhecido vira JSON válido; lista junta com `;`; lista vazia; objeto vira `str` |
+| `_uma_mensagem` | string vazia → `None`; dict com código e descrição; item não-dict |
+| `extrair_mensagens` | lista de strings; string solta; escalar; as cinco chaves de erro; valor escalar na chave; dict sem chave conhecida → vazio |
+| `extrair_alertas` | payload não-dict; lista; dict; valor inválido → vazio |
+| `ErroSefin` | `transitorio` por tipo; `pode_ter_sido_processada` no ambíguo; `str()` inclui as mensagens |
+
+O resumo curto importa: 3 KB de HTML não é "mensagem da SEFIN" — é ruído que esconde o `cStat` real e
+polui o registro do documento.
