@@ -5738,3 +5738,37 @@ Falharam com `RuntimeError: no running event loop`; era o teste, não o código 
 
 Ele foi medido antes das fatias 116–119. Arquivos como `tax/rtc.py` podem já estar fechados. Por isso a
 próxima medição global vai recontar tudo: prefiro descobrir isso medindo a anunciar um número velho.
+
+---
+
+## 121. Medição global após as fatias 116–120: **97%** (337 linhas)
+
+**Data:** 2026-11-28. Recontagem completa — o mapa de §115 estava velho.
+
+| Métrica | §115 | **Agora** |
+|---|---|---|
+| Total | 96% | **97%** |
+| Descobertos | 391 | **337** |
+| Arquivos em 100% | 88 | **94** de 176 |
+| Abaixo de 90% | 12 | **8** |
+| Pior arquivo | 15 | **14** |
+
+### Evolução da sessão
+
+| Momento | Total | Descobertos |
+|---|---|---|
+| Medição original (errada, sem `greenlet`) | 87,98% | 1.306 |
+| Correção da medição | 95% | 547 |
+| §115 | 96% | 391 |
+| **§121** | **97%** | **337** |
+
+### O que resta (top 10, medido agora)
+
+14 `certificates/cofre.py` · 14 `danfe/nfce.py` · 11 `notasbr/cli.py` · 11 `regras/chave_regras.py` ·
+9 `danfe/etiquetas.py`, `nfse/drivers_abrasf.py`, `regras/estrutura.py` · 8 `api/v1/transportes.py`,
+`catalogo/__init__.py`, `danfe/a4.py`, `danfe/mdfe.py`, `nfe/gerador.py`, `auditor.py`
+
+Confirmações que a medição trouxe: `tax/rtc.py`, `nfe/assinatura.py`, `core/redis.py`,
+`api/v1/tax.py`, `api/v1/consulta.py`, `frete/client.py`, `frete/service.py` estão **em 100%** —
+alguns já estavam antes da fatia que os mirou, o que mostra o valor de remedir em vez de confiar na lista
+anterior.
