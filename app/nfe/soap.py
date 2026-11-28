@@ -114,12 +114,22 @@ def extrair_falha(resposta: bytes) -> dict[str, str] | None:
     except etree.XMLSyntaxError:
         return None
 
+    # SOAP 1.2 (autorizadores estaduais) e SOAP 1.1 (SVRS/SP em `.asmx`). Procurar só no
+    # namespace 1.2 deixava o Fault de 1.1 passar como resposta normal: o erro virava
+    # `ErroDeRetorno("elemento não é retorno da SEFAZ: Fault")`, que não é classificado como
+    # definitivo — risco de retry indevido sobre uma falha que não vai melhorar.
     falha = raiz.find(f".//{{{NS_SOAP12}}}Fault")
+    if falha is None:
+        falha = raiz.find(f".//{{{NS_SOAP11}}}Fault")
+    if falha is None:
+        falha = raiz.find(".//Fault")  # sem namespace, como alguns retornam
     if falha is None:
         return None
 
     def _texto(tag: str) -> str:
         elemento = falha.find(f".//{{{NS_SOAP12}}}{tag}")
+        if elemento is None:
+            elemento = falha.find(f".//{{{NS_SOAP11}}}{tag}")
         if elemento is None:
             elemento = falha.find(f".//{tag}")
         return (elemento.text or "").strip() if elemento is not None else ""

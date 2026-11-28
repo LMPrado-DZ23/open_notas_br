@@ -6103,3 +6103,33 @@ não inclui chave, e nenhuma mensagem carrega PEM. Controle positivo nos testes:
 
 24 módulos em **100%**: `certificates/cofre`, `nfe/*` (10), `nfse/*` (8), `cte/*` (4), `mdfe/*` (3),
 `danfse/*` (2). Suíte: 2.394 testes, exit 0.
+
+---
+
+## 129. Fault SOAP 1.1 reconhecido (erro definitivo, não retry)
+
+**Data:** 2026-11-28. `app/nfe/soap.py` + `tests/test_soap_fault.py` (6 testes).
+
+**Antes:** `extrair_falha` procurava `Fault` **só** no namespace SOAP 1.2. SVRS e SEFAZ-SP respondem
+SOAP 1.1 (`.asmx`); o Fault deles não era reconhecido, e a resposta seguia como se fosse normal:
+`ErroDeRetorno("elemento não é retorno da SEFAZ: Fault")` — que **não** é classificado como definitivo.
+Um erro permanente era tratado como transitório: retry em laço, cota gasta, cliente esperando.
+
+**Depois:** procura em 1.2, 1.1 e sem namespace, e o texto também em 1.1 (`faultcode`/`faultstring`).
+
+| Teste | Prova |
+|---|---|
+| envelope 1.1 | `code`/`reason` extraídos |
+| envelope sem namespace | reconhecido |
+| envelope 1.2 | continua funcionando (sem regressão) |
+| resposta normal e XML quebrado | `None` |
+| **integração** `ClienteSefaz.chamar` com transporte que devolve Fault 1.1 | levanta `ErroSefazDefinitivo` com o código no texto |
+
+O teste de integração é o que fecha o buraco: os testes antigos só cobriam `extrair_falha` isolado —
+por isso a extração passava e o **caminho real** continuava errado para 1.1.
+
+### Restam relatados
+
+- `de_pfx` não recusa certificado expirado; nenhum ponto da emissão consulta `expirado` (médio).
+- `impressao_arquivo()` diz "SHA-256 do DER" mas hasheia o PEM (baixo).
+- Fail-open de `escopos: []` — **decisão do senhor**.
