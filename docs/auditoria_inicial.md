@@ -5707,3 +5707,34 @@ teste quebra.
 Escrevi dois testes de verificação que não exercitavam o alvo (um deles com nome contradizendo a
 asserção) e passei `object()` como certificado, que falha antes do dublê. Removi os dois primeiros e
 passei certificado real.
+
+---
+
+## 120. Cliente Redis em 100% e `tax/rtc.py` já estava em 100%
+
+**Data:** 2026-11-28. Dois achados de medição, um teste novo.
+
+| Módulo | Situação medida |
+|---|---|
+| `app/tax/rtc.py` | **já estava em 100%** sob a suíte completa — a contagem de §115 (10 linhas) envelheceu quando os testes de `/tax/simular` entraram |
+| `app/core/redis.py` | **73% → 100%** (26 statements) |
+
+`tests/test_core_redis.py` (8 testes):
+
+| Caso | Provado |
+|---|---|
+| criação | cliente no loop atual |
+| reuso | mesmo loop devolve o mesmo cliente |
+| **troca de loop** | cliente é recriado — o motivo do módulo existir |
+| `ping` | `True` quando responde; `False` com log quando cai |
+| `fechar` | fecha o pool, limpa `_redis` e `_loop`; sem cliente é no-op |
+
+### Erros meus
+
+Escrevi três testes **síncronos** para `obter_redis`, que exige loop em execução (`get_running_loop`).
+Falharam com `RuntimeError: no running event loop`; era o teste, não o código — `async def` resolveu.
+
+### Observação sobre o mapa de §115
+
+Ele foi medido antes das fatias 116–119. Arquivos como `tax/rtc.py` podem já estar fechados. Por isso a
+próxima medição global vai recontar tudo: prefiro descobrir isso medindo a anunciar um número velho.
