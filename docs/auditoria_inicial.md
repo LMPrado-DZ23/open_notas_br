@@ -4934,3 +4934,18 @@ UFs e exige 27 códigos distintos — se a tabela da NF-e mudar, quebra aqui e n
 
 Os testes de rota usam dublê do cofre: nenhum PFX entra na suíte. O certificado verdadeiro foi exercitado
 em prova local separada (§90): assinatura de DPS + validação no XSD oficial de 24/11/2026, sem transmissão.
+
+---
+
+## 93. Fatia 4 — lote e apuração em 100%
+
+**Data:** 2026-11-28. `tests/test_batches_service.py` (12) + `tests/test_assessment_service.py` (25).
+
+| Módulo | Antes | Depois | Regras provadas |
+|---|---|---|---|
+| `app/batches/service.py` | 43% | **100%** | linha inválida não interrompe o lote; relatório gravado mesmo com tudo falhando; `PARCIAL` × `CONCLUIDO`; chave já autorizada vira `ja_existia` **sem reemitir**; erro de linha faz rollback e registra; nome de arquivo truncado em 255 |
+| `app/assessment/service.py` | 53% | **100%** | competência `AAAA-MM` com faixa (2000–2100, mês 1–12); só documento **autorizado** entra; ISS por alíquota do município e base com desconto; aviso quando falta alíquota; erro de cálculo vira aviso e não derruba a apuração; apuração existente é atualizada, não duplicada; guia marca `FALHOU` quando o provedor recusa |
+
+### Detalhe que o teste fixou
+
+`flag_modified` no relatório JSONB: o teste usa **instância real** de `BatchJob`, não `SimpleNamespace` — com dublê simples o SQLAlchemy levanta `AttributeError` e o teste passaria a medir a si mesmo, não o código. Foi exatamente o que aconteceu na primeira tentativa e está registrado no helper.
