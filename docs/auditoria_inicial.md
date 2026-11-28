@@ -5630,3 +5630,30 @@ Montei o helper com **strings** (`"100.00"`) e campos `None`, mas `SimulacaoIn` 
 `ano_fato_gerador >= 2026`. Sete erros de validação de uma vez. Corrigi o helper, não o schema — o
 schema está certo em ser estrito: simulação com string livre é o tipo de entrada que esconde
 arredondamento.
+
+---
+
+## 117. Cofre do certificado: envelope selado e recusas de corrupção
+
+**Data:** 2026-11-28. `tests/test_cofre_envelope.py` (10). Medição por módulo: **60%** (o módulo é
+coberto em conjunto com os testes de emissão; esta fatia fecha o envelope e as recusas do `de_pfx`).
+
+| Caso | Provado |
+|---|---|
+| `selar_pfx`/`abrir_pfx` | ida e volta sem senha e **com senha** |
+| envelope de **outro tenant** | `ErroDeCriptografia` (o `aad` do tenant é a barreira) |
+| envelope truncado | corpo curto demais → `ErroCertificado` |
+| tamanho declarado > corpo | "inconsistente" |
+| tamanho zero | "inconsistente" |
+| `de_pfx` vazio | "arquivo de certificado vazio" |
+| `de_pfx` não-PKCS#12 | "senha incorreta ou arquivo que não é PKCS#12" |
+| PFX gerado no teste | CNPJ extraído, validade presente e PEM de chave começando em `-----BEGIN` |
+
+### Erros meus (três, no mesmo arquivo)
+
+1. `Cofre` espera **32 bytes crus**, não base64 — o envelope nunca era montado.
+2. `pytest.raises(Exception)` foi barrado pelo ruff (B017); troquei por `ErroDeCriptografia`.
+3. `material_para_assinatura()` devolve **str**, não bytes; e eu esperava uma fixture `certificado` que
+   não existe no conftest — passei a gerar o PFX dentro do teste.
+
+Nenhum dos três era defeito de código: em todos, o teste estava errado.
