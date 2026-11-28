@@ -5308,3 +5308,39 @@ leitura errada.
 
 O resumo curto importa: 3 KB de HTML não é "mensagem da SEFIN" — é ruído que esconde o `cStat` real e
 polui o registro do documento.
+
+---
+
+## 106. Regras da chave de acesso: 15 testes novos, cobertura do módulo **não** subiu
+
+**Data:** 2026-11-28. `tests/test_regras_chave.py` (15).
+
+| Regra | Casos provados |
+|---|---|
+| `CHAVE-FMT-001` | chave com tamanho errado → erro |
+| `CHAVE-DV-001` | DV trocado → erro; chave válida → sem erro |
+| `CHAVE-UF-001` | UF inexistente (99) **com DV recalculado** → erro |
+| `CHAVE-MOD-001` | modelo desconhecido (99) com DV recalculado → aviso |
+| `CHAVE-AMM-001` | mês 13 com DV recalculado → erro |
+| `CHAVE-CDV-001` | `cDV` divergente → erro; ausente → não avalia |
+| `CHAVE-EMIT-001` | CNPJ do emitente divergente → erro |
+| `CHAVE-CONSIST-001` | `nNF` divergente → erro |
+| `CHAVE-AMM-002` | `dhEmi` divergente → aviso; contingência → não exige |
+| `PROT-001` | chave do protocolo divergente → erro |
+| `AMB-001` | `tpAmb` inválido → erro |
+| sem chave | documento sem protocolo não gera erro de chave |
+
+**Resultado honesto: a cobertura do módulo ficou em 88%, a mesma de antes.** As 17 linhas restantes
+(28-34, 88, 114-115, 155, 188, 207-208, 211, 214-216, 237-238, 253, 268) são ramos que exigem mutações
+que eu não consegui acertar nesta rodada — tentei `Id` divergente e o teste acusou outros códigos
+(`ASSIN-002`, `CHAVE-DV-001`, `PROT-001`), sinal de que a mutação quebrava mais de uma coisa. Removi o
+teste em vez de deixá-lo passando por motivo errado.
+
+O que ficou registrado é comportamento, não número: as regras acima têm teste que falha se mudarem.
+A próxima tentativa neste arquivo deve mutar **um** campo e recalcular DV **e** `Id` juntos.
+
+### Aprendizado de método
+
+Mutar a chave de 44 dígitos exige recalcular o DV (`notasbr.chave.calcular_dv`), senão o parser
+recusa a chave inteira e as regras de UF/modelo/AAMM nem rodam. Esse helper ficou nos testes
+(`_recom_dv`) para a próxima rodada.
