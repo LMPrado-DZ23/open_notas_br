@@ -5453,3 +5453,35 @@ derrubaria um caminho de manutenção.
 4. O dublê de transporte devolvia `{}` para qualquer resposta com `_json` preenchido, mascarando os dois
    caminhos de erro; só depois de serializar o dict o teste passou a exercitar "formato inesperado".
    E `SERVICOS_IGNORADOS = ("1","2")` fez o serviço `id=1` sumir da cotação — troquei para `id=3`.
+
+---
+
+## 111. Frete: state OAuth assinado e recusas de token
+
+**Data:** 2026-11-28. `tests/test_frete_service.py` (10). Medição por módulo: **62%**
+(era 86% sob a suíte completa; esta fatia cobre o `state`, que já era coberto, e duas recusas de token).
+
+| Propriedade do `state` | Teste |
+|---|---|
+| ida e volta devolve o tenant | assinatura HMAC com a chave-mestra |
+| state **forjado** | assinatura inválida → `EstadoInvalido` |
+| state de **outro segredo** | chave-mestra diferente → recusa |
+| carimbo não numérico | recusa com "carimbo" |
+| **expirado** | 15 minutos + 60 s → recusa com "expirado" |
+| tenant não-UUID | recusa com "tenant" |
+
+Mais: troca de código sem credenciais configuradas (recusa citando as duas variáveis); delegação correta
+quando configuradas; credencial inativa e vencida sem refresh (mensagem manda refazer a autorização);
+`revogar` sem credencial devolve `False`.
+
+### Erros meus
+
+O dublê de credencial não tinha `access_token_selado`, e depois eu passei um envelope falso — o cofre
+valida antes de olhar o refresh. Só funcionou selando um token **real** com `_cofre(settings)`.
+Também substituí `_settings()` por `settings` em dois testes com um replace amplo e quebrei o outro.
+
+### O que falta neste módulo (43 linhas por módulo)
+
+`salvar` (108-127), `por_tenant` (131-134), `revogar` com credencial (142-147), a renovação
+(196-214) e `cliente_para` (221-228) — todos exigem sessão dublada e cofre real. Ficam para a próxima
+passada; a medição global segue em **96%**.
