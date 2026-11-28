@@ -5060,3 +5060,33 @@ Nenhuma chamada de rede: o serviço de frete é dublado.
 Usei `servico_id="1"` (string) no dublê; o schema `OpcaoOut` declara **int**, converte o valor, e a
 comparação `1 == "1"` dava falso — `mais_barata` virava `None` e o teste acusava o código. O dublê
 estava errado, não a rota. Corrigido para `int` e registrado aqui.
+
+---
+
+## 98. Fatia 8 — adaptador SEFIN de 81% para 90%, com as operações mapeadas
+
+**Data:** 2026-11-28. `tests/test_adapter_descodificacao.py` (32).
+
+Medido **sob a suíte completa** (`--cov=app.nfse.adapter`): **81% → 90%**
+(299 statements, 29 faltantes: `_chamar` com timeout, `consultar_dps`/`dps_existe`/`registrar_evento`
+recusando, `consultar_evento`, `_lote_adn` em erro, e trechos do dublê).
+
+| Área | O que passou a ser provado |
+|---|---|
+| `_get` | não-dict, busca ignorando caixa, ausente |
+| `_decodificar_xml` | vazio, não-string, gzip/base64 válido e conteúdo que **não** é gzip (vira texto, não explode) |
+| propriedades | `__repr__`, `tpAmb` 1/2 por ambiente, leiaute acompanha o ambiente |
+| `aliquota_municipal` | 401/5xx → erro; 200 com `aliquota` e com `valor`; **404 → não encontrado**; 400 → indeterminado; status inesperado → indeterminado com `HTTP n` |
+| dublê | falha proposital de emissão, NFS-e inexistente, context manager, eventos vazios |
+| operações | `consultar_dps` (404/200/500), `dps_existe` (usa HEAD, 200/404), `consultar_nfse` recusa, `registrar_evento` recusa, `consultar_evento` **404 → None** e 500 → erro, `distribuicao_dfe` |
+
+### Erro meu nesta fatia
+
+Supus que `consultar_evento` levantasse em 404. A assinatura é `bytes | None` e o código devolve `None`
+— evento inexistente não é falha de transporte. Corrigi o teste, não o código.
+
+### Por que "404 do ADN" importa
+
+`aliquota_municipal` documenta que o caminho de parametrização **não existe** (probe de 25/11/2026 com
+A1 real: 404 do IIS). Os testes fixam a diferença entre "não encontrado" (404), "não sei" (400/outros) e
+"recusado" (401/5xx): confundir os três faz o sistema zerar alíquota em silêncio.
