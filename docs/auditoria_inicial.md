@@ -5874,3 +5874,45 @@ sem sua decisão.
 
 Rodei os quatro arquivos novos (passam), a suíte completa (exit 0) e medi `src/notasbr` isoladamente:
 **100%, 0 descobertos**. Não aceitei o relatório do subagente sem executar.
+
+---
+
+## 124. Rotas `app/api`: 97% → 100% e um achado de segurança para decisão
+
+**Data:** 2026-11-28. `tests/test_rotas_v1_ramos.py` (21 testes, subagente, verificado por execução).
+`app/api` **97% (34) → 100%** (1.257 statements, 0 descobertos), 2.274 testes na suíte, exit 0.
+
+| Arquivo | Antes | Depois |
+|---|---|---|
+| `transportes.py` | 83% (8) | **100%** |
+| `representacoes.py` | 85% (6) | **100%** |
+| `integracoes.py` | 92% (6) | **100%** |
+| `admin.py` | 90% (3) | **100%** |
+| `tenants.py` | 95% (3) | **100%** |
+| `deps.py`, `apuracoes.py`, `health.py`, `municipios.py` | 94-97% | **100%** |
+
+### Achados — o primeiro é de segurança e pede sua decisão
+
+1. **Rotação com `escopos: []` produz chave IRRESTRITA (fail-open).** Verifiquei no código:
+   `app/tenants/service.py:155-156` faz `tenant.api_key_escopos = escopos or None`, e
+   `app/api/deps.py:49` trata `None` como "sem restrição". Pedir **nenhum** escopo entrega **todos**.
+   O comentário no serviço diz que é intencional ("preserva o comportamento amplo"), mas a assimetria
+   é perigosa: lista vazia deveria significar "nenhum escopo". **Não corrigi** — é mudança de contrato
+   de segurança e a decisão é sua.
+2. **Falha ao abrir o A1 vira 500** (`transportes.py:54` fora do `try`; `integracoes.py:140` só captura
+   `ErroDeCertificadoDeTenant`, e `ErroDeCriptografia` não é subclasse). Chave-mestra divergente vira
+   erro de servidor em vez de mensagem de configuração.
+3. **Replay idempotente perde a chave** (`integracoes.py:102`): repetir a venda devolve 200 com
+   `chave: null`, a primeira devolve a chave. Quem perdeu a resposta não recupera pelo retry.
+4. **Upload de representação é lido inteiro antes do 413** (`representacoes.py:66`): `read()` antes de
+   comparar com 5 MB — superfície de memória.
+5. **Isolamento entre tenants: nada encontrado** nas 9 rotas auditadas (`/apuracoes/{id}` e `/guia`
+   devolvem 404 para vizinho; certificado é por tenant; replay de DLQ exige `tenant_id` e escopa o item).
+   Isso é ausência de achado no escopo auditado, **não** prova de isolamento global.
+
+### Notas de execução
+
+O subagente pegou o relay de portas do Docker fechando conexões no primeiro comando e refez a linha de
+base após `docker compose restart postgres redis` — a tabela "antes" é dessa execução válida. Verifiquei
+o arquivo novo por execução (passa) e o achado 1 lendo o código, porque a sonda HTTP que tentei esbarrou
+na criação de tenant (422 por campos obrigatórios) e não provaria o caminho de forma limpa.
