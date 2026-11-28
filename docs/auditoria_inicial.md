@@ -5239,3 +5239,28 @@ virava `"{'tipo': 'indisponivel', ...}"` — o dado estava lá, mas não parseá
 Os dois primeiros patches que escrevi **não funcionaram** e eu vi isso rodando: o primeiro caía no
 `str(dict)` do fallback e o segundo perdia os extras porque o `Problema` é reconstruído no retorno.
 Só a terceira versão passou — e a verificação foi por execução, não por leitura.
+
+---
+
+## 103. Regras de totalização: 81% → 95%
+
+**Data:** 2026-11-28. `tests/test_regras_totais.py` (18 testes).
+
+| Regra | Casos provados |
+|---|---|
+| `TOTAL-VPROD-001` | soma divergente → erro; item sem `vProd` → **aviso e erro ao mesmo tempo** (aviso pelo dado faltante, erro pela divergência); `vProd` total ausente → pulo; soma correta → sem achado |
+| `TOTAL-VNF-001` | `vNF` zero e negativo → erro; ausente → não avalia |
+| `TOTAL-PAG-001` | `vPag` divergente → erro; grupo `pag` ausente → pulo; sem `vPag` → pulo; formato antigo (`vPag` direto em `pag`, sem `detPag`) → aceito |
+| `TOTAL-ITEM-001` | `qCom × vUnCom` divergente → aviso **e** informação de resumo; coerente → sem achado |
+| `CTE-PREST-001` | `vTPrest` zero → erro; `vRec` maior que a prestação → aviso; soma de componentes divergente → aviso |
+
+Medido: `src/notasbr/regras/totais.py` **81% → 95,5%** (5 linhas faltantes: 24, 110, 185-186, 208).
+
+### Erros meus nesta fatia
+
+1. Caminhos errados: os helpers de fixture navegam **desde a raiz**, então precisa ser
+   `NFe/infNFe/...`, não `total/...`. Cinco testes falharam por isso.
+2. Supus que item sem `vProd` gerasse **só** aviso. Gera aviso **e** erro — a soma fica menor que o
+   total e as duas afirmações são verdadeiras. Corrigi a expectativa, não a regra.
+3. Usei `com_campo` para `vTroco`, que **não existe** no fixture: troquei por um caso de formato
+   antigo (`vPag` direto em `pag`), que é o que a regra realmente cobre.
