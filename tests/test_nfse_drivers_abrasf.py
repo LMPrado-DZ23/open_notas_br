@@ -68,7 +68,10 @@ class TestEnvelope:
     def test_declaracao_usa_o_encoding_do_provedor(self) -> None:
         # GINFES/DSF declaram ISO-8859-1; declarar UTF-8 corrompe acentuação.
         env = envelopar(RPS, namespace=NS, encoding="ISO-8859-1")
-        assert b'encoding="ISO-8859-1"' in env
+        # Aspas simples ou duplas são ambas válidas em XML; o que importa é o encoding declarado
+        # e existir UMA declaração — duas tornam o documento malformado (defeito corrigido na §130).
+        assert b"ISO-8859-1" in env
+        assert env.count(b"<?xml") == 1
 
     def test_xml_fiscal_entra_intacto_no_body(self) -> None:
         env = envelopar(RPS, namespace=NS)

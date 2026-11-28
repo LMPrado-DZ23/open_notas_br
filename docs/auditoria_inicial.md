@@ -6133,3 +6133,60 @@ por isso a extração passava e o **caminho real** continuava errado para 1.1.
 - `de_pfx` não recusa certificado expirado; nenhum ponto da emissão consulta `expirado` (médio).
 - `impressao_arquivo()` diz "SHA-256 do DER" mas hasheia o PEM (baixo).
 - Fail-open de `escopos: []` — **decisão do senhor**.
+
+---
+
+## 130. `app` em 100% e envelope ABRASF com declaração única — **cobertura global 100%**
+
+**Data:** 2026-11-28. Medição global (`--cov=app --cov=src/notasbr`, suíte completa):
+
+```
+TOTAL                                   10902      0   100%
+```
+
+| Árvore | Antes (§121) | **Agora** |
+|---|---|---|
+| `app` | 31 descobertos | **0** |
+| `src/notasbr` | 0 (desde §123) | **0** |
+| **Global** | 97% (337) | **100%** (10.902 statements, 0) |
+
+23 testes em `tests/test_ultimos_ramos.py` fecharam `drivers_abrasf`, `cnpj/client`, `nfse/adapter`,
+`eventos_tipos`, `db/session`, `brizu/conector`, `tenants/schemas`, `webhooks/service`,
+`assinatura_rps`.
+
+### Defeito de produção corrigido no mesmo lote — declaração XML dupla
+
+`app/nfse/drivers_abrasf.py` prependava `<?xml ...?>` e o `etree.tostring(..., encoding=...)` emitia
+**outra** declaração. Em UTF-8 passava **por acidente** (o `tostring` não declara por padrão); em
+ISO-8859-1 — provedores legados GINFES/DSF, citados no docstring do próprio módulo — o envelope saía
+com **duas declarações** e era XML malformado:
+
+```
+ISO-8859-1 -> FALHOU: XMLSyntaxError | b'<?xml ... ISO-8859-1"?><?xml version=...'
+```
+
+Reproduzi com o código de produção antes de mexer. Correção: uma única declaração, emitida pelo lxml
+(`encoding=encoding, xml_declaration=True`). Testes novos fazem **parse** do envelope em UTF-8 e
+ISO-8859-1, em vez de procurar substring.
+
+**Teste existente ajustado, não afrouxado:** `test_declaracao_usa_o_encoding_do_provedor` exigia
+`encoding="ISO-8859-1"` com **aspas duplas** — formato que só existia por causa do defeito. Passou a
+exigir o encoding declarado **e uma única declaração**, que é o contrato correto.
+
+### Ainda relatados (sem correção)
+
+| Achado | Gravidade |
+|---|---|
+| Fail-open de `escopos: []` (lista vazia = todos os escopos) | **decisão do usuário** |
+| `de_pfx` não recusa certificado expirado; emissão não consulta `expirado` | médio |
+| `envelopar` reescreve prefixos (`nfe:`) do XML fiscal | baixo |
+| `desenvelopar` usa `errors="replace"` — pode mascarar resposta ilegível | baixo |
+| `_nfse_de_dps` engole qualquer exceção e zera base de IBS/CBS | baixo |
+| `impressao_arquivo()` diz SHA-256 do DER mas hasheia o PEM | baixo |
+
+### O que 100% de linha **não** significa
+
+Cobertura de linha não é cobertura de ramo: combinações de condição não exercitadas continuam
+possíveis. Também não prova comportamento de campo — as notas reais seguem proibidas e não foram
+enviadas. É por isso que o documento mantém a lista de achados abertos: cobertura mede o que foi
+executado, não o que está correto.

@@ -72,8 +72,11 @@ def envelopar(
     corpo = etree.SubElement(envelope, f"{{{ns_soap}}}Body")
     corpo.append(dados)
 
-    declaracao = f'<?xml version="1.0" encoding="{encoding}"?>'.encode("ascii", errors="replace")
-    return declaracao + etree.tostring(envelope, encoding=encoding)
+    # Uma única declaração, a do próprio lxml. Antes o código prependava uma declaração e o
+    # `tostring(..., encoding=...)` emitia outra: em ISO-8859-1 (GINFES/DSF legados) saíam
+    # **duas** declarações e o envelope era XML malformado — `XML declaration allowed only at
+    # the start of the document`. Em UTF-8 passava porque `tostring` não declara por padrão.
+    return etree.tostring(envelope, encoding=encoding, xml_declaration=True)
 
 
 def desenvelopar(
