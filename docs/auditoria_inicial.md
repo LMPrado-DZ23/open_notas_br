@@ -6012,3 +6012,41 @@ A primeira suíte completa deu ~60 erros de `connection was closed in the middle
 portas do Docker degradado, **não** as correções. Recriei `postgres` e `redis`, esperei `accepting
 connections` e rodei de novo: **exit 0, zero falhas**. Registro porque um "verde" obtido com o banco
 meio aberto não valeria nada.
+
+---
+
+## 127. Credencial fora da mensagem de erro (defeito de segurança corrigido)
+
+**Data:** 2026-11-28. `app/frete/oauth.py` + `tests/test_frete_oauth_sem_token.py` (3 testes).
+
+**Antes:** `raise ErroMelhorEnvio("resposta sem access_token: " + str(dados_resposta)[:300])`.
+Se o provedor devolvesse `refresh_token` **sem** `access_token` (resposta parcial, bug do lado dele), o
+refresh token entrava no texto da exceção — que vai para **log** e para o **corpo do erro HTTP**. Duas
+superfícies que sobrevivem à requisição, e a credencial é persistente.
+
+**Depois:** a mensagem lista apenas os **nomes** das chaves recebidas:
+
+```
+resposta sem access_token (chaves recebidas: refresh_token, scope)
+```
+
+| Teste | Prova |
+|---|---|
+| corpo `{"refresh_token": <segredo>}` | o segredo **não** aparece na mensagem; o nome `refresh_token` aparece (diagnóstico preservado) |
+| corpo `{}` | mensagem diz "nenhuma" |
+| corpo com `access_token` | token continua sendo usado normalmente (sem regressão) |
+
+Transporte dublado (subclasse de `httpx.Response`): nenhuma chamada de rede.
+
+### Por que tratei como prioridade
+
+O achado veio do bloco de serviços e eu o classifiquei como "relatar". Revendo, ele é **vazamento de
+credencial em dois canais persistidos** — o tipo de coisa que não deve esperar: a correção é de três
+linhas e o teste é determinístico. Corrigir agora custou menos que registrar de novo.
+
+### Ainda relatados, sem correção
+
+- `core/circuit.py`: MEIO_ABERTO não limita a uma tentativa (contrato × implementação).
+- `tax/auditoria_service.registrar` aceita `invoice_id` de outro tenant (leituras filtram).
+- Rate limit fail-open: documentado, risco aceito.
+- Fail-open de `escopos: []`: **segue com o senhor**, é mudança de contrato de segurança.

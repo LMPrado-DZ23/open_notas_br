@@ -142,7 +142,10 @@ def _requisitar_token(
 
     access = dados_resposta.get("access_token")
     if not access:
-        raise ErroMelhorEnvio("resposta sem access_token: " + str(dados_resposta)[:300])
+        # Só os NOMES das chaves: despejar o corpo pode colocar `refresh_token` no texto
+        # da exceção, que vai para log e para o corpo do erro.
+        chaves = ", ".join(sorted(str(k) for k in dados_resposta)) or "nenhuma"
+        raise ErroMelhorEnvio(f"resposta sem access_token (chaves recebidas: {chaves})")
 
     expira_em = None
     if expira_em_segundos := dados_resposta.get("expires_in"):
