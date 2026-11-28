@@ -5485,3 +5485,28 @@ Também substituí `_settings()` por `settings` em dois testes com um replace am
 `salvar` (108-127), `por_tenant` (131-134), `revogar` com credencial (142-147), a renovação
 (196-214) e `cliente_para` (221-228) — todos exigem sessão dublada e cofre real. Ficam para a próxima
 passada; a medição global segue em **96%**.
+
+---
+
+## 112. Frete: persistência da credencial (e um erro de ferramenta que custou a rodada)
+
+**Data:** 2026-11-28. `tests/test_frete_persistencia.py` (7). Com os dois arquivos de frete:
+`app/frete/service.py` **89%** (12 faltantes: 78, 188, 196-214).
+
+| Regra | Provado |
+|---|---|
+| `salvar` sela com `aad` do tenant | token de acesso e refresh abrem só com o `aad` correto |
+| tenant com credencial existente | **atualiza**, não duplica; `sandbox` acompanha |
+| resposta **sem** `refresh_token` | não apaga o refresh já guardado |
+| `revogar` | `ativo=False`, access `b""`, refresh `None`, `expira_em=None`, flush |
+| `cliente_para` sem credencial | recusa citando `oauth/iniciar` |
+| `cliente_para` com credencial | monta `MelhorEnvioClient` |
+
+### O que deu errado (e o que sobrou)
+
+Eu ia fechar também a **renovação** (`196-214`). Ao appendar o teste, usei um `replace` de PowerShell
+com aspas triplas e **quebrei a sintaxe** de `tests/test_frete_service.py`. Revertí o arquivo ao commit
+(`git checkout --`) em vez de tentar remendar no escuro — a versão commitada tem 10 testes passando.
+
+Resultado: a renovação fica para a próxima rodada, agora com `edit`/`write` em vez de replace de shell.
+O gate teria barrado o commit de qualquer forma, mas aqui quem barrou foi a verificação manual antes.
