@@ -411,6 +411,17 @@ async def emitir(
         if erro.pode_ter_sido_processada and id_dps:
             recuperada = await _tentar_recuperar(cliente, id_dps, erro)
             if recuperada is None:
+                # A nota **pode** existir: marcar ERRO seria mentir, e não registrar nada deixa a
+                # fatura em PROCESSANDO sem explicação. Registra o evento e mantém o status para
+                # reconciliação — o operador precisa saber por que a fatura parou (§101).
+                await _registrar_evento(
+                    sessao,
+                    invoice,
+                    "timeout_ambiguo",
+                    status=erro.tipo.value,
+                    mensagem=str(erro),
+                    resposta=erro.as_dict(),
+                )
                 raise
             resposta = recuperada
             logger.warning(

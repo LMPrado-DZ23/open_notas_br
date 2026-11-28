@@ -1551,10 +1551,9 @@ class TestServicoEmitir:
     ) -> None:
         """Timeout ambíguo cuja DPS não gerou NFS-e.
 
-        Comportamento atual (auditado, não corrigido aqui): o `raise` do caminho de
-        recuperação não passa por `_registrar_falha`, então a fatura fica em
-        `PROCESSANDO` e **nenhum** evento de erro é gravado — o operador vê a fatura
-        travada sem explicação. O teste retrata o estado de hoje.
+        A nota **pode** existir, então o status fica `PROCESSANDO` (marcar `ERRO` seria mentir).
+        O que mudou (§102): a tentativa inconclusiva passa a gravar o evento `timeout_ambiguo`.
+        Antes, o `raise` subia sem registro e o operador via a fatura travada sem explicação.
         """
         invoice = fatura()
         adapter = AdapterFalso(erro=ErroSefin(TipoErroFiscal.AMBIGUO, "timeout na SEFIN"))
@@ -1565,9 +1564,10 @@ class TestServicoEmitir:
                 sessao, tenant_falso(invoice.tenant_id), invoice, adapter=adapter
             )
 
-        assert invoice.status is StatusFatura.PROCESSANDO
+        assert invoice.status is StatusFatura.PROCESSANDO, "não pode afirmar ERRO sem saber"
         tipos = [evento.tipo for evento in sessao.adicionados if isinstance(evento, InvoiceEvent)]
-        assert "erro_sefin" not in tipos, "falha ambígua sem nota não é registrada hoje"
+        assert "erro_sefin" not in tipos, "falha ambígua não é rejeição definitiva"
+        assert "timeout_ambiguo" in tipos, "a tentativa inconclusiva precisa ficar registrada"
 
     async def test_rejeicao_marca_rejeitada(self, servico_dublado) -> None:
         invoice = fatura()
@@ -1658,3 +1658,30 @@ class TestServicoEmitir:
 
         assert segunda.status_code == 409, segunda.text
         assert "corpo diferente" in segunda.text
+
+
+class TestProblemaEstruturado:
+    """§102: `detail` dict não vira repr no problem+json."""
+
+    def test_dict_sem_mensagem_vira_texto_legivel(self) -> None:
+        from app.core.errors import de_http_exception
+
+        problema = de_http_exception(502, {"tipo": "indisponivel", "http_status": 503})
+        corpo = problema.para_dict()
+
+        assert not corpo["detail"].startswith("{"), "repr de dict não é detail"
+        assert "tipo=indisponivel" in corpo["detail"]
+        assert corpo["tipo"] == "indisponivel", "campo do erro precisa sobreviver"
+
+    def test_dict_com_mensagem_usa_a_mensagem(self) -> None:
+        from app.core.errors import de_http_exception
+
+        corpo = de_http_exception(422, {"mensagem": "campo ruim", "campo": "valor"}).para_dict()
+
+        assert corpo["detail"] == "campo ruim"
+        assert corpo["campo"] == "valor"
+
+    def test_texto_simples_continua_igual(self) -> None:
+        from app.core.errors import de_http_exception
+
+        assert de_http_exception(404, "não achei").para_dict()["detail"] == "não achei"

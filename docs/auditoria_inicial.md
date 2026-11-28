@@ -5203,3 +5203,39 @@ correção de comportamento, não para deixar a suíte verde: o teste que falhav
 - **4**: o 502 da SEFIN chegaria ao cliente como `repr` de dict em vez de JSON estruturado.
 
 Seguem sem correção até serem reproduzidos; não vou alterar caminho fiscal por relato de terceiro.
+
+---
+
+## 102. Achados 3 e 4 reproduzidos e corrigidos
+
+**Data:** 2026-11-28. Diferente dos achados de §101 (que li no código), estes dois foram confirmados
+com teste que falhava.
+
+### 3. Timeout ambíguo sem nota deixava a fatura sem explicação
+
+**Confirmado:** `if recuperada is None: raise` — o caminho não passava por `_registrar_falha` nem por
+`_registrar_evento`. A fatura ficava em `PROCESSANDO` (estado correto, porque a nota **pode** ter sido
+gerada) e **sem nenhum evento** — o operador via fatura parada sem motivo.
+
+**Correção:** grava evento `timeout_ambiguo` antes do `raise`. O status continua `PROCESSANDO` de
+propósito: marcar `ERRO` seria afirmar que não houve emissão quando não se sabe.
+
+**Teste:** o caso que retratava o defeito passou a **exigir** o evento.
+
+### 4. `detail` de erro da SEFIN chegava como repr de dict
+
+**Confirmado:** `texto = detalhe if isinstance(detalhe, str) else str(detalhe)`. Um `detail` dict
+virava `"{'tipo': 'indisponivel', ...}"` — o dado estava lá, mas não parseável por campo.
+
+**Correção:** `detail` dict agora:
+- usa `mensagem`/`detail`/`motivo` como texto, quando existem;
+- sem eles, monta `chave=valor` legível (nunca `str(dict)`);
+- os campos do dict sobem como **extras de primeiro nível** do problem+json (`tipo`, `http_status`, …).
+
+**Testes:** três casos (dict sem mensagem, dict com mensagem, texto simples).
+
+### Nota de processo
+
+Os dois primeiros patches que escrevi **não funcionaram** e eu vi isso rodando: o primeiro caía no
+`str(dict)` do fallback e o segundo perdia os extras porque o `Problema` é reconstruído no retorno.
+Só a terceira versão passou — e a verificação foi por execução, não por leitura.

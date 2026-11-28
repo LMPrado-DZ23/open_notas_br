@@ -146,7 +146,24 @@ def de_http_exception(status: int, detalhe: Any) -> Problema:
     `detail` continua existindo no corpo para não quebrar cliente que já lê esse
     campo — é o que torna a migração aditiva de verdade.
     """
-    texto = detalhe if isinstance(detalhe, str) else str(detalhe)
+    # `detail` pode ser dict (ex.: erro da SEFIN com tipo/mensagens). `str(dict)` vira repr e o
+    # cliente recebe um texto impossível de parsear; aqui o dict vira campos extras do problema.
+    extras: dict[str, Any] = {}
+    if isinstance(detalhe, str):
+        texto = detalhe
+    elif isinstance(detalhe, dict):
+        extras = dict(detalhe)
+        resumo = detalhe.get("mensagem") or detalhe.get("detail") or detalhe.get("motivo")
+        # Nunca `str(dict)`: o cliente receberia repr. Sem campo de resumo, monta `chave=valor`,
+        # que é legível e não finge ser texto livre.
+        texto = (
+            str(resumo)
+            if resumo
+            else "erro estruturado: "
+            + ", ".join(f"{chave}={valor}" for chave, valor in detalhe.items())
+        )
+    else:
+        texto = str(detalhe)
     base = {
         404: nao_encontrado,
         409: conflito,
@@ -163,6 +180,7 @@ def de_http_exception(status: int, detalhe: Any) -> Problema:
             retryable=status in TRANSITORIOS,
         )
     )
+    problema.extras.update(extras)
     return Problema(
         tipo=problema.tipo,
         titulo=problema.titulo,
@@ -170,5 +188,5 @@ def de_http_exception(status: int, detalhe: Any) -> Problema:
         detalhe=problema.detalhe,
         origem=problema.origem,
         retryable=problema.retryable,
-        extras={"detail": texto[:2000]},
+        extras={**problema.extras, **extras, "detail": texto[:2000]},
     )
