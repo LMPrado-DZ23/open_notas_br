@@ -5400,3 +5400,27 @@ tinha lido que a entrada é base64. Fica registrado porque é o tipo de detalhe 
 `229`, `244`, `273-279`, `296-297`, `322-343`: rotas de health/readiness e o handler de erro do
 request id. Ficam para a próxima passada — a medição global segue em **96%** (472 descobertos) e esta
 fatia acrescenta ~6 linhas.
+
+---
+
+## 109. Consulta de CNPJ: 81% → 100%
+
+**Data:** 2026-11-28. `tests/test_cnpj_service.py` (18). Medição por módulo: **100%** (91 statements).
+
+| Área | Casos provados |
+|---|---|
+| cache | sem Redis não lê; erro de leitura → `None`; JSON inválido → `None`; **hit evita as fontes** (0 chamadas); erro de escrita não derruba; invalidar sem Redis é no-op; invalidar apaga a chave; `invalidar` com CNPJ inválido não explode |
+| cadeia | CNPJ inválido propaga; primeira fonte fora → segunda responde; **não encontrado** grava cache com TTL curto (300 s) e levanta com a lista de fontes; todas fora → `FonteIndisponivel` com os motivos |
+| fallback local | sem base local propaga; com base local usa o último recurso e reporta `["base_local"]` |
+| contrato | `to_dict` expõe `do_cache` e `fontes_tentadas` |
+
+### Por que a distinção importa
+
+"CNPJ válido que as fontes não conhecem" (404) e "fontes não responderam" (503) levam o cliente a ações
+opostas: corrigir o dado × retentar. O teste fixa os dois desfechos, inclusive o cache curto de 300 s
+para não repetir consulta de CNPJ inexistente.
+
+### Detalhe
+
+`invalidar` engole `CnpjInvalido` de propósito: limpar cache não é operação de negócio, e explodir ali
+derrubaria um caminho de manutenção.
