@@ -5373,3 +5373,30 @@ próprio cliente e a chamada falha; exigiria dublar `httpx.AsyncClient`. Fica re
 O teste de rede falhou duas vezes antes de passar: primeiro faltava `codigo_http` no dublê, depois eu
 esperava `FALHOU` onde o comportamento correto é `PENDENTE` (falha de rede é retentável). Corrigi as
 expectativas — o código estava certo nas duas.
+
+---
+
+## 108. Boot e middleware: 85% → ~91% (medição por módulo: 83%)
+
+**Data:** 2026-11-28. `tests/test_main_middleware_metricas.py` (7).
+
+| Caminho | Provado |
+|---|---|
+| `X-Request-ID` em sucesso | header do cliente preservado; sem header, 32 hex gerados |
+| exceção não tratada | `requisicao_falhou` no log **e** a exceção é propagada (o middleware não engole) |
+| `/metrics` com Redis fora | 200 com `opennotas_worker_batimento 0` — métrica não derruba a rota |
+| `/metrics` com batimento | `opennotas_worker_batimento 1` |
+| `lifespan` em produção sem `ADMIN_API_TOKEN` | aviso `admin_api_token_ausente` no boot |
+| shutdown | fecha **engine** e depois **Redis**, nesta ordem |
+
+### Erro meu, três vezes no mesmo lugar
+
+`MASTER_ENCRYPTION_KEY` é **base64 de 32 bytes** (AES-256). Tentei `"0"*64` (48 bytes), depois
+`"k"*32` (24 bytes) e só então `base64.b64encode(b"k"*32)`. O validador estava certo nas três — eu não
+tinha lido que a entrada é base64. Fica registrado porque é o tipo de detalhe que custa três rodadas.
+
+### O que sobrou em `main.py` (21 linhas)
+
+`229`, `244`, `273-279`, `296-297`, `322-343`: rotas de health/readiness e o handler de erro do
+request id. Ficam para a próxima passada — a medição global segue em **96%** (472 descobertos) e esta
+fatia acrescenta ~6 linhas.
