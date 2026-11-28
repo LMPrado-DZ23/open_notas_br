@@ -5042,3 +5042,21 @@ bytes, mantendo o `DigestValue` de 20 (SHA-1). O teste antigo continua valendo s
 
 `src/notasbr/regras/assinatura.py`: **73% → 94%** (108 statements, 6 faltantes: ramo de namespace
 divergente, leitura de certificado inválido e o `info` final, que exigem cenários mais exóticos).
+
+---
+
+## 97. Fatia 7 — rotas de frete em 100%
+
+**Data:** 2026-11-28. `tests/test_rota_fretes.py` (20).
+
+| Módulo | Antes | Depois | Contratos provados |
+|---|---|---|---|
+| `app/api/v1/fretes.py` | 53% | **100%** | 503 sem configuração; 400 para `error` do lojista, `code`/`state` ausentes e `state` inválido; 502 quando o Melhor Envio recusa o código ou a cotação; 409 sem autorização; 422 sem CEP; sucesso do callback salva e commita; status com e sem refresh (vencido mas renovável × não); revogação com observação; `_cep_da_config` nos três casos (sem config, com `extra.cep`, sem `extra`); cotação com mais barata/mais rápida marcadas |
+
+Nenhuma chamada de rede: o serviço de frete é dublado.
+
+### Erro meu nesta fatia
+
+Usei `servico_id="1"` (string) no dublê; o schema `OpcaoOut` declara **int**, converte o valor, e a
+comparação `1 == "1"` dava falso — `mais_barata` virava `None` e o teste acusava o código. O dublê
+estava errado, não a rota. Corrigido para `int` e registrado aqui.
