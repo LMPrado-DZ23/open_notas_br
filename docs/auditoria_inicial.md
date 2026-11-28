@@ -4949,3 +4949,23 @@ em prova local separada (§90): assinatura de DPS + validação no XSD oficial d
 ### Detalhe que o teste fixou
 
 `flag_modified` no relatório JSONB: o teste usa **instância real** de `BatchJob`, não `SimpleNamespace` — com dublê simples o SQLAlchemy levanta `AttributeError` e o teste passaria a medir a si mesmo, não o código. Foi exatamente o que aconteceu na primeira tentativa e está registrado no helper.
+
+---
+
+## 94. Fatia 5 — cancelamento e eventos em 100%
+
+**Data:** 2026-11-28. `tests/test_cancelamento_service.py` (17) + `tests/test_eventos_service.py` (16).
+
+| Módulo | Antes | Depois | Guardas provadas |
+|---|---|---|---|
+| `app/nfse/cancelamento.py` | 45% | **100%** | já cancelada; sem documento com chave; motivo fora da tabela/curto; sem A1 ativo; A1 sem CNPJ; sucesso marca `CANCELADA` e registra evento; falha da SEFIN **não** cancela e preserva a tentativa; erro de montagem vira `MotivoInvalido`; sem adapter monta cliente real e **fecha** no `finally` |
+| `app/nfse/eventos.py` | 53% | **100%** | cancelamento é recusado (rota própria); tipo de ofício recusado sem permissão e aceito com ela; tipo inexistente; sem documento, sem certificado, certificado sem CNPJ; erro de payload **sobe** (422) em vez de virar 409; sequência = max+1; falha preserva trilha; sem adapter monta e fecha cliente |
+
+### Dois erros meus, pegos pelos testes
+
+1. **Recuo**: appendei dois métodos ao fim do arquivo e eles ficaram **dentro** de `async def _async`. A suíte não os executou — cobertura travou em 93% e eu quase tratei como limite do código. Corrigido movendo para a classe.
+2. **Dublê no nível errado**: `SessaoFila` recebia o documento em vez do **resultado** da consulta (`ResultadoFalso`), e o teste falhava com `AttributeError: 'SimpleNamespace' has no attribute 'scalars'`. Era o teste errado, não o código.
+
+### Números do espelho
+
+`cancelamento` 73 statements, `eventos` 75 — **ambos 0 faltantes**.
