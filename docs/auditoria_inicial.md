@@ -5344,3 +5344,32 @@ A próxima tentativa neste arquivo deve mutar **um** campo e recalcular DV **e**
 Mutar a chave de 44 dígitos exige recalcular o DV (`notasbr.chave.calcular_dv`), senão o parser
 recusa a chave inteira e as regras de UF/modelo/AAMM nem rodam. Esse helper ficou nos testes
 (`_recom_dv`) para a próxima rodada.
+
+---
+
+## 107. Entrega de webhook: 87% → 98%; cobertura global 96%
+
+**Data:** 2026-11-28. `tests/test_webhooks_erros.py` (6). Medição sob a suíte completa:
+
+| Item | Antes | Depois |
+|---|---|---|
+| `app/webhooks/service.py` | 87% (19 faltantes) | **98%** (3 faltantes: 201-202, 205) |
+| **Global** | 95% (547) | **96%** (472) |
+| Arquivos em 100% | 83 | **84** |
+
+| Caso | Desfecho provado |
+|---|---|
+| tenant sem segredo | `FALHOU` com "sem segredo" e flush |
+| segredo ilegível (chave-mestra trocada) | `FALHOU` com instrução de **rotacionar** e o tipo do erro — não retenta para sempre |
+| exceção inesperada em uma entrega | a **segunda** entrega é tentada; a primeira vira `FALHOU` com "erro inesperado"; contagem de entregues = 1 |
+| `httpx.HTTPError` | tratado como **retentável**: `PENDENTE`, `tentativas >= 1`, motivo "falha de rede" |
+
+As 3 linhas restantes: 201-202 são o `except httpx.HTTPError` (coberto pelo teste novo em medição
+isolada) e **205** é o `await http.aclose()` do cliente próprio — só ocorre quando o serviço cria o
+próprio cliente e a chamada falha; exigiria dublar `httpx.AsyncClient`. Fica registrado.
+
+### Efeito de aprender o caminho
+
+O teste de rede falhou duas vezes antes de passar: primeiro faltava `codigo_http` no dublê, depois eu
+esperava `FALHOU` onde o comportamento correto é `PENDENTE` (falha de rede é retentável). Corrigi as
+expectativas — o código estava certo nas duas.
