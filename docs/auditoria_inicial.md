@@ -5264,3 +5264,28 @@ Medido: `src/notasbr/regras/totais.py` **81% → 95,5%** (5 linhas faltantes: 24
    total e as duas afirmações são verdadeiras. Corrigi a expectativa, não a regra.
 3. Usei `com_campo` para `vTroco`, que **não existe** no fixture: troquei por um caso de formato
    antigo (`vPag` direto em `pag`), que é o que a regra realmente cobre.
+
+---
+
+## 104. Regras tributárias: 85% → 91%
+
+**Data:** 2026-11-28. `tests/test_regras_tributos.py` (16 testes).
+
+| Regra | Casos provados |
+|---|---|
+| `TRIB-CFOP-001` | 3 dígitos, grupo inicial inválido (9) e letra → **erro**; CFOP válido sem achado |
+| `TRIB-CFOP-002` | `tpNF=9` → aviso; CFOP de entrada com operação de saída → **erro** |
+| `TRIB-NCM-001` | ausente → aviso; 7 dígitos → aviso; válido sem achado |
+| `TRIB-ICMS-001` | item sem grupo de ICMS → erro; grupo sem CST nem CSOSN → erro; CST fora da tabela → erro; CSOSN fora da tabela → erro |
+| `TRIB-CRT-001` | CRT inválido (9) → erro; CRT ausente → pulo |
+| `TRIB-PIS-COFINS-001` | item sem grupo PIS → aviso |
+
+Medido: `src/notasbr/regras/tributos.py` **85% → 90,9%** (12 faltantes: 55, 61, 65, 88, 144, 157,
+177-182, 223, 244, 252-253).
+
+### Erro meu
+
+Escrevi um teste para `CRT=1` com grupo CST esperando erro de incoerência de regime. **Não gera** — a
+regra só acusa quando há CSOSN **e** CST no mesmo grupo (ou o inverso); CRT sozinho com CST não é
+incoerência para ela. Removi o teste e registro aqui, porque a próxima pessoa pode fazer a mesma
+leitura errada.
